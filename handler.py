@@ -123,25 +123,40 @@ def handler():
     return vehicles_data
 
 
-def comparison(poly_data = None,handler_data = None):
-    print(poly_data)
+def comparison(saved_data = None,detected_car_data = None):
+    #print(saved_data)
+    ###  поиск позиции по точке внутри полигона из приложения
+    ###  1 - делаем центральную точку внутри позиции найденного авто
+    ###  2 - ищем точку внутри
+
     temp = []
-    for i in poly_data:
-        temp.append()
+
+    ### нахождение центральной точки в найденных машинах
+    for i in range(len(detected_car_data)):
+        tempdata_x1 = detected_car_data[i][0][0]
+        tempdata_x2 = detected_car_data[i][1][0]
+        center_x = ((tempdata_x2 - tempdata_x1) / 2) + tempdata_x1
+        tempdata_y1 = detected_car_data[i][0][1]
+        tempdata_y2 = detected_car_data[i][2][1]
+        center_y = ((tempdata_y2 - tempdata_y1) / 2) + tempdata_y1
+        temp.append((center_x,center_y))
+    print(temp)
+    print(saved_data)
+    for k, sd_value in saved_data.items():
+        for j in range(len(temp)):
+            if is_inside_polygon(temp[j],sd_value):
+                print("обнаружен автомобиль на позиции: ", k)
 
 
 
-def is_point_inside_polygon(point, polygon):
-    """
-    Проверяет, находится ли точка внутри полигона (квадрата)
-    используя алгоритм ray casting
-    """
+def is_inside_polygon(point, polygon):
+    # Функция для проверки нахождения точки внутри полигона
     x, y = point
     n = len(polygon)
     inside = False
 
     p1x, p1y = polygon[0]
-    for i in range(1, n + 1):
+    for i in range(n + 1):
         p2x, p2y = polygon[i % n]
         if y > min(p1y, p2y):
             if y <= max(p1y, p2y):

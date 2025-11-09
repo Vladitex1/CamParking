@@ -51,7 +51,6 @@ class window():
         )
         self.setup_input_handlers() #Обработчик нажатий
         self.interface()
-          # ← ДОБАВЬ ЭТУ СТРОКУ
 
         dpg.setup_dearpygui()
         dpg.show_viewport()
@@ -195,7 +194,7 @@ class window():
 
         with dpg.viewport_menu_bar(): ##выпадающее меню
             with dpg.menu(label="Файл"):
-                dpg.add_menu_item(label="Открыть")
+                dpg.add_menu_item(label="Открыть", callback=lambda: dpg.show_item("file_dialog"))
                 dpg.add_menu_item(label="Сохранить")
                 dpg.add_menu_item(label="Выйти")
             with dpg.menu(label="About"):
@@ -264,11 +263,13 @@ class window():
                 with dpg.group(horizontal=True):
                     dpg.add_button(label="Load", callback=lambda: dpg.show_item("file_dialog"), width=80, height=25)
                     dpg.add_spacer(width=25)
-                    dpg.add_button(label="Save", callback=lambda: self.save_button(), width=80, height=25)
+                    dpg.add_button(label="Save", callback=lambda: dpg.show_item("save_dialog"), width=80, height=25)
+
                 with dpg.group(horizontal=True):
                     dpg.add_button(label="Clear", callback=lambda: self.clear_file(), width=80, height=25)
                     dpg.add_spacer(width=25)
                     dpg.add_button(label="Save As", callback=lambda: print("Button clicked!"), width=80, height=25)
+
 
                 dpg.add_spacer(height=2)
 
@@ -282,6 +283,18 @@ class window():
                 ):
                     dpg.add_file_extension("Images{.jpg,.jpeg,.png,.bmp,.gif}")
                     # dpg.add_file_extension("All files{.*}")
+
+                with dpg.file_dialog(
+                        directory_selector=False,
+                        default_filename="newmask.data",
+                        default_path="./saves",
+                        show=False,
+                        callback=self.save_button,  # Функция-заглушка
+                        id="save_dialog",
+                        width=500,
+                        height=400
+                ):
+                    dpg.add_file_extension("All files{.*}")
 
                 dpg.add_text("Selected file: None", tag="current_file")
 
@@ -315,6 +328,9 @@ class window():
 
 
                 dpg.add_separator()
+
+    def load_preset(self):
+        pass
 
 
     def update_polygons_list(self):
@@ -492,25 +508,22 @@ class window():
             self.editor_online = True
 
 
-
     def clear_file(self):
         self.dir, self.i, self.w, self.h = self.prepare_image()
         self.load_image(self.w, self.h, self.i)
         self.editor_online = False
 
-    def save_button(self):
+    def save_button(self, sender, app_data):
         self.savedata = {}
+        filepath = app_data["file_path_name"]
+        print("Сохраняемый файл:", filepath)
+        self.current_file = app_data["file_name"]
         for i, poly in enumerate(self.polygons):
             del poly['points'][(len(poly['points'])-1)]
             self.savedata.setdefault(poly['name'], poly['points'])
 
-            #print(self.savedata)
-        file.save_data(self.savedata)
-        #file.save_data(data)
-            #for j in poly['points']: #нахождение верхней левой точки
-               # print(j)
-       # save()
-        #file.save_data(polygons[])
+        file.save_data(self.savedata,filepath)
+
 
     def get_current_image_info(self):
         return self.image_path,self.image_data,self.image_width,self.image_height
