@@ -10,11 +10,11 @@ class Main:
 
         saved_data = file.read_data()
         data = h.handler()
-        print(saved_data)
-        print(data)
-        #h.comparison(saved_data,data)
-        #print()
-#[уй
+        print("saved_data: " + str(saved_data))
+        print("data: " + str(data))
+        h.comparison(saved_data,data)
+        print()
+        print("фывфы")
 if __name__ == "__main__":
     Main()
 

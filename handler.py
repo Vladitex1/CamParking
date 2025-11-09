@@ -2,9 +2,9 @@ from ultralytics import YOLO
 import os
 import cv2
 
-
-model_path = "models/yolov8x.pt"  # выбор активной модели
+model_path = "../backup/yolov8x.pt"
 image = "img/input/test4.jpg"
+
 
 def setup():
     """Инициализация детектора YOLOv8"""
@@ -125,9 +125,10 @@ def handler():
 
 def comparison(poly_data = None,handler_data = None):
     print(poly_data)
+    temp = []
     for i in poly_data:
-        for j in handler_data:
-            is_point_inside_polygon(handler_data[j], poly_data[i])
+        temp.append()
+
 
 
 def is_point_inside_polygon(point, polygon):
