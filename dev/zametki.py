@@ -25,3 +25,61 @@ dpg.add_slider_float(
     max_value=1.0,
     callback=lambda s, a: dpg.configure_item("my_group", alpha=a)
 )
+
+
+import ast
+pos = []
+text_data = []
+real_data = []
+
+def save_data(data,filename = "saves/saved_data.txt",parentfile = None):
+    open(filename, 'w').close()
+    with open(filename, "a") as file:
+        file.write(str(data))
+
+# чтение файла файл
+def read_data(filename = "saves/saved_data.txt"):
+    with open(filename, 'r', encoding='utf-8') as file:
+        content = file.read().strip()
+        result = ast.literal_eval(content)
+    return result
+
+
+with dpg.group(horizontal=True):
+    dpg.add_spacer(width=int(tools_width / 2 - 50))  # Отступ
+    dpg.add_text("Инструменты")
+# dpg.add_button(label="Editor", callback=lambda: self.brush())
+dpg.add_radio_button(
+    items=["Полигон", "Кисть", "Ластик"],
+    callback=self.tool_changed,
+
+)
+dpg.add_spacer(height=2)
+dpg.add_text(tag="current_tool")
+dpg.add_spacer(height=2)
+
+dpg.add_separator()  ##separation <------
+
+with dpg.group(horizontal=True):
+    dpg.add_spacer(width=int(tools_width / 2 - 50))  # Отступ
+    dpg.add_text("Mask")
+
+with dpg.group(horizontal=True):
+    dpg.add_button(label="button", callback=lambda: print("click"), width=80, height=25)
+    dpg.add_spacer(width=25)
+
+dpg.add_spacer(height=2)
+
+dpg.add_spacer(height=2)
+dpg.add_separator()  ##separation <------
+
+dpg.add_text("Соединение с камерой", tag="CameraIP")
+dpg.add_spacer(height=2)
+with dpg.group(horizontal=True):
+    dpg.add_input_text(tag="input_ip")
+    dpg.add_button(label="->", width=80, height=25, callback=self.connect_button)
+
+dpg.add_text("Статус:", tag="connect_text")
+
+dpg.add_spacer(height=2)
+dpg.add_separator()  ##separation <------

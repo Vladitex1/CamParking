@@ -1,9 +1,8 @@
 from ultralytics import YOLO
 import os
 import cv2
-
+from datetime import date
 model_path = "../backup/yolov8x.pt"
-image = "img/input/test4.jpg"
 
 
 def setup():
@@ -79,7 +78,7 @@ def detect_on_image(input_image, output_image="output.jpg"):
                         "position": bbox
                     })
 
-                    print(vehicles_info)
+                    #print(vehicles_info)
                     #print(bbox)
                     #print(f"🚗 {class_name}{cars_found}: {conf * 100:.1f}%")
 
@@ -95,11 +94,19 @@ def detect_on_image(input_image, output_image="output.jpg"):
 #def create_parking_boxes(input_image):
     #input_image
 
-def handler():
+def handler(image = "test3.jpg"):
     print("🔄 Запуск системы детекции...")
+    path = "img/input/"
+    filecount = 0
+    for file in os.listdir("img/result"):
+        if "result_" + str(date.today()) in file:
+            filecount += 1
 
-    result_image = "img/result/result.jpg"
-    cars_count, vehicles, _ = detect_on_image(image, result_image)
+    if filecount == 0:
+        result_image = "img/result/result" + "_" + str(date.today()) + ".jpg"
+    else:
+        result_image = "img/result/result" + "_" + str(date.today()) +"_"+ str(filecount) + ".jpg"
+    cars_count, vehicles, _ = detect_on_image(path + image, result_image)
 
     if cars_count > 0:
 
@@ -140,8 +147,8 @@ def comparison(saved_data = None,detected_car_data = None):
         tempdata_y2 = detected_car_data[i][2][1]
         center_y = ((tempdata_y2 - tempdata_y1) / 2) + tempdata_y1
         temp.append((center_x,center_y))
-    print(temp)
-    print(saved_data)
+    #print(temp)
+    #print(saved_data)
     for k, sd_value in saved_data.items():
         for j in range(len(temp)):
             if is_inside_polygon(temp[j],sd_value):

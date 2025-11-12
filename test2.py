@@ -19,12 +19,18 @@ main_height= window_height
 
 window_width = tools_width+main_width #ширина
 
+settings_width = 1000
+settings_height = 600
 
+font_size = 18
+
+
+colors = [(255,0,0,100),(255,140,0,100),(255,255,0,100),(0,255,0,100),(0,255,255,100),(0,0,255,100),(255,0,255,100)]
 
 class window():
     def __init__(self):
         self.current_tool = 1
-        self.current_file = None
+        self.selected_filepath = None
         self.image_data = None
         self.texture_id = None
         self.selected_image = None
@@ -38,7 +44,7 @@ class window():
         self.w = 100
         self.h = 100
         self.image_data = None
-
+        self.parent = None
         dpg.create_context()
         dpg.create_viewport(
             title='CamParking',
@@ -50,6 +56,7 @@ class window():
             max_height=window_height  # Максимальная высота
         )
         self.setup_input_handlers() #Обработчик нажатий
+        self.program_presets()
         self.interface()
 
         dpg.setup_dearpygui()
@@ -68,8 +75,8 @@ class window():
         x, y = self.mouse_pos
 
         # ПРОСТАЯ ПРОВЕРКА: обрабатываем клики только если редактор активен
-       # if not self.editor_online:
-         #  return
+        if not self.editor_online:
+            return
 
         # Остальной код без изменений
         draw_x = x - 8 - tools_width
@@ -88,31 +95,29 @@ class window():
                                     self.current_polygon.append(self.current_polygon[0])
                                     self.complete_polygon()
 
-
             self.update_display()
 
-    def complete_polygon(self):
+
+    def complete_polygon(self,name = 'noname'):
 
             # ОТЛАДКА: проверяем результат
             non_zero = np.count_nonzero(self.mask)
-            print(f"✅ Mask after drawContours - non-zero pixels: {non_zero}")
-
+            if name == 'noname':
+                name = 'noname' + " " + str(len(self.polygons))
             # Add to polygons list (store as separate object)
-            self.polygon_num += 1
             self.polygons.append({
-                'num': self.polygon_num,
+                'num': len(self.polygons),
                 'points': self.current_polygon.copy(),
                 'type': 'polygon',
-                'name': 'noname',
-                'text_pos': ()
+                'name': name,
+                'text_pos': None
             })
 
-            print(f"Polygon completed with {len(self.current_polygon)} points")
-            print(self.polygons)
+            #print(f"Polygon completed with {len(self.current_polygon)} points")
+            #print(self.polygons)
             self.update_polygons_list()
 
             self.current_polygon.clear()
-
 
 
     def update_display(self):
@@ -129,52 +134,49 @@ class window():
         # рисуем все полигоны созданные ранее
         if len(self.polygons) > 0:
 
-
-
-
             for i in range(len(self.polygons)):
                 tag = "polygon" + str(i)
                 dpg.draw_polyline(self.polygons[i]['points'], color=(255, 0, 255, 255),
                                   thickness=2, tag=tag, parent="image_display")
 
-
-
-
             for i in range(len(self.polygons)):
                 tag = "polypoint" + str(i)
-                dpg.draw_polygon(self.polygons[i]['points'], color=(255, 0, 0, 100), fill=(255, 0, 0, 100),
+                if i >= len(colors):
+                    j = i % len(colors)
+                else:
+                    j = i
+                dpg.draw_polygon(self.polygons[i]['points'], color=(255, 0, 0, 100), fill=colors[j], ##цвет квадрата уже готового
                                                         tag=tag, parent="image_display")
 
-
-###проверка по наличию текста нужна сюда
+                ###проверка по наличию текста нужна сюда
                 if 'text_pos' in self.polygons[i]:
                     points = self.polygons[i]['points']
                     center_x = sum(p[0] for p in points) / len(points)
                     center_y = sum(p[1] for p in points) / len(points)
-                    self.polygons[i]['text_pos'] = (center_x, center_y)
+                    self.polygons[i]['text_pos'] = (center_x-30, center_y)
 
                 # Используем сохраненную позицию
                 dpg.draw_text(
                     pos=self.polygons[i]['text_pos'],
                     text=self.polygons[i]['name'],
-                    color=(255, 255, 255, 255),
-                    size=16,
+                    color=(255, 255, 0, 255),
+                    size=18,
                     tag=f"polytext_{i}",
                     parent="image_display"
                 )
 
         # Draw current polygon in progress
         if self.current_polygon:
-            if len(self.current_polygon) > 1:
-                dpg.draw_polyline(self.current_polygon, color=(255, 0, 255, 255),
+            if len(self.current_polygon) > 1: ##рисование полосочки при начальном выделении
+                dpg.draw_polyline(self.current_polygon, color=(0, 255, 255, 255),
                                   thickness=2, tag="current_polyline", parent="image_display")
 
             for i, point in enumerate(self.current_polygon):
-                dpg.draw_circle(center=point, radius=3, color=(255, 255, 0, 255),
-                                fill=(255, 255, 0, 255), tag=f"point_{i}", parent="image_display")
+                dpg.draw_circle(center=point, radius=3, color=(255, 0, 255, 255), #обводка кружочка
+                                fill=(255, 0, 0, 255), tag=f"point_{i}", parent="image_display") #заполнение кружочка
 
-            dpg.draw_polygon(self.current_polygon, color=(255, 0, 0, 100), fill=(255, 0, 0, 100), tag="current_polygon", parent="image_display")
-
+            dpg.draw_polygon(self.current_polygon, color=(0, 255, 0, 100), fill=(255, 255, 0, 100), tag="current_polygon", parent="image_display")
+                                                          #внутрянка линии       #заполнение квадрата когда еще не закончен
 
 
 
@@ -185,7 +187,7 @@ class window():
             # Указываем шрифт и добавляем поддержку кириллицы
             font_path = "fonts/defaultfont.ttf"
             if os.path.exists(font_path):
-                default_font = dpg.add_font(font_path, 18)
+                default_font = dpg.add_font(font_path, font_size)
                 dpg.add_font_range_hint(dpg.mvFontRangeHint_Cyrillic, parent=default_font) ### подключение кириллицы
                 dpg.bind_font(default_font)
                 print("Шрифт с поддержкой кириллицы установлен")
@@ -194,11 +196,22 @@ class window():
 
         with dpg.viewport_menu_bar(): ##выпадающее меню
             with dpg.menu(label="Файл"):
-                dpg.add_menu_item(label="Открыть", callback=lambda: dpg.show_item("file_dialog"))
-                dpg.add_menu_item(label="Сохранить")
+                dpg.add_menu_item(label="Открыть изображение", callback=lambda: dpg.show_item("file_dialog"))
+                dpg.add_menu_item(label="Открыть", callback=lambda: (dpg.show_item("mask_dialog"), setattr(self, 'editor_online', False)))
+                dpg.add_menu_item(label="Сохранить", callback=lambda: self.fast_save())
+                dpg.add_menu_item(label="Сохранить как", callback=lambda: (dpg.show_item("save_dialog"), setattr(self, 'editor_online', False)))
+                dpg.add_menu_item(label="Очистить", callback=lambda: self.clear_file())
+                dpg.add_menu_item(label="Настройки", callback=lambda: self.settings())
                 dpg.add_menu_item(label="Выйти")
-            with dpg.menu(label="About"):
-                dpg.add_menu_item(label="info")
+            with dpg.menu(label="Подключение"):
+                dpg.add_menu_item(label="Сделать фото")
+                dpg.add_menu_item(label="Подключение")
+                dpg.add_menu_item(label="Открыть результаты")
+                dpg.add_menu_item(label="Настройки соединения")
+            with dpg.menu(label="О программе"):
+                dpg.add_menu_item(label="Информация")
+            dpg.add_spacer(width=window_width / 2)
+            dpg.add_text("", tag="current_file")
 
         self.interface_main_window()
         self.interface_tool_window()
@@ -241,76 +254,9 @@ class window():
                         no_title_bar=True, no_move=True, no_resize=True, no_collapse=True, no_close=True,
                         width=tools_width, height=tools_height,
                         pos=(tools_pos_x, tools_pos_y), no_scrollbar=True):
-                with dpg.group(horizontal=True):
-                    dpg.add_spacer(width=int(tools_width / 2 - 50))  # Отступ
-                    dpg.add_text("Инструменты")
-                # dpg.add_button(label="Editor", callback=lambda: self.brush())
-                dpg.add_radio_button(
-                    items=["Полигон", "Кисть", "Ластик"],
-                    callback=self.tool_changed,
 
-                )
-                dpg.add_spacer(height=2)
-                dpg.add_text(tag="current_tool")
-                dpg.add_spacer(height=2)
+                ###диалог для выбора фото маски
 
-                dpg.add_separator()  ##separation <------
-
-                with dpg.group(horizontal=True):
-                    dpg.add_spacer(width=int(tools_width / 2 - 50))  # Отступ
-                    dpg.add_text("Mask")
-
-                with dpg.group(horizontal=True):
-                    dpg.add_button(label="Load", callback=lambda: dpg.show_item("file_dialog"), width=80, height=25)
-                    dpg.add_spacer(width=25)
-                    dpg.add_button(label="Save", callback=lambda: dpg.show_item("save_dialog"), width=80, height=25)
-
-                with dpg.group(horizontal=True):
-                    dpg.add_button(label="Clear", callback=lambda: self.clear_file(), width=80, height=25)
-                    dpg.add_spacer(width=25)
-                    dpg.add_button(label="Save As", callback=lambda: print("Button clicked!"), width=80, height=25)
-
-
-                dpg.add_spacer(height=2)
-
-                with dpg.file_dialog(
-                        directory_selector=False,
-                        show=False,
-                        callback=self.file_selected,
-                        id="file_dialog",
-                        width=500,
-                        height=400
-                ):
-                    dpg.add_file_extension("Images{.jpg,.jpeg,.png,.bmp,.gif}")
-                    # dpg.add_file_extension("All files{.*}")
-
-                with dpg.file_dialog(
-                        directory_selector=False,
-                        default_filename="newmask.data",
-                        default_path="./saves",
-                        show=False,
-                        callback=self.save_button,  # Функция-заглушка
-                        id="save_dialog",
-                        width=500,
-                        height=400
-                ):
-                    dpg.add_file_extension("All files{.*}")
-
-                dpg.add_text("Selected file: None", tag="current_file")
-
-                dpg.add_spacer(height=2)
-                dpg.add_separator()  ##separation <------
-
-                dpg.add_text("Соединение с камерой", tag="CameraIP")
-                dpg.add_spacer(height=2)
-                with dpg.group(horizontal=True):
-                    dpg.add_input_text(tag="input_ip")
-                    dpg.add_button(label="->", width=80, height=25, callback=self.connect_button)
-
-                dpg.add_text("Статус:", tag="connect_text")
-
-                dpg.add_spacer(height=2)
-                dpg.add_separator()  ##separation <------
 
                 with dpg.group(horizontal=True):
                     dpg.add_spacer(width=int(tools_width / 2 - 50))  # Отступ
@@ -318,20 +264,97 @@ class window():
 
                 with dpg.child_window(
                         tag="polygons_list",
-                        height=150,
+                        height=400,
                         width=tools_width - 15,
                         horizontal_scrollbar=False,
                         autosize_y=False  # Фиксируем высоту для скролла
+
                 ):
-                    pass
-
-
+                    dpg.bind_item_theme("polygons_list", self.child_theme)
 
                 dpg.add_separator()
 
-    def load_preset(self):
-        pass
 
+                dpg.add_text("Управление")
+                dpg.add_text("",wrap = 0)
+
+    def settings(self):
+        if dpg.does_item_exist("modal_window"):
+            dpg.delete_item("modal_window")
+        # Вычисляем позицию для центрирования
+        x = tools_pos_x + (window_width - settings_width) // 2
+        y = tools_pos_y + (window_height - settings_height) // 2
+
+        with dpg.window(
+                label="Настройки",
+                modal=True,
+                show=True,
+                id="modal_window",
+                no_title_bar=False,
+                no_move=True,  # Запрет перетаскивания
+                width=settings_width,
+                height=settings_height,
+                pos=(x,y-20),
+        ):
+            with dpg.group(horizontal=True):
+                dpg.add_text("Размер шрифта:")
+                dpg.add_spacer(width=70)
+                dpg.add_button(label="+", callback=lambda: print("click"), width=25, height=25)
+                dpg.add_text(str(font_size))
+                dpg.add_button(label="-", callback=lambda: print("click"), width=25, height=25)
+
+            dpg.add_separator()
+            dpg.add_text("Введите текст:")
+            dpg.add_input_text(tag="dialog_input", width=300)
+
+    def program_presets(self):
+        with dpg.theme() as self.child_theme:
+            with dpg.theme_component(dpg.mvChildWindow):
+                dpg.add_theme_color(dpg.mvThemeCol_ChildBg, (45, 45, 45, 255))  # Темно-серый фон
+
+        ###диалог для открытия изображения
+        with dpg.file_dialog(
+                directory_selector=False,
+                show=False,
+                callback=self.file_selected,
+                id="file_dialog",
+                width=700,
+                height=400
+        ):
+            dpg.add_file_extension("Images{.jpg,.jpeg,.png,.bmp,.gif}")
+
+        ###диалог для выбора маски
+        with dpg.file_dialog(
+                directory_selector=False,
+                default_filename="",
+                default_path="./saves",
+                show=False,
+                callback=self.load_mask,
+                id="mask_dialog",
+                width=700,  # Увеличил ширину на 50px
+                height=400,
+                modal=True,
+        ):
+            dpg.add_file_extension(".mask", color=(0, 255, 0, 255))
+            dpg.add_checkbox(
+                label="Загрузить только маску",
+                default_value=False,
+                tag="onlymask"
+            )
+
+        ###диалог для сохранения маски
+        with dpg.file_dialog(
+                directory_selector=False,
+                default_filename="newmask.mask",
+                default_path="./saves",
+                show=False,
+                callback=self.save_button,  # Функция-заглушка
+                id="save_dialog",
+                width=700,
+                height=400,
+                modal=True
+        ):
+            dpg.add_file_extension(".mask", color=(0, 255, 0, 255))
 
     def update_polygons_list(self):
         # Очищаем старый список
@@ -430,28 +453,29 @@ class window():
         self.current_tool = selected_tool[1]
         print(f"Selected tool: {selected_tool[1]}")
 
-    def prepare_image(self, image_path="dev/nullimage.jpg"):
-        readed_image = cv2.imread(image_path)
+    def prepare_image(self, image_path="dev/nullimage.png"):
+        readed_image = cv2.imread(image_path, cv2.IMREAD_UNCHANGED)  # Загружаем с альфа-каналом если есть
+
         if readed_image is None:
             print(f"❌ Не удалось загрузить изображение: {image_path}")
-            # Создаем черное изображение как заглушку
-            readed_image = np.zeros((100, 100, 3), dtype=np.uint8)
+            # Создаем прозрачное изображение как заглушку
+            readed_image = np.zeros((100, 100, 4), dtype=np.uint8)
+        self.parentfile = image_path
+        # Конвертируем в RGBA в зависимости от исходного формата
+        if readed_image.shape[2] == 3:  # RGB
+            image_rgba = cv2.cvtColor(readed_image, cv2.COLOR_BGR2RGBA)
+        elif readed_image.shape[2] == 4:  # RGBA
+            image_rgba = cv2.cvtColor(readed_image, cv2.COLOR_BGRA2RGBA)
+        else:
+            # Для других форматов создаем RGBA
+            image_rgba = cv2.cvtColor(readed_image, cv2.COLOR_BGR2RGBA)
 
-        image_rgb = cv2.cvtColor(readed_image, cv2.COLOR_BGR2RGB)
-        self.image_height, self.image_width = image_rgb.shape[:2]
+        self.image_height, self.image_width = image_rgba.shape[:2]
 
-        # Убедимся, что данные правильно выровнены
-        image_data = (image_rgb.astype(np.float32) / 255.0)
-
-        # Преобразуем в RGBA для согласованности
-        if image_data.shape[2] == 3:
-            # Добавляем альфа-канал
-            h, w = image_data.shape[:2]
-            rgba_image = np.ones((h, w, 4), dtype=np.float32)
-            rgba_image[:, :, :3] = image_data
-            image_data = rgba_image
-
+        # Нормализуем значения пикселей
+        image_data = (image_rgba.astype(np.float32) / 255.0)
         self.image_data = image_data.flatten()
+
         return image_path, self.image_data, self.image_width, self.image_height
 
     def load_image(self, width, height, image_data):
@@ -498,8 +522,8 @@ class window():
         if app_data["file_path_name"]:
             filepath = app_data["file_path_name"]
             print("Загружаем файл:", filepath)
-            self.current_file = app_data["file_name"]
-            dpg.set_value("current_file", "Selected file: " + self.current_file)
+            self.selected_filepath = app_data["file_name"]
+            dpg.set_value("current_file", os.path.basename(self.selected_filepath))
             self.selected_image = filepath  # ← ДОБАВЬ ЭТУ СТРОКУ
             self.dir, self.i, self.w, self.h =self.prepare_image(filepath)
             print(str(self.w)+str(self.h))
@@ -512,21 +536,65 @@ class window():
         self.dir, self.i, self.w, self.h = self.prepare_image()
         self.load_image(self.w, self.h, self.i)
         self.editor_online = False
+        self.polygons.clear()
+        self.update_polygons_list()
 
     def save_button(self, sender, app_data):
         self.savedata = {}
         filepath = app_data["file_path_name"]
         print("Сохраняемый файл:", filepath)
-        self.current_file = app_data["file_name"]
+        self.selected_filepath = app_data["file_name"]
         for i, poly in enumerate(self.polygons):
             del poly['points'][(len(poly['points'])-1)]
             self.savedata.setdefault(poly['name'], poly['points'])
 
-        file.save_data(self.savedata,filepath)
+        file.save_data(self.savedata,filepath,self.parentfile)
+        self.editor_online = True
+
+    def fast_save(self):
+        if not self.editor_online:
+            return
+        self.savedata = {}
+        print("быстрое сохранение")
+        for i, poly in enumerate(self.polygons):
+            del poly['points'][(len(poly['points'])-1)]
+            self.savedata.setdefault(poly['name'], poly['points'])
+
+        file.save_data(self.savedata,self.selected_filepath,self.parentfile)
+        self.editor_online = True
 
 
     def get_current_image_info(self):
         return self.image_path,self.image_data,self.image_width,self.image_height
+
+
+
+    def load_mask(self, sender, app_data):
+        self.savedata = {}
+        self.selected_filepath = app_data["file_path_name"]
+        dpg.set_value("current_file", os.path.basename(self.selected_filepath))
+        saved_data,parent_file = file.read_data(self.selected_filepath)
+
+        if not dpg.get_value("onlymask"):
+            self.dir, self.i, self.w, self.h =self.prepare_image(parent_file)
+            self.load_image(self.w,self.h,self.i)
+
+        self.current_polygon.clear()
+        self.polygons.clear()
+        for sd_value in saved_data:
+            self.current_polygon = saved_data[sd_value]
+            self.current_polygon.append(saved_data[sd_value][0])
+            self.complete_polygon(sd_value)
+        self.update_polygons_list()
+        self.update_display()
+        self.editor_online = True
+
+
+
+
+
+
+
 
 ###################################################################################################################################################
 

@@ -1,0 +1,23 @@
+{
+  "polygons": {
+    "noname": [
+      [
+        586,
+        195
+      ],
+      [
+        585,
+        234
+      ],
+      [
+        727,
+        227
+      ],
+      [
+        732,
+        191
+      ]
+    ]
+  },
+  "parent_file": "C:\\MyPrograms\\pycharm\\CamParking_diplom\\img\\input\\test3.jpg"
+}
