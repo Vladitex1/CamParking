@@ -9,7 +9,7 @@ window_height = 700+menu_height  #высота
 
 tools_pos_x= 0
 tools_pos_y= menu_height
-tools_width= 250       #ширина
+tools_width= 350       #ширина
 tools_height= window_height     #высота
 
 main_pos_x= tools_width
@@ -93,12 +93,12 @@ class window():
                                 print(f"Polygon point added: ({x}, {y}) - Total points: {len(self.current_polygon)}")
                                 if len(self.current_polygon) > 3:
                                     self.current_polygon.append(self.current_polygon[0])
-                                    self.complete_polygon()
+                                    self.complete_polygon(new = True)
 
             self.update_display()
 
 
-    def complete_polygon(self,name = 'noname'):
+    def complete_polygon(self,name = 'noname', new = False):
 
             # ОТЛАДКА: проверяем результат
             non_zero = np.count_nonzero(self.mask)
@@ -115,7 +115,8 @@ class window():
 
             #print(f"Polygon completed with {len(self.current_polygon)} points")
             #print(self.polygons)
-            self.update_polygons_list()
+            if new:
+                self.update_polygons_list()
 
             self.current_polygon.clear()
 
@@ -260,7 +261,8 @@ class window():
 
                 with dpg.group(horizontal=True):
                     dpg.add_spacer(width=int(tools_width / 2 - 50))  # Отступ
-                    dpg.add_text("Управление")
+                    dpg.add_text("Полигоны")
+
 
                 with dpg.child_window(
                         tag="polygons_list",
@@ -271,7 +273,6 @@ class window():
 
                 ):
                     dpg.bind_item_theme("polygons_list", self.child_theme)
-
                 dpg.add_separator()
 
 
@@ -299,18 +300,23 @@ class window():
             with dpg.group(horizontal=True):
                 dpg.add_text("Размер шрифта:")
                 dpg.add_spacer(width=70)
-                dpg.add_button(label="+", callback=lambda: print("click"), width=25, height=25)
+                dpg.add_button(label="+", callback=lambda: print("клик"), width=25, height=25)
                 dpg.add_text(str(font_size))
-                dpg.add_button(label="-", callback=lambda: print("click"), width=25, height=25)
+                dpg.add_button(label="-", callback=lambda: print("клик"), width=25, height=25)
 
             dpg.add_separator()
             dpg.add_text("Введите текст:")
             dpg.add_input_text(tag="dialog_input", width=300)
 
+
     def program_presets(self):
         with dpg.theme() as self.child_theme:
             with dpg.theme_component(dpg.mvChildWindow):
                 dpg.add_theme_color(dpg.mvThemeCol_ChildBg, (45, 45, 45, 255))  # Темно-серый фон
+        with dpg.theme() as self.textbox_theme:
+            with dpg.theme_component(dpg.mvInputText):
+                dpg.add_theme_style(dpg.mvStyleVar_FramePadding, 0, 6)  # увеличивает внутренние отступы
+                dpg.add_theme_color(dpg.mvThemeCol_FrameBg, (0, 0, 0, 0))
 
         ###диалог для открытия изображения
         with dpg.file_dialog(
@@ -359,34 +365,51 @@ class window():
     def update_polygons_list(self):
         # Очищаем старый список
         dpg.delete_item("polygons_list", children_only=True)
-
         # Добавляем полигоны
         for i, poly in enumerate(self.polygons):
             with dpg.group(horizontal=True, parent="polygons_list"):
-                self.add_alfa_button("icons/delete.png",(lambda fixed: lambda s, a: self.delete_polygon(fixed))(poly['points']),"delete_button"+str(i))
-                dpg.add_input_text(tag="poly_namespace_"+str(i),default_value=poly['name'],width = 140,enabled=True,show=False)
-                dpg.add_text(poly['name'], tag="poly_namespace_label"+str(i))
-                self.add_alfa_button("icons/rename.png",
-                                    (lambda fixed: lambda s, a: self.rename_button(fixed))(i),"rename_button_"+str(i))
+                with dpg.group(horizontal=True, tag="const_visible" + str(i)):
+                    self.add_alfa_button("icons/visabilityon.png",
+                                         (lambda fixed: lambda s, a: self.hide_polygon(fixed))(poly['points']),
+                                         "hide_button" + str(i), True)
+                    self.add_alfa_button("icons/visabilityoff.png",
+                                         (lambda fixed: lambda s, a: self.show_polygon(fixed))(poly['points']),
+                                         "show_button" + str(i), False)
 
-    #Кнопка нажимается и убирается
-    #Появляется меню и новая кнопка применить
-    #кнопка применить нажимается и появляется лейбл
+                    # ОДИН элемент - input_text, который меняет enabled/disabled
+                    dpg.add_input_text(
+                        tag="poly_namespace_" + str(i),
+                        default_value=poly['name'],
+                        width=195,
+                        enabled=False,  # по умолчанию выключен (режим просмотра)
+                        show=True
+                    )
+                    dpg.bind_item_theme("poly_namespace_" + str(i), self.textbox_theme)
 
-    def rename_button(self,i):
-        dpg.hide_item("poly_namespace_label"+str(i))
-        dpg.show_item("poly_namespace_"+str(i))
-        dpg.configure_item("rename_button_"+str(i),
-                           callback=(lambda fixed: lambda s, a: self.rename_polygon(fixed))(i))
+                with dpg.group(horizontal=True, tag="non_const_visible" + str(i), show=True):
+                    self.add_alfa_button("icons/edit.png",
+                                         (lambda fixed: lambda s, a: self.rename_activate(fixed))(i),
+                                         "edit_button_" + str(i), True)
+                    self.add_alfa_button("icons/editoff.png",
+                                         (lambda fixed: lambda s, a: self.rename_polygon(fixed))(i),
+                                         "edit_off_button" + str(i), False)
+                    self.add_alfa_button("icons/delete.png",
+                                         (lambda fixed: lambda s, a: self.delete_polygon(fixed))(poly['points']),
+                                         "delete_button" + str(i), True)
 
-    def rename_polygon(self,i):
+    def rename_activate(self, i):
+        dpg.configure_item("poly_namespace_" + str(i), enabled=True)  # включаем редактирование
+        dpg.focus_item("poly_namespace_" + str(i))  # фокус на поле
+        dpg.hide_item("edit_button_" + str(i))
+        dpg.show_item("edit_off_button" + str(i))
+
+    def rename_polygon(self, i):
         newname = dpg.get_value('poly_namespace_' + str(i))
         self.polygons[i]['name'] = newname
-        dpg.hide_item("poly_namespace_" + str(i))
-        dpg.show_item("poly_namespace_label"+str(i))
-        dpg.configure_item("poly_namespace_label"+str(i),default_value = newname)
-        dpg.configure_item("rename_button_"+str(i),
-                           callback=(lambda fixed: lambda s, a: self.rename_button(fixed))(i)),"rename_button_"+str(i)
+        dpg.configure_item("poly_namespace_" + str(i), enabled=False)  # выключаем редактирование
+        dpg.hide_item("edit_off_button" + str(i))
+        dpg.show_item("edit_button_" + str(i))
+
         self.update_display()
 
     def delete_polygon(self,points):
@@ -397,11 +420,35 @@ class window():
         self.update_polygons_list()
         self.update_display()
 
+    def hide_polygon(self,points):
+        for i,poly in enumerate(self.polygons):
+            if self.polygons[i]['points'] == points:
+                dpg.hide_item("polygon" + str(i))
+                dpg.hide_item("polytext_" + str(i))
+                dpg.hide_item("polypoint" + str(i))
+                dpg.hide_item("hide_button" + str(i))
+                dpg.show_item("show_button" + str(i))
+
+
+        #self.update_polygons_list()
+        #self.update_display()
+
+
+    def show_polygon(self,points):
+        for i, poly in enumerate(self.polygons):
+            if self.polygons[i]['points'] == points:
+                dpg.show_item("polygon" + str(i))
+                dpg.show_item("polytext_" + str(i))
+                dpg.show_item("polypoint" + str(i))
+                dpg.hide_item("show_button" + str(i))
+                dpg.show_item("hide_button" + str(i))
+
+
     def clear_poly_list(self):
         self.polygons = []
         self.update_polygons_list()
 
-    def add_alfa_button(self, icon_path, callbacks, tag):
+    def add_alfa_button(self, icon_path, callbacks, tag, show):
         try:
             image = cv2.imread(icon_path, cv2.IMREAD_UNCHANGED)
             if image is None:
@@ -424,10 +471,10 @@ class window():
                     image.shape[1],
                     image.shape[0],
                     image_data,
-                    format=dpg.mvFormat_Float_rgba  # Всегда используем RGBA
+                    format=dpg.mvFormat_Float_rgba,  # Всегда используем RGBA
                 )
 
-            dpg.add_image_button(texture_id, callback=callbacks, tag=tag)
+            dpg.add_image_button(texture_id, callback=callbacks, tag=tag, show = show)
 
         except Exception as e:
             print(f"❌ Ошибка создания кнопки: {e}")
@@ -531,7 +578,6 @@ class window():
             self.load_image(self.w,self.h,self.i)
             self.editor_online = True
 
-
     def clear_file(self):
         self.dir, self.i, self.w, self.h = self.prepare_image()
         self.load_image(self.w, self.h, self.i)
@@ -540,16 +586,19 @@ class window():
         self.update_polygons_list()
 
     def save_button(self, sender, app_data):
-        self.savedata = {}
-        filepath = app_data["file_path_name"]
-        print("Сохраняемый файл:", filepath)
-        self.selected_filepath = app_data["file_name"]
-        for i, poly in enumerate(self.polygons):
-            del poly['points'][(len(poly['points'])-1)]
-            self.savedata.setdefault(poly['name'], poly['points'])
+        if len(self.polygons) != 0:
+            self.savedata = {}
+            filepath = app_data["file_path_name"]
+            print("Сохраняемый файл:", filepath)
+            self.selected_filepath = app_data["file_name"]
+            for i, poly in enumerate(self.polygons):
+                del poly['points'][(len(poly['points'])-1)]
+                self.savedata.setdefault(poly['name'], poly['points'])
 
-        file.save_data(self.savedata,filepath,self.parentfile)
-        self.editor_online = True
+            file.save_data(self.savedata,filepath,self.parentfile)
+            self.editor_online = True
+        else:
+            print("Сохранение не удалось. ")
 
     def fast_save(self):
         if not self.editor_online:
