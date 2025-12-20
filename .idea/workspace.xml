@@ -5,19 +5,22 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="d32fc4ee-7057-472b-a813-b253d15523aa" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/CamParking_diplom.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/CamParking_diplom.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/nullimage.png" beforeDir="false" afterPath="$PROJECT_DIR$/dev/nullimage.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dev/zametki.py" beforeDir="false" afterPath="$PROJECT_DIR$/dev/zametki.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/file.py" beforeDir="false" afterPath="$PROJECT_DIR$/file.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/handler.py" beforeDir="false" afterPath="$PROJECT_DIR$/handler.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/img/result/result.jpg" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test2.py" beforeDir="false" afterPath="$PROJECT_DIR$/test2.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Python Script" />
+      </list>
+    </option>
   </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
@@ -31,7 +34,7 @@
   <component name="GithubPullRequestsUISettings">{
   &quot;selectedUrlAndAccountId&quot;: {
     &quot;url&quot;: &quot;https://github.com/Vladitex1/CamParking_diplom.git&quot;,
-    &quot;accountId&quot;: &quot;d63f02d6-f32f-4114-9947-9dcd9a88d20e&quot;
+    &quot;accountId&quot;: &quot;8a108c17-2b06-496d-9602-018a4dd6c032&quot;
   }
 }</component>
   <component name="ProjectColorInfo">{
@@ -45,25 +48,55 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;Python.handler.executor&quot;: &quot;Run&quot;,
-    &quot;Python.main.executor&quot;: &quot;Run&quot;,
-    &quot;Python.test2.executor&quot;: &quot;Run&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;master&quot;,
-    &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
-    &quot;last_opened_file_path&quot;: &quot;C:/MyPrograms/pycharm/CamParking_diplom/img/input&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "Python.CamParking_diplom.executor": "Run",
+    "Python.handler.executor": "Run",
+    "Python.main.executor": "Run",
+    "Python.test2.executor": "Run",
+    "Python.tgbot.executor": "Run",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "git-widget-placeholder": "master",
+    "ignore.virus.scanning.warn.message": "true",
+    "last_opened_file_path": "/Users/vladitex1/Documents/GitHub/CamParking_diplom/tgbot"
   }
-}</component>
+}]]></component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/tgbot" />
       <recent name="C:\MyPrograms\pycharm\CamParking_diplom\img\input" />
       <recent name="C:\MyPrograms\pycharm\CamParking_diplom\img\result" />
     </key>
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/tgbot/handlers" />
+      <recent name="$PROJECT_DIR$/tgbot/bin" />
+    </key>
   </component>
-  <component name="RunManager" selected="Python.test2">
+  <component name="RunManager" selected="Python.test3">
+    <configuration name="CamParking_diplom" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="CamParking_diplom" />
+      <option name="ENV_FILES" value="" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="SDK_NAME" value="Python 3.12 (DiplomProject#1)" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$USER_HOME$/PycharmProjects/CamParking_diplom" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
     <configuration name="main" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="CamParking_diplom" />
       <option name="ENV_FILES" value="" />
@@ -108,17 +141,71 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
+    <configuration name="test3" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="CamParking_diplom" />
+      <option name="ENV_FILES" value="" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/tgbot" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/tgbot/test3.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <configuration name="tgbot" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="CamParking_diplom" />
+      <option name="ENV_FILES" value="" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/tgbot" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/tgbot/tgbot.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <list>
+      <item itemvalue="Python.test3" />
+      <item itemvalue="Python.tgbot" />
+      <item itemvalue="Python.test2" />
+      <item itemvalue="Python.main" />
+      <item itemvalue="Python.CamParking_diplom" />
+    </list>
     <recent_temporary>
       <list>
+        <item itemvalue="Python.test3" />
+        <item itemvalue="Python.tgbot" />
         <item itemvalue="Python.test2" />
         <item itemvalue="Python.main" />
+        <item itemvalue="Python.CamParking_diplom" />
       </list>
     </recent_temporary>
   </component>
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
-        <option value="bundled-python-sdk-b3d66beaba9a-c6efb3732140-com.jetbrains.pycharm.pro.sharedIndexes.bundled-PY-252.26199.168" />
+        <option value="bundled-python-sdk-b030e9c4a83c-d902c0275401-com.jetbrains.pycharm.community.sharedIndexes.bundled-PC-252.26199.168" />
       </set>
     </attachedChunks>
   </component>
