@@ -1,7 +1,7 @@
 import json
 from pathlib import Path
 
-
+from sympy import false
 
 
 # ========== WHITELIST MANAGER ==========
@@ -34,9 +34,17 @@ class WhitelistManager:
         self.save()
         return True
 
-    def remove_user(self, user_id: int):
-        self.users = [[uid, level] for uid, level in self.users if uid != user_id]
+    def delete_user(self, user_id: int,my_user_id:int):
+        for num, (uid, level,un,fn,ln) in enumerate(self.users):
+            if uid == user_id:
+                if uid != user_id:
+                    self.load()
+                    self.users.pop(num)
+                else:
+                    return False
         self.save()
+        return True
+
 
     def check_user(self, user_id: int) -> bool:
         for uid, level,un,fn,ln in self.users:
@@ -50,17 +58,20 @@ class WhitelistManager:
                 return level
         return 0
 
-    async def change_permission(self, user_id: int, permission: int, message):
-        for i, (uid, level) in enumerate(self.users):
+    def get_user_data(self,user_id: int):
+        self.load()
+        for num, (uid, level,un,fn,ln) in enumerate(self.users):
+            if uid == user_id:
+                return num+1, level, un, fn, ln
+
+    def change_permission(self, user_id: int, permission: int):
+        for i, (uid, level,un,fn,ln) in enumerate(self.users):
             if uid == user_id:
                 if level == permission:
-                    await message.answer("Данные права уже есть у пользователя")
-                    return
+                    return False
                 self.users[i][1] = permission
                 self.save()
-                await message.answer(f"Права пользователя {user_id} изменены на {permission}")
-                return
-        await message.answer("Пользователь не найден")
+                return True
 
 
 # ========== NEW USERS MANAGER ==========

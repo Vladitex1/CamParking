@@ -26,12 +26,12 @@ def get_back_keyboard() -> InlineKeyboardMarkup:
 @router.message(Command("start"))
 async def start_command(message: types.Message):
     user_id = message.from_user.id
-
+    await message.delete()
+    #await message.bot_message.delete()
     if whitelist.check_user(user_id):
         # Если пользователь уже в вайтлисте
         await message.answer(
-            "✅ У вас уже есть доступ!\n"
-            "Используйте /logined_user для входа",
+            "✅ У вас уже есть доступ!\n",
             reply_markup=InlineKeyboardMarkup(inline_keyboard=[
                 [InlineKeyboardButton(text="Войти", callback_data="back_to_menu")]
             ])
@@ -52,8 +52,7 @@ async def get_invite_handler(callback: types.CallbackQuery):
     if whitelist.check_user(user_id):
         # Если пользователь уже в вайтлисте
         await callback.message.answer(
-            "✅ У вас уже есть доступ!\n"
-            "Используйте /logined_user для входа",
+            "✅ У вас уже есть доступ!\n",
             reply_markup=InlineKeyboardMarkup(inline_keyboard=[
                 [InlineKeyboardButton(text="Войти", callback_data="back_to_menu")]
             ])
