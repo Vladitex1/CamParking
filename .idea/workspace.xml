@@ -8,7 +8,18 @@
       <change beforePath="$PROJECT_DIR$/.idea/CamParking_diplom.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/CamParking_diplom.iml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+<<<<<<< Updated upstream
       <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
+=======
+      <change beforePath="$PROJECT_DIR$/saves/1231231231.mask" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/saves/asdasd.mask" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/saves/newmask.data" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/saves/newmask.mask" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/saves/saved_data.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/saves/test.data" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/saves/test.mask" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/test2.py" beforeDir="false" afterPath="$PROJECT_DIR$/test2.py" afterDir="false" />
+>>>>>>> Stashed changes
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -48,6 +59,7 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
+<<<<<<< Updated upstream
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
     "Python.CamParking_diplom.executor": "Run",
@@ -60,11 +72,28 @@
     "git-widget-placeholder": "master",
     "ignore.virus.scanning.warn.message": "true",
     "last_opened_file_path": "/Users/vladitex1/Documents/GitHub/CamParking_diplom/tgbot"
+=======
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;Python.handler.executor&quot;: &quot;Run&quot;,
+    &quot;Python.main.executor&quot;: &quot;Run&quot;,
+    &quot;Python.test2.executor&quot;: &quot;Run&quot;,
+    &quot;Python.test3.executor&quot;: &quot;Run&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;master&quot;,
+    &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/MyPrograms/pycharm/CamParking_diplom/icons&quot;
+>>>>>>> Stashed changes
   }
 }]]></component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
+<<<<<<< Updated upstream
       <recent name="$PROJECT_DIR$/tgbot" />
+=======
+      <recent name="C:\MyPrograms\pycharm\CamParking_diplom\icons" />
+>>>>>>> Stashed changes
       <recent name="C:\MyPrograms\pycharm\CamParking_diplom\img\input" />
       <recent name="C:\MyPrograms\pycharm\CamParking_diplom\img\result" />
     </key>
@@ -150,11 +179,19 @@
         <env name="PYTHONUNBUFFERED" value="1" />
       </envs>
       <option name="SDK_HOME" value="" />
+<<<<<<< Updated upstream
       <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/tgbot" />
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/tgbot/test3.py" />
+=======
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/test3.py" />
+>>>>>>> Stashed changes
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -163,6 +200,7 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
+<<<<<<< Updated upstream
     <configuration name="tgbot" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="CamParking_diplom" />
       <option name="ENV_FILES" value="" />
@@ -192,11 +230,14 @@
       <item itemvalue="Python.main" />
       <item itemvalue="Python.CamParking_diplom" />
     </list>
+=======
+>>>>>>> Stashed changes
     <recent_temporary>
       <list>
         <item itemvalue="Python.test3" />
         <item itemvalue="Python.tgbot" />
         <item itemvalue="Python.test2" />
+        <item itemvalue="Python.test3" />
         <item itemvalue="Python.main" />
         <item itemvalue="Python.CamParking_diplom" />
       </list>
