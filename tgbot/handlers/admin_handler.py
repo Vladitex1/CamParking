@@ -307,8 +307,7 @@ async def edit_user_action(callback: types.CallbackQuery):
 # ========== ВСЕ ОСТАЛЬНЫЕ СООБЩЕНИЯ ==========
 @router.message()
 async def handle_unknown(message: types.Message):
-    # Игнорируем или можно ответить
-    pass
+    await message.delete()
 
 
 @router.callback_query()
