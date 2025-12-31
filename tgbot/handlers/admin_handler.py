@@ -6,6 +6,8 @@ import handlers.user_handler as uh
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.fsm.context import FSMContext
 from aiogram import Bot
+from aiogram.exceptions import TelegramAPIError
+from aiogram.types.error_event import ErrorEvent
 
 router = Router()
 
@@ -314,3 +316,16 @@ async def handle_unknown(message: types.Message):
 async def handle_unknown_callback(callback: types.CallbackQuery):
     # Игнорируем неизвестные callback
     await callback.answer()
+
+
+
+@router.error()
+async def global_error_handler(event: ErrorEvent):
+    # Логируем критическую ошибку
+    print(f"❌ ГЛОБАЛЬНАЯ ОШИБКА: {event.exception}")
+    print(f"📨 В обновлении: {event.update}")
+
+    # Если это ошибка API Telegram (например, 'message can't be edited'), пробуем ответить пользователю
+    if isinstance(event.exception, TelegramAPIError):
+        if event.update.message:
+            await event.update.message.answer("⚠️ Произошла внутренняя ошибка бота. Сообщите разработчику.")

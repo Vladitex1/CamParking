@@ -2,7 +2,7 @@ import json
 from pathlib import Path
 from aiogram import Bot
 from aiogram import Router, types, F
-
+#sqlite
 #######################СЛОМАНЫЙ ПЕРЕХОД ПРИ недостатке прав
 # ========== WHITELIST MANAGER ==========
 class WhitelistManager:
@@ -136,15 +136,13 @@ class HandlerManager:
     async def del_messages(self,target_num: int, bot: Bot, message: types.Message):
         """Удаляет последние target_num сообщений в чате, начиная с текущего."""
         chat_id = message.chat.id
-
-        for i in range(target_num):
-            try:
-                await bot.delete_message(
-                    chat_id=chat_id,
-                    message_id=message.message_id - i
-                )
-            except Exception as e:
-                print(f"Не удалось удалить сообщение {message.message_id - i}: {e}")
+        try:
+            await bot.delete_message(
+                chat_id=chat_id,
+                message_id=message.message_id - target_num
+            )
+        except Exception as e:
+            print(f"Не удалось удалить сообщение {message.message_id - target_num}: {e}")
 
 
 # ========== GLOBAL INSTANCES ==========

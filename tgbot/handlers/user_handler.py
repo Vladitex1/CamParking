@@ -29,16 +29,16 @@ def get_back_new_keyboard() -> InlineKeyboardMarkup:
 # ========== КОМАНДЫ ==========
 @router.message(Command("goadmin")) #############ЕСЛИ СКАКАТЬ МЕЖДУ СООБЩЕНИЯМИ, ТО УДАЛЯТЬ НЕ НАДО!!!!!!!!!
 async def goadmin_command(message: types.Message, bot: Bot):
-    #await handlermanager.del_messages(2, bot=bot, message=message)
-
+    await handlermanager.del_messages(0, bot=bot, message=message)
+    user_id = message.from_user.id
     if whitelist.valid_user_permissions(message.from_user.id,2):
-        await message.answer(
+        await message.edit_text(
             f"🤖 Добро пожаловать, {message.from_user.first_name}!\n"
             "Режим администрирования:",
-            reply_markup=ah.get_admin_main_menu(message.from_user.id)
+            reply_markup=ah.get_admin_main_menu(user_id)
         )
     else:
-        num = whitelist.check_permission(message.from_user.id)
+        num = whitelist.check_permission(user_id)
         if num == 0:
             await message.answer(
             f"Недостаточно прав",
@@ -68,9 +68,9 @@ async def show_my_id(callback: types.CallbackQuery):
 async def back_to_menu_callback(callback: types.CallbackQuery, bot: Bot):
     if whitelist.valid_user_permissions(callback.from_user.id, 1):
         # Удаляем сообщение с кнопкой через 5 секунд
-        await callback.message.delete() #########################################################не нравится что исчезает.
+        #await callback.message.delete() #########################################################не нравится что исчезает.
         # Отправляем новое сообщение
-        await callback.message.answer(
+        await callback.message.edit_text(
             "Выберите действие в меню ниже:\n",
             reply_markup=InlineKeyboardMarkup(inline_keyboard=[
                 [InlineKeyboardButton(text="🔍 Мой ID", callback_data="menu_myid")],
@@ -78,8 +78,8 @@ async def back_to_menu_callback(callback: types.CallbackQuery, bot: Bot):
             ])
         )
     else:
-        get_back_keyboard()
-    await callback.answer()  # Не забудьте это!
+        get_back_new_keyboard()
+    #await callback.answer()  # Не забудьте это!
 
 
 
