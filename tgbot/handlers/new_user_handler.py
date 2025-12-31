@@ -9,19 +9,19 @@ router = Router()
 
 def get_back_keyboard() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="◀️ Назад", callback_data="get_new_menu")]
+        [InlineKeyboardButton(text="◀️ Назад", callback_data="new:menu:get")]
     ])
 
-@router.callback_query(F.data == "get_new_menu")
-async def get_new_menu(callback: types.CallbackQuery):
+@router.callback_query(F.data == "new:menu:get")
+async def new_menu_get(callback: types.CallbackQuery):
     await callback.message.edit_text(
         "🤖 Добро пожаловать!\n"
         "Выберите действие в меню ниже:",
         reply_markup=InlineKeyboardMarkup(
             inline_keyboard=[
-                [InlineKeyboardButton(text="🔍 Мой ID", callback_data="menu_new_user_myid")],
-                [InlineKeyboardButton(text="Запросить доступ", callback_data="get_invite")],
-                [InlineKeyboardButton(text="❓ Помощь", callback_data="menu_new_user_help")]
+                [InlineKeyboardButton(text="🔍 Мой ID", callback_data="new:menu:id")],
+                [InlineKeyboardButton(text="Запросить/Проверить доступ", callback_data="new:menu:getinvite")],
+                [InlineKeyboardButton(text="❓ Помощь", callback_data="new:menu:help")]
             ]
         )
     )
@@ -29,9 +29,7 @@ async def get_new_menu(callback: types.CallbackQuery):
 
 # ========== КОМАНДА /start ==========
 @router.message(Command("start"))
-async def start_command(message: types.Message,bot:Bot):  # Исправлено: message, а не callback
-
-
+async def start_command(message: types.Message):  # Исправлено: message, а не callback
 
     user_id = message.from_user.id
     if whitelist.check_user(user_id):
@@ -39,7 +37,7 @@ async def start_command(message: types.Message,bot:Bot):  # Исправлено
             "✅ У вас уже есть доступ!\n",
             reply_markup=InlineKeyboardMarkup(
                 inline_keyboard=[
-                    [InlineKeyboardButton(text="Войти", callback_data="back_to_menu")]
+                    [InlineKeyboardButton(text="Войти", callback_data="menu:get")]
                 ]
             )
         )
@@ -47,12 +45,12 @@ async def start_command(message: types.Message,bot:Bot):  # Исправлено
     else:
         await message.answer("Добро пожаловать в CamParking!\n"
                              "для начала работы вам необходимо запросить доступ"
-                             ,reply_markup=get_back_keyboard())
+                             ,callback_data="new:menu:get")
 
 
 # ========== ОБРАБОТЧИКИ КНОПОК ==========
-@router.callback_query(F.data == "get_invite")
-async def get_invite_handler(callback: types.CallbackQuery):
+@router.callback_query(F.data == "new:menu:getinvite")
+async def new_menu_getinvite(callback: types.CallbackQuery):
     user_id = callback.from_user.id
     if not whitelist.check_user(user_id):
         user_username = callback.from_user.username or ""
@@ -63,25 +61,25 @@ async def get_invite_handler(callback: types.CallbackQuery):
             await callback.message.edit_text(
                 f"ID: `{user_id}`\n"
                 f"Вы запросили доступ. Ожидайте подтверждения.\n",
-                callback_data="get_new_menu",
+                callback_data="new:menu:get",
                 parse_mode="Markdown"
             )
         else:
             await callback.message.edit_text(
                 "⛔ Вы уже запрашивали доступ ранее.\n",
                 reply_markup=InlineKeyboardMarkup(inline_keyboard=[
-                    [InlineKeyboardButton(text="◀️ Назад", callback_data="get_new_menu")]]))
+                    [InlineKeyboardButton(text="◀️ Назад", callback_data="new:menu:get")]]))
 
     else:
         await callback.message.edit_text(
             "✅ У вас уже есть доступ!\n",
             reply_markup=InlineKeyboardMarkup(inline_keyboard=[
-                [InlineKeyboardButton(text="Войти", callback_data="get_menu")]
+                [InlineKeyboardButton(text="Войти", callback_data="menu:get")]
             ])
         )
     await callback.answer()
 
-@router.callback_query(F.data == "menu_new_user_myid")
+@router.callback_query(F.data == "new:menu:id")
 async def show_my_id(callback: types.CallbackQuery):
     user_id = callback.from_user.id
     has_access = whitelist.check_user(user_id)
@@ -91,13 +89,13 @@ async def show_my_id(callback: types.CallbackQuery):
         f"ID: {user_id}\n"
         f"Доступ: {'✅ разрешен' if has_access else '❌ запрещен'}\n",
         reply_markup=InlineKeyboardMarkup(inline_keyboard=[
-            [InlineKeyboardButton(text="◀️ Назад в меню", callback_data="get_new_menu")]
+            [InlineKeyboardButton(text="◀️ Назад в меню", callback_data="new:menu:get")]
         ])
     )
     await callback.answer()
 
 
-@router.callback_query(F.data == "menu_new_user_help")
+@router.callback_query(F.data == "new:menu:help")
 async def show_help(callback: types.CallbackQuery):
     await callback.message.edit_text(
         "ℹ️ **Помощь:**\n\n"
@@ -107,7 +105,9 @@ async def show_help(callback: types.CallbackQuery):
         "• У вас пока нет прав.\n\n"
         "Команды:\n"
         "/start - главное меню\n",
-        reply_markup=get_back_keyboard(),
+        reply_markup=InlineKeyboardMarkup(inline_keyboard=[
+            [InlineKeyboardButton(text="◀️ Назад в меню", callback_data="new:menu:get")]
+        ]),
         parse_mode="Markdown"
     )
     await callback.answer()

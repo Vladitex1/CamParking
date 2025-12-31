@@ -19,63 +19,89 @@ class Form(StatesGroup):
 
 
 # ========== КЛАВИАТУРЫ ==========
-def get_admin_main_menu(user_id: int) -> InlineKeyboardMarkup:
-
-    if whitelist.check_permission(user_id) == 2:
-        return InlineKeyboardMarkup(inline_keyboard=[
-            [InlineKeyboardButton(text="🔍 Мой ID", callback_data="menu_admin_myid")],
-            [InlineKeyboardButton(text="🆕 Одобрить пользователя", callback_data="menu_adduser")],
-            [InlineKeyboardButton(text="📋 Список пользователей", callback_data="menu_userlist")],
-            [InlineKeyboardButton(text="◀️ Назад к пользовательскому меню", callback_data="back_to_menu")]
-        ])
+def get_admin_main_menu() -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="🔍 Мой ID", callback_data="admin:menu:id")],
+        [InlineKeyboardButton(text="🆕 Одобрить пользователя", callback_data="admin:menu:adduser")],
+        [InlineKeyboardButton(text="📋 Список пользователей", callback_data="admin:menu:usrlst")],
+        [InlineKeyboardButton(text="◀️ Назад к пользовательскому меню", callback_data="menu:get")]
+    ])
 
 
 def get_back_admin_keyboard() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="◀️ Назад в меню", callback_data="back_to_admin_menu")]
+        [InlineKeyboardButton(text="◀️ Назад в меню", callback_data="admin:menu:get")]
     ])
 
 
 def get_edit_keyboard() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(inline_keyboard=[[
-        InlineKeyboardButton(text="◀️ Назад в меню", callback_data="back_to_admin_menu"),
-        InlineKeyboardButton(text="🔧 Редактировать", callback_data="edit_usr_lst"),
+        InlineKeyboardButton(text="◀️ Назад в меню", callback_data="admin:menu:get"),
+        InlineKeyboardButton(text="🔧 Редактировать", callback_data="admin:menu:eul"),
     ]])
 
 
 def approve_keyboard(user_id: int) -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(inline_keyboard=[[
         InlineKeyboardButton(text="✅ Подтвердить", callback_data=f"approve_{user_id}"),
-        InlineKeyboardButton(text="❌ Отмена", callback_data="menu_userlist"),
+        InlineKeyboardButton(text="❌ Отмена", callback_data="admin:menu:usrlst"),
     ]])
 
 
 def user_edit_keyboard(user_id: int) -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(inline_keyboard=[[
-        InlineKeyboardButton(text="◀️ Назад в меню", callback_data="back_to_admin_menu"),
+        InlineKeyboardButton(text="◀️ Назад в меню", callback_data="admin:menu:get"),
         InlineKeyboardButton(text="Выдать права администратора", callback_data=f"edit_{user_id}_adm"),
         InlineKeyboardButton(text="Удалить пользователя", callback_data=f"edit_{user_id}_del"),
     ]])
 
 
 # ========== КОМАНДЫ ==========
-@router.callback_query(F.data == "logined_user")
-async def logined_user(callback: types.CallbackQuery):
-    user_id = callback.from_user.id
-    whitelist.load()
 
-    if not whitelist.check_user(user_id):
-        await callback.message.answer("⛔ У вас нет доступа к боту\n")
-    else:
-        if whitelist.check_permission(user_id) == 2:
-            await callback.message.answer(
-                "🤖 Добро пожаловать!\n"
-                "Выберите действие в меню ниже:",
-                reply_markup=get_admin_main_menu(user_id))
+@router.message(Command("debug"))
+async def debug_new_user(message: types.Message):
+    await message.answer(
+        "debug\n",
+        reply_markup=InlineKeyboardMarkup(
+            inline_keyboard=[
+                [InlineKeyboardButton(text="новый_пользователь", callback_data="new:menu:get")],
+                [InlineKeyboardButton(text="админка", callback_data="admin:menu:get")],
+                [InlineKeyboardButton(text="пользователь", callback_data="menu:get")],
+                [InlineKeyboardButton(text="добавить админа", callback_data="debug:add_user")],
+                [InlineKeyboardButton(text="выдать права админа", callback_data="debug:getlvl")],
+            ]
+        )
+    )
+
+
+
+@router.message(F.data == "debug:add_user")
+async def approve_user(callback: types.CallbackQuery):
+    user_id = 413700636
+    uid, un, fn, ln = newusermanager.all_about_new_user(user_id)
+    whitelist.add_user(uid, un, fn, ln)
+    newusermanager.remove_new_user(user_id=user_id)
+    await callback.message.edit_text(
+        f"✅ Пользователь одобрен!\n"
+        f"ID: {user_id}\n",
+        reply_markup=get_back_admin_keyboard()
+    )
+    await callback.answer()
+
+@router.message(F.data == "debug:getlvl")
+async def approve_user(callback: types.CallbackQuery):
+    user_id = 413700636
+    whitelist.change_permission(user_id, 2)
+    await callback.message.edit_text(
+        f"✅ Пользователю выданы права!\n"
+        f"ID: {user_id}\n",
+        reply_markup=get_back_admin_keyboard()
+    )
+    await callback.answer()
 
 
 # ========== ОБРАБОТЧИКИ КНОПОК ==========
-@router.callback_query(F.data == "menu_admin_myid")
+@router.callback_query(F.data == "admin:menu:id")
 async def show_my_id(callback: types.CallbackQuery):
     user_id = callback.from_user.id
     level = whitelist.check_permission(user_id)
@@ -91,7 +117,7 @@ async def show_my_id(callback: types.CallbackQuery):
     await callback.answer()
 
 
-@router.callback_query(F.data == "menu_adduser")
+@router.callback_query(F.data == "admin:menu:adduser")
 async def add_user_menu(callback: types.CallbackQuery):
     user_id = callback.from_user.id
     user_level = whitelist.check_permission(user_id)
@@ -118,7 +144,7 @@ async def add_user_menu(callback: types.CallbackQuery):
                     )])
 
             keyboard = InlineKeyboardMarkup(inline_keyboard=buttons + [
-                [InlineKeyboardButton(text="◀️ Назад", callback_data="back_to_admin_menu")]
+                [InlineKeyboardButton(text="◀️ Назад", callback_data="admin:menu:get")]
             ])
 
         await callback.message.edit_text(
@@ -149,7 +175,7 @@ async def approve_user(callback: types.CallbackQuery):
     await callback.answer()
 
 
-@router.callback_query(F.data == "menu_userlist")
+@router.callback_query(F.data == "admin:menu:usrlst")
 async def show_user_list(callback: types.CallbackQuery):
     if not whitelist.users:
         user_list_str = "Список пуст"
@@ -167,7 +193,7 @@ async def show_user_list(callback: types.CallbackQuery):
     await callback.answer()
 
 
-@router.callback_query(F.data == "back_to_user_menu")
+@router.callback_query(F.data == "menu:get")
 async def back_to_user_menu(callback: types.CallbackQuery):
     await callback.message.edit_text(
         "Меню пользователя",
@@ -176,23 +202,21 @@ async def back_to_user_menu(callback: types.CallbackQuery):
     await callback.answer()
 
 
-@router.callback_query(F.data == "back_to_admin_menu")
-async def back_to_admin_menu(callback: types.CallbackQuery):
+@router.callback_query(F.data =="admin:menu:get")
+async def admin_menu(callback: types.CallbackQuery):
     user_id = callback.from_user.id
     if not whitelist.check_user(user_id):
-        await callback.message.edit_text("⛔ У вас нет доступа к боту")
-        return
-
-    await callback.message.edit_text(
-        f"🤖 Добро пожаловать, {callback.from_user.first_name}!\n"
-        "Режим администрирования:",
-        reply_markup=get_admin_main_menu(user_id)
-    )
-    await callback.answer()
+        await callback.message.answer("⛔ У вас нет доступа к боту\n")
+    else:
+        if whitelist.check_permission(user_id) == 2:
+            await callback.message.edit_text(
+                "🤖 Добро пожаловать!\n"
+                "Выберите действие в меню ниже:",
+                reply_markup=get_admin_main_menu())
 
 
 # ========== РЕДАКТИРОВАНИЕ ПОЛЬЗОВАТЕЛЯ ==========
-@router.callback_query(F.data == "edit_usr_lst")
+@router.callback_query(F.data == "admin:menu:eul")
 async def start_edit(callback: types.CallbackQuery, state: FSMContext):
     await callback.message.answer("Введите ID пользователя для редактирования:")
     await state.set_state(Form.waiting_user_id)
@@ -329,3 +353,4 @@ async def global_error_handler(event: ErrorEvent):
     if isinstance(event.exception, TelegramAPIError):
         if event.update.message:
             await event.update.message.answer("⚠️ Произошла внутренняя ошибка бота. Сообщите разработчику.")
+            print(event.exception)
