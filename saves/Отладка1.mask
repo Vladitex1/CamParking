@@ -235,5 +235,5 @@
       ]
     ]
   },
-  "parent_file": "C:\\MyPrograms\\pycharm\\CamParking_diplom\\img\\input\\test3.jpg"
+  "parent_file": "..\\img\\input\\test3.jpg"
 }
