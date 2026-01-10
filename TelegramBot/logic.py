@@ -4,7 +4,8 @@ import cv2
 import numpy as np
 from ultralytics import YOLO
 import tomli
-
+import cv2
+import time
 
 
 #MODELPATH = "../../backup/yolov8x.pt"
@@ -14,7 +15,7 @@ MODELPATH = "models/"
 # Глобальная переменная для кэширования модели
 
 
-def process_image(image:str = "test3.jpg",debug:bool = False,config_name:str = "conf_1"):
+def process_image(image= None,img=None,debug:bool = False,config_name:str = "conf_1"):
     # ================ Блок подготовки имени файла для результата ================
     try:
         INPUT_DIR = "../img/input/"
@@ -39,12 +40,16 @@ def process_image(image:str = "test3.jpg",debug:bool = False,config_name:str = "
         CONFIG_DIR = "models/configuration/"
         with open(CONFIG_DIR+config_name+".toml", 'rb') as f:
             config = tomli.load(f)
-            cars_count, vehicles, detection_results = detect_on_raw_image(INPUT_DIR + image, config)
+            if img is None:
+                cars_count, vehicles, detection_results = detect_on_raw_image(INPUT_DIR + image, config)
+            else:
+                cars_count, vehicles, detection_results = detect_on_raw_image(img, config)
             annotated_frame = detection_results[0].plot(    # Отрисовка квадратов (результатов)
                 line_width=config["line_width"],  # Толщина рамки
                 font_size=config["font_size"],  # Размер текста
                 conf=config["show_conf"],  # Показывать уверенность
                 labels=config["labels"]  # Показывать названия классов
+
             )
         # ================ Сохранение результата ================
         print("✅ Обработка изображения успешна")
@@ -69,7 +74,7 @@ def process_image(image:str = "test3.jpg",debug:bool = False,config_name:str = "
     except Exception as e:
         print("Ошибка работы функции - ",str(e))
 
-def detect_on_raw_image(input_image:str,config):
+def detect_on_raw_image(input_image,config):
     """Детекция на одном изображении"""
     MODEL = YOLO(MODELPATH+config["model_name"])
     try:
@@ -124,7 +129,6 @@ def detect_on_raw_image(input_image:str,config):
         print(f"❌ Ошибка детекции: {e}")
         return 0, [], []
 
-
 def comparison(saved_data = None,detected_car_data = None):
     ###поиск позиции по точке внутри полигона из приложения
     ###1 - делаем центральную точку внутри позиции найденного авто
@@ -172,7 +176,6 @@ def debug_print(occupied, free,saved_data):
     print(f"\n📊 ИТОГО: {len(occupied)}/{len(saved_data)} мест занято")
 
 def is_inside_polygon(point, polygon):
-    polygon_np = np.array(polygon,dtype=np.int32)
+    polygon_np = np.array(polygon).astype(np.int32)
     result = cv2.pointPolygonTest(polygon_np,point,False)
     return result >= 0
-

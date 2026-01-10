@@ -32,11 +32,11 @@ async def admin_menu(callback: types.CallbackQuery):
 
     if not whitelist.check_user(user_id):
         await callback.message.answer(text="⛔ У вас нет доступа к боту\n",
-                                      reply_markup=keyboards.keyboard("user:menu:get"), )
+                                      reply_markup=keyboards.keyboardH(callback_1="new:menu:get"), )
         return
 
     if whitelist.check_permission(user_id) != 2:
-        await callback.message.answer(text="⛔ Недостаточно прав",reply_markup=adminkeyboard)
+        await callback.message.answer(text="⛔ Недостаточно прав", reply_markup=keyboards.keyboardH(callback_1="user:menu:get"))
         return
 
     for attempt in range(1, 4):  # 3 попытки
@@ -69,8 +69,8 @@ async def add_user_menu(callback: types.CallbackQuery):
         userlist_length = len(userlist)
 
         # ОСНОВНОЕ: создаем базовую клавиатуру с кнопкой "Назад"
-        back_keyboard = keyboards.keyboard(callback_1="admin:menu:get",
-                                           text_2="❌ Отклонить всех",callback_2="admin:menu:adduser:del_all")
+        back_keyboard = keyboards.keyboardH(callback_1="admin:menu:get",
+                                            text_2="❌ Отклонить всех", callback_2="admin:menu:adduser:del_all")
         if not userlist:
             # Если нет заявок
             await callback.message.edit_text(
@@ -112,7 +112,7 @@ async def add_user_menu(callback: types.CallbackQuery):
     else:
         await callback.message.edit_text(
             "⛔ Только администратор может просматривать заявки",
-            reply_markup=keyboards.keyboard("user:menu:get", "◀️ Назад")
+            reply_markup=keyboards.keyboardH(callback_1="user:menu:get")
         )
 
     await callback.answer()
@@ -128,7 +128,7 @@ async def add_user_menu_prev_page(callback: types.CallbackQuery):
 async def add_user_menu_del_all(callback: types.CallbackQuery):
     usermanager.del_all()
     await callback.message.edit_text("Все заявки были очищены",
-                         reply_markup=keyboards.keyboard(callback_1="admin:menu:adduser"))
+                                     reply_markup=keyboards.keyboardH(callback_1="admin:menu:adduser"))
 
 
 
@@ -143,7 +143,7 @@ async def approve_user(callback: types.CallbackQuery):
     await callback.message.edit_text(
         f"✅ Пользователь одобрен!\n"
         f"ID: {user_id}\n",
-        reply_markup=keyboards.keyboard("admin:menu:adduser"),
+        reply_markup=keyboards.keyboardH(callback_1="admin:menu:adduser"),
     )
     await callback.answer()
 
@@ -155,7 +155,7 @@ async def approve_user(callback: types.CallbackQuery):
     await callback.message.edit_text(
         f"✅ Заявка удалена!\n"
         f"ID: {user_id}\n",
-        reply_markup=keyboards.keyboard("admin:menu:adduser"),
+        reply_markup=keyboards.keyboardH(callback_1="admin:menu:adduser"),
     )
     await callback.answer()
 
@@ -164,21 +164,21 @@ async def approve_user(callback: types.CallbackQuery):
 async def show_user_list(callback: types.CallbackQuery):
     # ОДИН раз получаем список и сохраняем в переменную
     users = whitelist.get_user_list()  # ← ТОЛЬКО ОДИН РАЗ!
-
+    user_list_str = ""
     if not users:
         user_list_str = "Список пуст"
         total_users = 0
     else:
-        user_list_str = "\n".join([
-            f"• №{num + 1} | {uid} | {whitelist.user_lvl_icon[level][:3] if level < len(whitelist.user_lvl) else 'Неизв.'} | @{un} | {fn} {ln}"
-            for num, (uid, level, un, fn, ln) in enumerate(users)  # ← используем переменную!
-        ])
+        for num, (uid, level, un, fn, ln) in enumerate(users):
+            text = f"\n• №{num + 1} | `{uid}` | {whitelist.user_lvl_icon[level][:3]} | @{un} | {fn} {ln}"
+            user_list_str += text
         total_users = len(users)  # ← сохраняем длину
 
     await callback.message.edit_text(
-        f"📋 Пользователи в вайтлисте:\n\n{user_list_str}\n\n"
+        f"📋 Пользователи в вайтлисте:\n{user_list_str}\n\n"
         f"Всего: {total_users} пользователей",  # ← используем сохраненную длину
-        reply_markup=keyboards.keyboard(callback_1="admin:menu:get", text_2="🔧 Редактировать" ,callback_2="admin:menu:eul")
+        reply_markup=keyboards.keyboardH(callback_1="admin:menu:get", text_2="🔧 Редактировать", callback_2="admin:menu:eul"),
+        parse_mode="Markdown"
     )
     await callback.answer()
 
@@ -207,7 +207,7 @@ async def process_user_id(message: types.Message, state: FSMContext):
 
         if not user_data:
             await message.answer("❌ Пользователь не найден.",
-                                 reply_markup=keyboards.keyboard("admin:menu:get"))
+                                 reply_markup=keyboards.keyboardH(callback_1="admin:menu:get"))
             await state.clear()
             return
 
@@ -246,24 +246,24 @@ async def edit_user_action(callback: types.CallbackQuery):
             if status:
                 await callback.message.edit_text(
                     f"✅ Пользователь {user_id} удален",
-                    reply_markup=keyboards.keyboard("admin:menu:get"),
+                    reply_markup=keyboards.keyboardH(callback_1="admin:menu:get"),
                 )
             else:
                 await callback.message.edit_text(
                     f"Удаление не удалось. Вы не можете удалить самого себя.",
-                    reply_markup=keyboards.keyboard("admin:menu:get"),
+                    reply_markup=keyboards.keyboardH(callback_1="admin:menu:get"),
                 )
         elif action == "adm":
             status = whitelist.change_permission(user_id, 2)
             if status:
                 await callback.message.edit_text(
                     f"✅ Пользователю {user_id} выданы права администратора",
-                    reply_markup=keyboards.keyboard("admin:menu:get"),
+                    reply_markup=keyboards.keyboardH(callback_1="admin:menu:get"),
                 )
             else:
                 await callback.message.edit_text(
                     f"❌ У пользователя уже есть эти права",
-                    reply_markup=keyboards.keyboard("admin:menu:get"),
+                    reply_markup=keyboards.keyboardH(callback_1="admin:menu:get"),
                 )
         else:
             await callback.message.edit_text("❌ Неизвестное действие")

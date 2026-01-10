@@ -14,13 +14,13 @@ async def start_command(message: types.Message):  # Исправлено: messag
     if whitelist.check_user(user_id):
         await message.answer(  # Исправлено: message.answer
             "✅ У вас уже есть доступ!\n",
-            reply_markup=keyboards.keyboard("Войти","user:menu:get")
+            reply_markup=keyboards.keyboardH("Войти", "user:menu:get")
             )
         await message.delete()
     else:
         await message.answer("Добро пожаловать в CamParking!\n"
                              "для начала работы вам необходимо запросить доступ"
-                             ,callback_data="new:menu:get")
+                             , reply_markup = keyboards.keyboardH("Войти", "new:menu:get"))
     logger.info(f"Вызов команды /start от пользователя {user_id}")
 
 
@@ -38,3 +38,5 @@ async def goadmin_command(message: types.Message):  # ← message, а не callb
             pass
     fake_callback = FakeCallback(message)
     await admin_menu(fake_callback)
+
+

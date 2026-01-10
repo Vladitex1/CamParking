@@ -39,20 +39,20 @@ async def new_menu_getinvite(callback: types.CallbackQuery):
                 await callback.message.edit_text(
                     f"ID: `{user_id}`\n"
                     f"Вы запросили доступ. Ожидайте подтверждения.\n",
-                    callback_data="new:menu:get",
+                    reply_markup=keyboards.keyboardH(callback_1="new:menu:get"),
                     parse_mode="Markdown"
                 )
             else:
                 logger.info(f"⚠️ Повтор запроса от {user_id}")
                 await callback.message.edit_text(
                     "⛔ Вы уже запрашивали доступ ранее.\n",
-                    reply_markup=keyboards.keyboard(callback_1="new:menu:get"))
+                    reply_markup=keyboards.keyboardH(callback_1="new:menu:get"))
 
         else:
             logger.info(f"✅ Уже в вайтлисте {user_id}")
             await callback.message.edit_text(
                 "✅ У вас уже есть доступ!\n",
-                reply_markup=keyboards.keyboard(callback_1="user:menu:get")
+                reply_markup=keyboards.keyboardH(text_1="Войти", callback_1="user:menu:get")
             )
         await callback.answer()
     except Exception as e:
@@ -67,7 +67,7 @@ async def show_my_id(callback: types.CallbackQuery):
         f"📋 Ваш профиль:\n\n"
         f"ID: {user_id}\n"
         f"Доступ: {'✅ разрешен' if has_access else '❌ запрещен'}\n",
-        reply_markup=keyboards.keyboard(callback_1="new:menu:get")
+        reply_markup=keyboards.keyboardH(callback_1="new:menu:get")
     )
     await callback.answer()
 
@@ -83,7 +83,7 @@ async def show_help(callback: types.CallbackQuery):
         "• У вас пока нет прав.\n\n"
         "Команды:\n"
         "/start - главное меню\n",
-        reply_markup=keyboards.keyboard(callback_1="new:menu:get"),
+        reply_markup=keyboards.keyboardH(callback_1="new:menu:get"),
         parse_mode="Markdown"
     )
     await callback.answer()

@@ -3,6 +3,8 @@ import sqlite3
 import time
 import logging
 from pathlib import Path
+from aiogram.exceptions import TelegramBadRequest
+from aiogram.types import InputMediaPhoto
 
 logger = logging.getLogger(__name__)
 
@@ -291,6 +293,7 @@ class UserslistManager:
     def del_all(self):
         self.users = []
         self.save()  # На всякий случай сохраняем
+
 
 # ========== GLOBAL INSTANCES ==========
 # Создаем единственные экземпляры для использования во всем проекте
