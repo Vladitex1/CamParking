@@ -217,5 +217,5 @@
       ]
     ]
   },
-  "parent_file": "..\\img\\input\\test7.jpg"
+  "parent_file": null
 }

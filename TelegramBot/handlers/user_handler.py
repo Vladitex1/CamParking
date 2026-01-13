@@ -1,12 +1,17 @@
 from datetime import datetime
 from aiogram import Router, types, F,Bot
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton,FSInputFile,InputMediaPhoto
-from aiogram.filters import Command
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton,FSInputFile
+from aiogram.fsm.state import State, StatesGroup
+from aiogram.fsm.context import FSMContext
 import logging
 import asyncio
 from TelegramBot.handlers.config import whitelist
 from TelegramBot.handlers import keyboards
-import TelegramBot.detector as detector
+import logic.detector as detector
+import logic.visualizer as visualizer
+from datetime import date
+
+import logic.camera_control as camera
 from PIL import Image
 import os
 
@@ -47,49 +52,76 @@ async def user_menu(callback: types.CallbackQuery):
         logger.error(f"Ошибка в user_menu для user_id={user_id}: {e}")
         await callback.answer("Произошла ошибка", show_alert=True)
 
+
+class Form(StatesGroup):
+    waiting_camera = State()
+
+
  # ================= Работа с машинами функционал ================
 
+
+
 @router.callback_query(F.data == "parking:get")
-async def get_parking(callback: types.CallbackQuery, bot: Bot):
-    user_id = callback.from_user.id
-    chat_id = callback.message.chat.id
+async def start_edit(callback: types.CallbackQuery, state: FSMContext):
+    await state.set_state(Form.waiting_camera)
+    await process_camera_request(callback.message, state, callback.bot)
+    await callback.answer()
+
+
+@router.message(Form.waiting_camera)
+async def process_camera_request(message: types.Message, state: FSMContext, bot: Bot):
+    user_id = message.from_user.id
+    chat_id = message.chat.id  # БЫЛО: message.message.chat.id
+
+    print("начало работы системы")
     logger.info(f"запрос парковочных мест user_id={user_id}")
     try:
         # Удаляем меню
         await bot.delete_message(
             chat_id=chat_id,
-            message_id=callback.message.message_id
+            message_id=message.message_id
         )
 
         INPUT_DIR = "../img/results/"
-        image = "last_result.jpg"
-
-        waiting = await callback.message.answer("⏳ Загрузка...")
+        #image = "last_result.jpg"
+        another_img = "output_open.jpg"
+        mask = "../saves/test4.mask"
+        waiting = await message.answer(f"⏳ Загрузка...")
         # Получение данных с камеры
-        img = await detector.get_img_from_cam()
+        #img = await camera.get_img_sync()
+        image = await camera.get_img_PyAV()
+        print(f"фото получено")
+
         # Получаем данные о парковке ============== Обработка фото
-        occupied, free = detector.check_auto(save="Отладка1.mask",img=img, config_name="confwn",processed_image=None)
-        await callback.answer()
+
+        occupied, free = detector.check_auto(mask=mask, processed_image=image, config_name="confwn")
+        print(f"фото обработано ИИ")
+
+        image,filename = visualizer.detect(image_path=image, mask=mask, occupied_data=[occupied,free],draw_name=False)
+        print(f"фото обработано для вывода")
+        #await message.answer()
 
         # Формируем текст
-        freetext = f"\n{'=' * 5} Свободные места: {'=' * 5}\n"
-        occupiedtext = f"\n{'=' * 6} Занятые места: {'=' * 6}\n"
-        freemax = 0
-        occupiedmax = 0
+        free_text = f"\n Свободные места: \n"
+        occupied_text = f"\n Занятые места: \n"
+        free_max, occupied_max = 0, 0
 
         for slot in free:
-            freetext += f"🟢 {slot}\n"
-            freemax += 1
+            free_text += f"🟢 {slot}\n"
+            free_max += 1
         for slot in occupied:
-            occupiedtext += f"🔴 {slot}\n"
-            occupiedmax += 1
-
-        endtext = f"\nВсего занято {occupiedmax} из {len(free) + len(occupied)}"
-        newtext = "ℹ️ **Информация по парковочным местам:**\n\n" + freetext + occupiedtext + endtext
-
+            occupied_text += f"🔴 {slot}\n"
+            occupied_max += 1
+        text = (f"{datetime.today().strftime('📅 %Y-%m-%d 🕔 %H:%M:%S')}\n"
+                f"ℹ️ **Информация по парковочным местам:**\n"
+                f""
+                f"{free_text}"
+                f"{occupied_text}"
+                f""
+                f"\nСвободных мест: {free_max} из {len(free) + len(occupied)}")
         # Сжимаем фото
         try:
-            img = Image.open(INPUT_DIR + image)
+            img = Image.open(filename)
             img.save(INPUT_DIR + "temp_compressed.jpg", 'JPEG', quality=60, optimize=True)
         except Exception as e:
             logger.warning(f"Ошибка при сжатии фото: {e}")
@@ -105,16 +137,17 @@ async def get_parking(callback: types.CallbackQuery, bot: Bot):
                 attempt += 1
                 logger.info(f"Попытка отправки фото #{attempt}")
                 # Используем оригинальный файл, если сжатый не создался
-                photo_path = INPUT_DIR + image
+                photo_path = INPUT_DIR + another_img
                 if os.path.exists(INPUT_DIR + "temp_compressed.jpg"):
                     photo_path = INPUT_DIR + "temp_compressed.jpg"
                 # Пытаемся отправить фото с таймаутом
                 await asyncio.wait_for(
-                    callback.message.answer_photo(
+                    message.answer_photo(
                         photo=FSInputFile(photo_path),
-                        caption=f"📅{datetime.today().strftime('%Y-%m-%d %H:%M:%S')}\n{newtext}",
+                        caption=text,
                         parse_mode="Markdown",
-                        reply_markup=keyboards.keyboardH(callback_1="parking:back",text_2="Повторить попытку",callback_2="parking:get")##
+                        reply_markup=keyboards.keyboardH(callback_1="parking:back", text_2="Повторить попытку",
+                                                         callback_2="parking:get")  ##
                     ),
                     timeout=5
                 )
@@ -122,6 +155,7 @@ async def get_parking(callback: types.CallbackQuery, bot: Bot):
                 logger.info(f"✅ Фото отправлено успешно с попытки #{attempt}")
                 photo_sent = True
                 break  # ВЫХОДИМ ИЗ ЦИКЛА ПОСЛЕ УСПЕШНОЙ ОТПРАВКИ
+
             except asyncio.TimeoutError:
                 logger.warning(f"⏱️ Таймаут при отправке фото (попытка {attempt})")
                 if max_retries > 0 and attempt >= max_retries:
@@ -136,7 +170,7 @@ async def get_parking(callback: types.CallbackQuery, bot: Bot):
                 if max_retries > 0 and attempt >= max_retries:
                     raise
 
-                await asyncio.sleep(retry_delay * 2)  # Увеличиваем задержку при ошибках
+                await asyncio.sleep(retry_delay)
                 continue  # Продолжаем цикл
 
         # Удаляем сообщение "Загрузка..." после успешной отправки
@@ -158,29 +192,21 @@ async def get_parking(callback: types.CallbackQuery, bot: Bot):
         # Удаляем сообщение "Загрузка..."
         try:
             await waiting.delete()
+            await message.answer(
+                "❌ Попробуйте позже.",
+                reply_markup=keyboards.keyboardH(callback_1="parking:back")
+            )
         except:
             pass
-
-        # Показываем пользователю ошибку
-        await callback.message.answer(
-            "❌ Не удалось отправить фото из-за проблем с сетью. Попробуйте позже.",
-            reply_markup=keyboards.keyboardH(callback_1="parking:back")
-        )
 
     except Exception as e:
         logger.error(f"❌ Критическая ошибка в get_parking: {e}")
-        await callback.message.answer(
-            "❌Попробуйте позже.",
+        await message.answer(
+            "❌ Попробуйте позже.",
             reply_markup=keyboards.keyboardH(callback_1="parking:back")
         )
-        # Удаляем сообщение "Загрузка..."
-        try:
-            await waiting.delete()
-        except:
-            pass
-
-        # Показываем пользователю ошибку
-        await callback.answer(f"Ошибка: {str(e)[:50]}", show_alert=True)
+    finally:
+        await state.clear()
 
 
 @router.callback_query(F.data == "parking:back")

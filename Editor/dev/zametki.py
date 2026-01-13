@@ -83,3 +83,14 @@ dpg.add_text("Статус:", tag="connect_text")
 
 dpg.add_spacer(height=2)
 dpg.add_separator()  ##separation <------
+
+###фильтр данных, сопоставление
+for name, position in saved_data.items():
+    found_car = False
+    for current_center in range(len(detect_center_list)):
+        if is_inside_polygon(detect_center_list[current_center], position):
+            occupied.append(name)
+            found_car = True
+            break
+    if not found_car:
+        free.append(name)

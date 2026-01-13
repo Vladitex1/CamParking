@@ -55,7 +55,7 @@ def test_model_cache():
     print_header("ТЕСТ КЕША МОДЕЛИ")
 
     try:
-        from TelegramBot import logic
+        from logic import logic
 
         print_section("Первый вызов (должен загрузить)")
         #start = time.time()
@@ -91,7 +91,7 @@ def test_detection():
     print_header("ТЕСТ ДЕТЕКЦИИ")
 
     try:
-        from TelegramBot import detector
+        from logic import detector
 
         print_section("Запуск детекции")
         start = time.time()
@@ -138,7 +138,7 @@ def test_file_structure():
         ("backup/yolov8x.pt", "Модель YOLO", True),
         ("img/input/test3.jpg", "Тестовое изображение", False),
         ("saves/Отладка1.mask", "Сохранение парковки", False),
-        ("TelegramBot/logs/logic.py", "Логика", True),
+        ("TelegramBot/logs/brain.py", "Логика", True),
         ("TelegramBot/logs/detector.py", "Детектор", True),
     ]
 
@@ -162,11 +162,11 @@ def check_model_path():
     print_header("ПУТЬ К МОДЕЛИ")
 
     try:
-        from TelegramBot import logic
+        from logic import logic
 
         print_section("Текущие пути")
         print(f"   Рабочая директория: {os.getcwd()}")
-        print(f"   Путь к logic.py: {logic.__file__}")
+        print(f"   Путь к brain.py: {logic.__file__}")
 
         if hasattr(logic, 'MODELPATH'):
             print(f"   MODELPATH в logic: {logic.MODELPATH}")
@@ -222,7 +222,7 @@ def run_performance_test():
     print_header("ТЕСТ ПРОИЗВОДИТЕЛЬНОСТИ")
 
     try:
-        from TelegramBot import detector
+        from logic import detector
 
         print_section("Первая детекция (с загрузкой модели)")
         start = time.time()

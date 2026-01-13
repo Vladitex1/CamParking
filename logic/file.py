@@ -3,7 +3,7 @@ import json
 pos = []
 text_data = []
 real_data = []
-SAVEDIR = "saves/"
+SAVEDIR = "../saves/"
 
 def save_data(data, filename="saved_data.txt", parentfile=None):
     # Создаем структуру данных
@@ -18,7 +18,7 @@ def save_data(data, filename="saved_data.txt", parentfile=None):
 
 # чтение файла файл
 def read_data(filename="saved_data.txt"):
-    with open(filename, 'r', encoding='utf-8') as file:
+    with open(SAVEDIR+filename, 'r', encoding='utf-8') as file:
         content = file.read().strip()
 
     # Пробуем загрузить как JSON

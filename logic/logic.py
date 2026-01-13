@@ -10,7 +10,8 @@ import time
 
 #MODELPATH = "../../backup/yolov8x.pt"
 #MODELPATH = "models/yolo11m.pt"
-MODELPATH = "models/"
+MODELPATH = "../models/"
+CONFIG_DIR = "../models/config/"
 # ============ ДОБАВЬ ЭТО ============
 # Глобальная переменная для кэширования модели
 
@@ -18,7 +19,7 @@ MODELPATH = "models/"
 def process_image(image= None,img=None,debug:bool = False,config_name:str = "conf_1"):
     # ================ Блок подготовки имени файла для результата ================
     try:
-        INPUT_DIR = "../img/input/"
+        INPUT_DIR = "../img/results/"
         OUTPUT_DIR = "../img/results/"
         os.makedirs(INPUT_DIR, exist_ok=True)
         os.makedirs(OUTPUT_DIR, exist_ok=True)
@@ -37,13 +38,15 @@ def process_image(image= None,img=None,debug:bool = False,config_name:str = "con
 
         # ================ Начало обработки фото ================
         #сюда передается название файла на ввод и название файла, которое будет при сохранении
-        CONFIG_DIR = "models/configuration/"
+
         with open(CONFIG_DIR+config_name+".toml", 'rb') as f:
             config = tomli.load(f)
+            print(f"залупа{config}")
             if img is None:
-                cars_count, vehicles, detection_results = detect_on_raw_image(INPUT_DIR + image, config)
+                cars_count, vehicles, detection_results = detect_on_raw_image(image, config)
             else:
                 cars_count, vehicles, detection_results = detect_on_raw_image(img, config)
+            print(f"вехиклес1231231231231{vehicles}{cars_count}{detection_results}")
             annotated_frame = detection_results[0].plot(    # Отрисовка квадратов (результатов)
                 line_width=config["line_width"],  # Толщина рамки
                 font_size=config["font_size"],  # Размер текста
@@ -62,6 +65,7 @@ def process_image(image= None,img=None,debug:bool = False,config_name:str = "con
 
         # ================ Запись результатов детекции в нужном нам формате ================
         vehicles_data = []
+        print(f"вехиклес{vehicles}")
         for vehicle in vehicles:
             x1, y1, x2, y2 = vehicle['position']
             vehicles_data.append([
@@ -76,6 +80,7 @@ def process_image(image= None,img=None,debug:bool = False,config_name:str = "con
 
 def detect_on_raw_image(input_image,config):
     """Детекция на одном изображении"""
+    print(os.listdir(MODELPATH))
     MODEL = YOLO(MODELPATH+config["model_name"])
     try:
         print("Запуск системы детекции...")
@@ -136,6 +141,7 @@ def comparison(saved_data = None,detected_car_data = None):
 
     detect_center_list = []
     ### нахождение центральной точки в найденных машинах
+    #print(len(detected_car_data))
     for i in range(len(detected_car_data)):
         tempdata_x1 = detected_car_data[i][0][0]
         tempdata_x2 = detected_car_data[i][1][0]
@@ -147,6 +153,8 @@ def comparison(saved_data = None,detected_car_data = None):
 
     occupied = []
     free = []
+    print(f"хуисосработайблять{detect_center_list}")
+
     ###фильтр данных, сопоставление
     for name, position in saved_data.items():
         found_car = False

@@ -1,4 +1,4 @@
-# detector.py
+
 import asyncio
 import logging
 
