@@ -20,7 +20,8 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 # Хранилище для FSM нужно для состояний
 storage = MemoryStorage()
-bot = Bot(token="8034081320:AAHWQZRf5LNS8bzdyDLXpiMYQvFdKGKWmUU")
+bot = Bot(token='8034081320:AAHWQZRf5LNS8bzdyDLXpiMYQvFdKGKWmUU', proxy='http://138.201.245.91:8080')
+#bot = Bot(token="8034081320:AAHWQZRf5LNS8bzdyDLXpiMYQvFdKGKWmUU")
 dp = Dispatcher(storage=storage)
 
 

@@ -24,7 +24,9 @@ def detect(image_path: str = None, occupied_data: list = None, mask: str = None,
         print(f"Размер: {width}x{height}")
 
         # 2. Загрузи маску
-        saved_data, _ = file.read_data(mask)
+        MASKPATH = "../saves/"
+        MASK_ENDING = ".mask"
+        saved_data, _ = file.read_data(MASKPATH + mask+MASK_ENDING)
 
         print(f"Окупид: {occupied_data[0]}")
         print(f"Фри: {occupied_data[1]}")

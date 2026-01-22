@@ -14,7 +14,7 @@ class WhitelistManager:
     """Менеджер белого списка пользователей с кэшированием"""
 
     # Уровни доступа пользователей
-    user_lvl = ["Неопознано", "Пользователь", "Администратор"]
+    user_lvl = ["Неопознано", "Пользователь", "Админ"]
     user_lvl_icon = ["👤", "👨‍💼", "👑"]
 
     def __init__(self, db_path="db/whitelist.db"):
@@ -24,6 +24,9 @@ class WhitelistManager:
         Args:
             db_path: путь к файлу базы данных SQLite
         """
+
+        self.default_mask = 'test5'
+        self.default_config = 'confwn'
         self.db_path = Path(db_path)
         self._cache = {}  # Кэш в памяти
         self._cache_ttl = 30  # Время жизни кэша в секундах
@@ -32,14 +35,19 @@ class WhitelistManager:
     # ========== ОБЪЯСНЕНИЕ КЭША ==========
     def init_db(self):
         """Создаем таблицу если её нет"""
+
         with sqlite3.connect(self.db_path, timeout=10.0) as conn:
-            conn.execute("""
+            conn.execute(f"""
                 CREATE TABLE IF NOT EXISTS users (
                     user_id INTEGER PRIMARY KEY,
                     level INTEGER DEFAULT 1,
                     username TEXT,
                     firstname TEXT,
-                    lastname TEXT
+                    lastname TEXT,
+                    mask TEXT DEFAULT '{self.default_mask}',
+                    user_mask_slot_1 TEXT,
+                    config TEXT DEFAULT '{self.default_config}',
+                    letters BOOLEAN DEFAULT FALSE
                 )
             """)
 
@@ -207,7 +215,64 @@ class WhitelistManager:
         self._cache.clear()
         logger.debug("🧹 Кэш Whitelist очищен")
 
+    def set_settings(self, param_name: str, user_id: int, param_value):
+        """Изменяем настройки пользователя"""
+        # Список допустимых имен столбцов
+        valid_columns = ['level', 'username', 'firstname', 'lastname',
+                         'mask', 'config', 'letters']
 
+        if param_name not in valid_columns:
+            raise ValueError(f"Недопустимый параметр '{param_name}'")
+
+        with sqlite3.connect(self.db_path, timeout=10.0) as conn:
+            cursor = conn.cursor()
+
+            try:
+                # 1. Проверяем текущее значение (используем исправленный get_settings)
+                current_value = self.get_settings(param_name, user_id)
+
+                if current_value == param_value:
+                    return False  # значение уже установлено
+
+                # 2. Проверяем существование пользователя
+                cursor.execute("SELECT 1 FROM users WHERE user_id = ?", (user_id,))
+                if not cursor.fetchone():
+                    # Создаем нового пользователя
+                    cursor.execute("""
+                        INSERT INTO users (user_id, level, mask, config)
+                        VALUES (?, 1, '../saves/test5.mask', 'confwn')
+                    """, (user_id,))
+
+                # 3. Обновляем значение (НЕ используем ? для имени столбца!)
+                query = f"UPDATE users SET {param_name} = ? WHERE user_id = ?"
+                cursor.execute(query, (param_value, user_id))
+                conn.commit()
+
+                return True
+            except Exception as e:
+                print(f"Ошибка в set_settings: {e}")
+                conn.rollback()
+                return False
+
+    def get_settings(self, param_name: str, user_id: int):
+        """Получить значение конкретного параметра для пользователя"""
+        # Список допустимых имен столбцов
+        valid_columns = ['user_id', 'level', 'username', 'firstname',
+                         'lastname', 'mask', 'config', 'letters','user_mask_slot_1']
+
+        # Проверяем, что запрашиваемый параметр есть в таблице
+        if param_name not in valid_columns:
+            raise ValueError(f"Недопустимый параметр '{param_name}'. "
+                             f"Допустимые: {', '.join(valid_columns)}")
+
+        with sqlite3.connect(self.db_path, timeout=10.0) as conn:
+            cursor = conn.cursor()
+            # НЕ используем ? для имени столбца, только для значений!
+            query = f"SELECT {param_name} FROM users WHERE user_id = ?"
+            cursor.execute(query, (user_id,))
+
+            result = cursor.fetchone()
+            return result[0] if result else None
 # ========== NEW USERS MANAGER ==========
 class UserslistManager:
     """Менеджер заявок новых пользователей (JSON-хранилище)"""

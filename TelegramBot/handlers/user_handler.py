@@ -19,6 +19,7 @@ user_keyboard_letter:str = "Выберите действие в меню ниж
 def user_keyboard() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text="🅿️ Свободные места", callback_data="parking:get")],
+        [InlineKeyboardButton(text="⚙️ Настройки", callback_data="parking:settings")],
         [InlineKeyboardButton(text="🔍 Мой ID", callback_data="user:menu:id")],
         [InlineKeyboardButton(text="❓ Помощь", callback_data="user:menu:help")]
     ])
@@ -55,22 +56,24 @@ async def user_menu(callback: types.CallbackQuery):
 
 class Form(StatesGroup):
     waiting_camera = State()
+    load_file = State()
 
-
- # ================= Работа с машинами функционал ================
+ # ================= Обнаружение ================
 
 
 
 @router.callback_query(F.data == "parking:get")
 async def start_edit(callback: types.CallbackQuery, state: FSMContext):
     await state.set_state(Form.waiting_camera)
+    await state.update_data(user_id=callback.from_user.id)
     await process_camera_request(callback.message, state, callback.bot)
     await callback.answer()
 
 
 @router.message(Form.waiting_camera)
 async def process_camera_request(message: types.Message, state: FSMContext, bot: Bot):
-    user_id = message.from_user.id
+    state_data = await state.get_data()
+    user_id = state_data.get('user_id', message.from_user.id)
     chat_id = message.chat.id  # БЫЛО: message.message.chat.id
 
     print("начало работы системы")
@@ -85,19 +88,22 @@ async def process_camera_request(message: types.Message, state: FSMContext, bot:
         INPUT_DIR = "../img/results/"
         #image = "last_result.jpg"
         another_img = "output_open.jpg"
-        mask = "../saves/test4.mask"
-        waiting = await message.answer(f"⏳ Загрузка...")
+        mask = whitelist.get_settings('mask',user_id)
+        config = whitelist.get_settings('config',user_id)
         # Получение данных с камеры
-        #img = await camera.get_img_sync()
+        waittext = "Загрузка: "
+        waiting = await message.answer(text = waittext+keyboards.loading(0))
         image = await camera.get_img_PyAV()
         print(f"фото получено")
-
+        await waiting.edit_text(text = waittext+keyboards.loading(2))
         # Получаем данные о парковке ============== Обработка фото
-
-        occupied, free = detector.check_auto(mask=mask, processed_image=image, config_name="confwn")
+        print(f"{mask}{image}{config}{user_id}")
+        occupied, free = detector.check_auto(mask=mask, processed_image=image, config_name=config)
+        await waiting.edit_text(text = waittext+keyboards.loading(5))
         print(f"фото обработано ИИ")
 
         image,filename = visualizer.detect(image_path=image, mask=mask, occupied_data=[occupied,free],draw_name=False)
+        await waiting.edit_text(text = waittext+keyboards.loading(8))
         print(f"фото обработано для вывода")
         #await message.answer()
 
@@ -114,10 +120,9 @@ async def process_camera_request(message: types.Message, state: FSMContext, bot:
             occupied_max += 1
         text = (f"{datetime.today().strftime('📅 %Y-%m-%d 🕔 %H:%M:%S')}\n"
                 f"ℹ️ **Информация по парковочным местам:**\n"
-                f""
+                f"\nИспользованная маска: {whitelist.get_settings('mask',user_id)}\n"
                 f"{free_text}"
                 f"{occupied_text}"
-                f""
                 f"\nСвободных мест: {free_max} из {len(free) + len(occupied)}")
         # Сжимаем фото
         try:
@@ -132,6 +137,7 @@ async def process_camera_request(message: types.Message, state: FSMContext, bot:
         # ЦИКЛ ПОВТОРНЫХ ПОПЫТОК ОТПРАВКИ ФОТО
         photo_sent = False
         attempt = 0
+        await waiting.edit_text(text = waittext+keyboards.loading(10))
         while max_retries == 0 or attempt < max_retries:
             try:
                 attempt += 1
@@ -154,6 +160,7 @@ async def process_camera_request(message: types.Message, state: FSMContext, bot:
                 # Если дошли сюда - фото успешно отправлено
                 logger.info(f"✅ Фото отправлено успешно с попытки #{attempt}")
                 photo_sent = True
+
                 break  # ВЫХОДИМ ИЗ ЦИКЛА ПОСЛЕ УСПЕШНОЙ ОТПРАВКИ
 
             except asyncio.TimeoutError:
@@ -237,7 +244,80 @@ async def back_from_parking(callback: types.CallbackQuery, bot: Bot):
             reply_markup=keyboards.keyboardH(callback_1="new:menu:get")
         )
 
+ # ================= Настройки обнаружения ================
 
+@router.callback_query(F.data == "parking:settings")
+async def parking_settings(callback: types.CallbackQuery):
+
+    user_id = callback.from_user.id
+    await callback.answer()
+    buttons = [#["Включить стандартную маску",f"parking:settigns:set_{'mask'}_{user_id}_{whitelist.default_mask}"],
+               ["Стандартная маска", f"parking:settings:set_mask_{user_id}_{whitelist.default_mask}"],
+               ["Включить test4", f"parking:settings:set_mask_{user_id}_test4"],
+               ["Загрузить маску", f"parking:settings:load_mask"],
+               ["Назад","user:menu:get"]]
+
+
+    text = (f"🔧 Настройки 🔧\n\n"
+            f"🤿Выбранная маска = {whitelist.get_settings('mask',user_id)}\n"
+            f"🔤Включение подписей на местах = {whitelist.get_settings('letters',user_id)}\n"
+            f"📋Доступные маски:\n")
+    text += f"{" "*5} - Стандартная маска\n"
+    text += f"{" "*5} - {whitelist.get_settings('user_mask_slot_1',user_id)}\n"
+    text += f"{" "*5} - маска3\n"
+
+    await callback.message.edit_text(
+        text,
+        reply_markup=InlineKeyboardMarkup(inline_keyboard=[
+            [InlineKeyboardButton(text=buttons[0][0], callback_data=buttons[0][1]),InlineKeyboardButton(text=buttons[1][0], callback_data=buttons[1][1])],
+            #[InlineKeyboardButton(text=buttons[2][0], callback_data=buttons[2][1])],
+            [InlineKeyboardButton(text=buttons[3][0], callback_data=buttons[3][1])],
+        ]),
+        parse_mode="Markdown",
+    )
+    await callback.answer()
+
+@router.callback_query(F.data.startswith("parking:settings:set_"))
+async def parking_settings_set(callback: types.CallbackQuery, state: FSMContext):
+    parts = callback.data.split("_")
+    whitelist.set_settings(param_name = parts[1], user_id = parts[2], param_value = parts[3])
+    #print(parts)
+    await parking_settings(callback)
+
+@router.callback_query(F.data == "parking:settings:load_mask")
+async def start_edi2t(callback: types.CallbackQuery, state: FSMContext):
+    await state.set_state(Form.load_file) ###
+    await state.update_data(user_id=callback.from_user.id)
+    await load_mask(callback.message, state, callback.bot)
+    await callback.answer()
+
+
+@router.message(Form.load_file)
+async def load_mask(message: types.Message, state: FSMContext, bot: Bot):
+    #await message.edit_text(text="Отправьте в чат файл маски",
+            #             reply_markup=keyboards.keyboardH(callback_1="parking:settings"))
+    state_data = await state.get_data()
+    user_id = state_data.get('user_id', message.from_user.id)
+    chat_id = message.chat.id  # БЫЛО: message.message.chat.id
+
+    if message.message_id:
+        file_name = message
+
+        print(f"Получен файл: {file_name}")
+
+        # Проверяем формат файла
+        if file_name.endswith('.mask'):
+            # Скачиваем файл
+            await message.answer("✅ Файл маски получен, загружаю...")
+
+            # Здесь код для скачивания файла
+            # file_path = f"../saves/{file_name}"
+            # await bot.download_file(await bot.get_file(file.file_id), file_path)
+
+            await message.answer(f"📁 Файл '{file_name}' успешно загружен!")
+        else:
+            await message.answer(f"❌ Неверный формат файла. Ожидается .mask, получен: {file_name}")
+        await state.clear()
  # ================= Остальное ================
 
 @router.callback_query(F.data == "user:menu:help")##настройки

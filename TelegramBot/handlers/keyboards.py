@@ -46,3 +46,15 @@ def keyboardV(text_1: str = "↩️ Назад", callback_1: str = "user:menu:ge
         keyboard.append([InlineKeyboardButton(text=text_4, callback_data=callback_4)])
 
     return InlineKeyboardMarkup(inline_keyboard=keyboard)
+
+def keyboard_buttons(buttons:list):# -> InlineKeyboardMarkup:
+    keyboard = []
+    for num in range(len(buttons)):
+        #print(f"{buttons[num][0]}_{buttons[num][1]}")
+        keyboard.append([InlineKeyboardButton(text = buttons[num][0], callback_data=buttons[num][1])])
+    return InlineKeyboardMarkup(inline_keyboard=keyboard)
+
+def loading(rdy_num:int,nrdy_num:int = 10) -> str:
+    rdy = "⬛"
+    nrdy = "🔲"
+    return f"{rdy*rdy_num}{nrdy*(nrdy_num-rdy_num)}"
