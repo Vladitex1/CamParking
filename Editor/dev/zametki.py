@@ -32,13 +32,13 @@ pos = []
 text_data = []
 real_data = []
 
-def save_data(data,filename = "saves/saved_data.txt",parentfile = None):
+def save_data(data,filename = "save/saved_data.txt",parentfile = None):
     open(filename, 'w').close()
     with open(filename, "a") as file:
         file.write(str(data))
 
 # чтение файла файл
-def read_data(filename = "saves/saved_data.txt"):
+def read_data(filename = "save/saved_data.txt"):
     with open(filename, 'r', encoding='utf-8') as file:
         content = file.read().strip()
         result = ast.literal_eval(content)

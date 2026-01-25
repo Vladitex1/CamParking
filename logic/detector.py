@@ -11,7 +11,7 @@ def check_auto(mask: str = None, processed_image = None,img = None, config_name:
     if mask is None:
         print("Ошибка: не выбрана маска")
         return [], []
-    MASKPATH = "../saves/"
+    MASKPATH = "../save/"
     MASK_ENDING = ".mask"
     saved_data, path = file.read_data(MASKPATH+mask+MASK_ENDING)# [1]
     print(f"sd{saved_data}")

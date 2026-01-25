@@ -91,7 +91,7 @@ async def process_camera_request(message: types.Message, state: FSMContext, bot:
         mask = whitelist.get_settings('mask',user_id)
         config = whitelist.get_settings('config',user_id)
         # Получение данных с камеры
-        waittext = "Загрузка: "
+        waittext = "Загрузка: \n"
         waiting = await message.answer(text = waittext+keyboards.loading(0))
         image = await camera.get_img_PyAV()
         print(f"фото получено")
@@ -257,8 +257,12 @@ async def parking_settings(callback: types.CallbackQuery):
                ["Загрузить маску", f"parking:settings:load_mask"],
                ["Назад","user:menu:get"]]
 
+    cameratest: str="🔴"
+    if await camera.camera_test(whitelist.get_settings('ip',user_id)):
+        cameratest = "🟢"
 
     text = (f"🔧 Настройки 🔧\n\n"
+            f"📷 ip камеры: {whitelist.get_settings('ip',user_id)} статус: {cameratest}\n"
             f"🤿Выбранная маска = {whitelist.get_settings('mask',user_id)}\n"
             f"🔤Включение подписей на местах = {whitelist.get_settings('letters',user_id)}\n"
             f"📋Доступные маски:\n")
@@ -311,7 +315,7 @@ async def load_mask(message: types.Message, state: FSMContext, bot: Bot):
             await message.answer("✅ Файл маски получен, загружаю...")
 
             # Здесь код для скачивания файла
-            # file_path = f"../saves/{file_name}"
+            # file_path = f"../save/{file_name}"
             # await bot.download_file(await bot.get_file(file.file_id), file_path)
 
             await message.answer(f"📁 Файл '{file_name}' успешно загружен!")

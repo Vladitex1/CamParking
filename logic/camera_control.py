@@ -28,10 +28,10 @@ async def get_img2(debug: bool = False):
 
     # URL вашей камеры (уберите лишний @ если нет пароля)
     #url = "rtsp://admin:@192.168.0.25:554/h264?tcp"
-    url = "rtsp://admin:@192.168.0.25:554/h264?tcp&buffer_size=102400"
+    url = "rtsp://admin:@192.168.0.23:554/h264?tcp&buffer_size=102400"
     alt_urls = [
-        "rtsp://admin:@192.168.0.25:554/stream1",  # Основной поток
-        "rtsp://admin:@192.168.0.25:554/stream2",  # Субпоток (низкое разрешение)
+        "rtsp://admin:@192.168.0.23:554/stream1",  # Основной поток
+        "rtsp://admin:@192.168.0.23:554/stream2",  # Субпоток (низкое разрешение)
     ]
 
     cap = None
@@ -173,7 +173,7 @@ def enhance_frame(frame, debug=False):
 
 async def get_img_PyAV():
     try:
-        camera_path = "rtsp://admin:@192.168.0.25:554/h264?tcp"
+        camera_path = "rtsp://admin:@192.168.0.23:554/h264?tcp"
         # Опции для стабильности
         options = {
         # Пропуск кадров
@@ -226,7 +226,18 @@ async def get_img_PyAV():
         print(f"кадр сохранен, {result_image_name} ")
         return result_image_name
 
+async def camera_test(ip:str = "192.168.0.23:554"):
+    try:
+        camera_path = f"rtsp://admin:@{ip}/h264?tcp"
+        # Опции для стабильности
+        print("📡 Попытка подключения к IP-камере...")
+        av.open(camera_path)
+        return True
+    except Exception as e:
+        print(f"❌ Не удалось подключиться к камере, Ошибка: {e}")
+        return False
 
 
 if __name__ == '__main__':
     asyncio.run(get_img_PyAV())
+    #asyncio.run(get_img2())

@@ -318,7 +318,7 @@ class window():
         with dpg.file_dialog(
                 directory_selector=False,
                 default_filename="",
-                default_path="../saves",
+                default_path="../save",
                 show=False,
                 callback=self.load_mask,
                 id="mask_dialog",
@@ -336,7 +336,7 @@ class window():
         with dpg.file_dialog(
                 directory_selector=False,
                 default_filename="newmask.mask",
-                default_path="../saves",
+                default_path="../save",
                 show=False,
                 callback=self.save_button,
                 id="save_dialog",
@@ -619,7 +619,7 @@ class window():
         try:
             INPUT_DIR = "../img/results/"
             another_img = "output_open.jpg"
-            mask = "../saves/test4.mask"
+            mask = "../save/test4.mask"
             image = camera.get_img_sync()
             print(f"фото получено")
 
@@ -645,9 +645,9 @@ class window():
 
     def make_detection(self):
 
-        data1, data2 = detector.check_auto(mask="../saves/test4.mask",processed_image=self.get_current_image_info()[0],config_name="confwn")
+        data1, data2 = detector.check_auto(mask="../save/test4.mask",processed_image=self.get_current_image_info()[0],config_name="confwn")
         data = [data1,data2]
-        image, filename = visualizer.detect(image_path=self.get_current_image_info()[0], mask="../saves/test4.mask", occupied_data=data,
+        image, filename = visualizer.detect(image_path=self.get_current_image_info()[0], mask="../save/test4.mask", occupied_data=data,
                                             draw_name=False)
         filepath, image_data, image_width, image_height = self.prepare_image(filename)
         self.load_image(width=image_width, height=image_height, image_data=image_data,image_dir = filepath)

@@ -3,7 +3,7 @@ import json
 pos = []
 text_data = []
 real_data = []
-SAVEDIR = "../saves/"
+SAVEDIR = "../save/"
 
 def save_data(data, filename="saved_data.txt", parentfile=None):
     # Создаем структуру данных

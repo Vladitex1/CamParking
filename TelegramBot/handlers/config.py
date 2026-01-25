@@ -240,7 +240,7 @@ class WhitelistManager:
                     # Создаем нового пользователя
                     cursor.execute("""
                         INSERT INTO users (user_id, level, mask, config)
-                        VALUES (?, 1, '../saves/test5.mask', 'confwn')
+                        VALUES (?, 1, '../save/test5.mask', 'confwn')
                     """, (user_id,))
 
                 # 3. Обновляем значение (НЕ используем ? для имени столбца!)
@@ -258,7 +258,7 @@ class WhitelistManager:
         """Получить значение конкретного параметра для пользователя"""
         # Список допустимых имен столбцов
         valid_columns = ['user_id', 'level', 'username', 'firstname',
-                         'lastname', 'mask', 'config', 'letters','user_mask_slot_1']
+                         'lastname', 'mask', 'config', 'letters','user_mask_slot_1','ip']
 
         # Проверяем, что запрашиваемый параметр есть в таблице
         if param_name not in valid_columns:
@@ -273,6 +273,20 @@ class WhitelistManager:
 
             result = cursor.fetchone()
             return result[0] if result else None
+
+    def special_add_column(self,column_name:str,data_type:str,default_value:str = None):
+        try:
+            with sqlite3.connect(self.db_path, timeout=10.0) as conn:
+                cursor = conn.cursor()
+                types = ['INTEGER','TEXT','BOOLEAN']
+                if data_type in types:
+                    if default_value is None:
+                        cursor.execute(f"ALTER TABLE users ADD {column_name} {data_type};")
+                    else:
+                        cursor.execute(f"ALTER TABLE users ADD {column_name} {data_type} DEFAULT '{default_value}';")
+        except Exception as e:
+            print(f"Ошибка добавления столбца, {e}")
+
 # ========== NEW USERS MANAGER ==========
 class UserslistManager:
     """Менеджер заявок новых пользователей (JSON-хранилище)"""

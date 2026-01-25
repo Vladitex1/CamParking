@@ -9,9 +9,11 @@ import time
 
 
 #MODELPATH = "../../backup/yolov8x.pt"
-#MODELPATH = "models/yolo11m.pt"
-MODELPATH = "../models/"
-CONFIG_DIR = "../models/config/"
+#MODELPATH = "model/yolo11m.pt"
+MODELPATH = "../model/"
+CONFIG_DIR = "../model/config/"
+INPUT_DIR = "../img/results/"
+OUTPUT_DIR = "../img/results/"
 # ============ ДОБАВЬ ЭТО ============
 # Глобальная переменная для кэширования модели
 
@@ -19,8 +21,6 @@ CONFIG_DIR = "../models/config/"
 def process_image(image= None,img=None,debug:bool = False,config_name:str = "conf_1"):
     # ================ Блок подготовки имени файла для результата ================
     try:
-        INPUT_DIR = "../img/results/"
-        OUTPUT_DIR = "../img/results/"
         os.makedirs(INPUT_DIR, exist_ok=True)
         os.makedirs(OUTPUT_DIR, exist_ok=True)
         if debug == False:

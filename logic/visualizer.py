@@ -7,7 +7,7 @@ import logic.file as file
 
 font_path = "../Editor/fonts/defaultfont.ttf"
 font_size = 50  # Увеличьте размер шрифта (5 слишком маленький!)
-SAVES_PATH = "../saves/"
+SAVES_PATH = "../save/"
 
 colors_detect = [(0, 0, 255), (0, 255, 0), (100, 100, 100)]
 colors_font = [(255,0, 0), (0, 255, 0), (100, 100, 100)]
@@ -24,7 +24,7 @@ def detect(image_path: str = None, occupied_data: list = None, mask: str = None,
         print(f"Размер: {width}x{height}")
 
         # 2. Загрузи маску
-        MASKPATH = "../saves/"
+        MASKPATH = "../save/"
         MASK_ENDING = ".mask"
         saved_data, _ = file.read_data(MASKPATH + mask+MASK_ENDING)
 
@@ -98,5 +98,5 @@ if __name__ == '__main__':
     occupied_data = [['У площадки (справа)', 'У площадки (слева)', 'Загон (слева)', 'Загон (справа)', 'Клумба (слева)', 'Клумба (справа)','Мусорка 1', 'Мусорка 2'],['Перед загоном']]
     detect(
         image_path="../img/input/camera_photo_2026-01-11_5.jpg",
-        mask="../saves/test4.mask",
+        mask="../save/test4.mask",
         occupied_data=occupied_data,draw_name = False)
