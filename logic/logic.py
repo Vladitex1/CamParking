@@ -49,7 +49,7 @@ def process_image(image= None,img=None,debug:bool = False,config_name:str = "con
             print(f"вехиклес1231231231231{vehicles}{cars_count}{detection_results}")
             annotated_frame = detection_results[0].plot(    # Отрисовка квадратов (результатов)
                 line_width=config["line_width"],  # Толщина рамки
-                font_size=config["font_size"],  # Размер текста
+                font_size=config["FONT_SIZE"],  # Размер текста
                 conf=config["show_conf"],  # Показывать уверенность
                 labels=config["labels"]  # Показывать названия классов
 

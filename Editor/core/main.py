@@ -7,30 +7,10 @@ import logic.camera_control as camera
 import logic.visualizer as visualizer
 import logic.detector as detector
 import asyncio
+import modules.constants as const
 from datetime import date
+import modules.start_window as start_window
 
-menu_height = 24
-ASPECT_RATIO = 16 / 9
-window_full = [1800, 900]
-window_height = window_full[1]
-tools_pos_x = 0
-tools_pos_y = menu_height
-tools_width = int(window_full[0] / 100 * 21)
-tools_height = window_height
-
-main_pos_x = tools_width
-main_pos_y = menu_height
-main_width = int(window_full[0] - tools_width)
-main_height = window_height
-window_width = tools_width + main_width
-
-settings_width = 1000
-settings_height = 600
-font_size = 18
-
-colors = [(255, 0, 0, 100), (255, 140, 0, 100), (255, 255, 0, 100), (0, 255, 0, 100), (0, 255, 255, 100),
-          (0, 0, 255, 100), (255, 0, 255, 100)]
-colors_detect = [(255, 0, 0, 100), (0, 255, 0, 100)]
 
 
 class window():
@@ -41,7 +21,7 @@ class window():
         self.image_data = None
         self.texture_id = None
         self.selected_image = None
-        self.image_path = "dev/nullimage.jpg"
+        self.image_path = "../dev/nullimage.jpg"
         self.current_polygon = []
         self.polygons = []
         self.mask = None
@@ -55,15 +35,16 @@ class window():
         self.relative_path = None
         self.display_w = 100
         self.display_h = 100
+        self.active_menu = None
         dpg.create_context()
         dpg.create_viewport(
             title='CamParking',
-            width=window_width,
-            height=window_height,
-            min_width=window_width,
-            min_height=window_height,
-            max_width=window_width,
-            max_height=window_height
+            width=const.WINDOW_WIDTH,
+            height=const.WINDOW_HEIGHT,
+            min_width=const.WINDOW_WIDTH,
+            min_height=const.WINDOW_HEIGHT,
+            max_width=const.WINDOW_WIDTH,
+            max_height=const.WINDOW_HEIGHT
         )
         self.setup_input_handlers()
         self.program_presets()
@@ -86,8 +67,8 @@ class window():
         if not self.editor_online:
             return
 
-        draw_x = x - 8 - tools_width
-        draw_y = y - menu_height - 5
+        draw_x = x - 8 - const.TOOLS_WIDTH
+        draw_y = y - const.MENU_BAR_HEIGHT - 5
 
         if draw_x > 0 and draw_y > 0:
             if draw_x < self.display_w and draw_y < self.display_h:
@@ -144,10 +125,10 @@ class window():
 
             for i in range(len(self.polygons)):
                 tag = "polypoint" + str(i)
-                j = i % len(colors)
+                j = i % len(const.POLYGONS_COLORS)
 
                 scaled_fill_points = self.scale_points_for_display(self.polygons[i]['points'])
-                dpg.draw_polygon(scaled_fill_points, color=(255, 0, 0, 100), fill=colors[j],
+                dpg.draw_polygon(scaled_fill_points, color=(255, 0, 0, 100), fill=const.POLYGONS_COLORS[j],
                                  tag=tag, parent="image_display")
 
                 points = self.polygons[i]['points']
@@ -183,9 +164,8 @@ class window():
 
     async def interface(self):
         with dpg.font_registry():
-            font_path = "fonts/defaultfont.ttf"
-            if os.path.exists(font_path):
-                default_font = dpg.add_font(font_path, font_size)
+            if os.path.exists(const.FONT_PATH):
+                default_font = dpg.add_font(const.FONT_PATH, const.FONT_SIZE)
                 dpg.add_font_range_hint(dpg.mvFontRangeHint_Cyrillic, parent=default_font)
                 dpg.bind_font(default_font)
                 print("Шрифт с поддержкой кириллицы установлен")
@@ -193,6 +173,9 @@ class window():
                 print("Шрифт не найден")
 
         with dpg.viewport_menu_bar():
+            with dpg.menu(label="Меню"):
+                dpg.add_menu_item(label=f"Открыть редактор", callback=lambda: [self.interface_main_window(), self.interface_tool_window()])
+                dpg.add_menu_item(label="бяк", callback=lambda: print("бяк"))
             with dpg.menu(label="Файл"):
                 dpg.add_menu_item(label="Открыть изображение", callback=lambda: dpg.show_item("file_dialog"))
                 dpg.add_menu_item(label="Открыть", callback=lambda: (dpg.show_item("mask_dialog"),
@@ -205,24 +188,28 @@ class window():
                 dpg.add_menu_item(label="Выйти")
             with dpg.menu(label="Подключение"):
                 dpg.add_menu_item(label="Сделать фото", callback=lambda: self.get_screenshot_from_camera())
-                dpg.add_menu_item(label="Подключение")
-                dpg.add_menu_item(label="Открыть результаты")
+                dpg.add_menu_item(label="Подключение", callback=lambda: self.interface_main_window())
+                dpg.add_menu_item(label="Открыть результаты", callback=lambda: self.interface_tool_window())
                 dpg.add_menu_item(label="Настройки соединения")
             with dpg.menu(label="ИИ"):
                 dpg.add_menu_item(label=f"Найти занятые места на фото\nВыбранная маска: {None}", callback=lambda: self.make_detection())
             with dpg.menu(label="О программе"):
                 dpg.add_menu_item(label="Информация")
-            dpg.add_spacer(width = int(main_width / 2))
+            dpg.add_spacer(width = 15)
+            dpg.add_text(label=self.active_menu)
+            dpg.add_spacer(width = int(const.MAIN_WIDTH / 2))
             dpg.add_text("", tag="current_file")
 
-        self.interface_main_window()
-        self.interface_tool_window()
+
+
+        self.active_menu = start_window.run()
+
 
     def interface_main_window(self):
         with dpg.window(label="Main Window", tag="main_window",
                         no_title_bar=True, no_move=True, no_resize=True, no_collapse=True, no_close=True,
-                        width=main_width, height=main_height,
-                        pos=(main_pos_x, main_pos_y)):
+                        width=const.MAIN_WIDTH, height=const.MAIN_HEIGHT,
+                        pos=(const.MAIN_POS_X, const.MAIN_POS_Y)):
 
             self.dir, self.i, self.w, self.h = self.prepare_image()
 
@@ -249,16 +236,16 @@ class window():
     def interface_tool_window(self):
         with dpg.window(label="Tools", tag="tools_area",
                         no_title_bar=True, no_move=True, no_resize=True, no_collapse=True, no_close=True,
-                        width=tools_width, height=tools_height,
-                        pos=(tools_pos_x, tools_pos_y), no_scrollbar=True):
+                        width=const.TOOLS_WIDTH, height=const.TOOLS_HEIGHT,
+                        pos=(const.TOOLS_POS_X, const.TOOLS_POS_Y), no_scrollbar=True):
             with dpg.group(horizontal=True):
-                dpg.add_spacer(width=int(tools_width / 2 - 50))
+                dpg.add_spacer(width=int(const.TOOLS_WIDTH / 2 - 50))
                 dpg.add_text("Полигоны")
 
             with dpg.child_window(
                     tag="polygons_list",
                     height=400,
-                    width=tools_width - 15,
+                    width=const.WINDOW_WIDTH - 15,
                     horizontal_scrollbar=False,
                     autosize_y=False
             ):
@@ -271,8 +258,8 @@ class window():
     def settings(self):
         if dpg.does_item_exist("modal_window"):
             dpg.delete_item("modal_window")
-        x = tools_pos_x + (window_width - settings_width) // 2
-        y = tools_pos_y + (window_height - settings_height) // 2
+        x = const.TOOLS_POS_X + (const.WINDOW_WIDTH - const.SETTINGS_WIDTH) // 2
+        y = const.TOOLS_POS_Y + (const.WINDOW_HEIGHT - const.SETTINGS_HEIGHT) // 2
 
         with dpg.window(
                 label="Настройки",
@@ -281,15 +268,15 @@ class window():
                 id="modal_window",
                 no_title_bar=False,
                 no_move=True,
-                width=settings_width,
-                height=settings_height,
+                width=const.SETTINGS_WIDTH,
+                height=const.SETTINGS_HEIGHT,
                 pos=(x, y - 20),
         ):
             with dpg.group(horizontal=True):
                 dpg.add_text("Размер шрифта:")
                 dpg.add_spacer(width=70)
                 dpg.add_button(label="+", callback=lambda: print("клик"), width=25, height=25)
-                dpg.add_text(str(font_size))
+                dpg.add_text(str(const.FONT_SIZE))
                 dpg.add_button(label="-", callback=lambda: print("клик"), width=25, height=25)
 
             dpg.add_separator()
@@ -318,7 +305,7 @@ class window():
         with dpg.file_dialog(
                 directory_selector=False,
                 default_filename="",
-                default_path="../save",
+                default_path="../../save",
                 show=False,
                 callback=self.load_mask,
                 id="mask_dialog",
@@ -336,7 +323,7 @@ class window():
         with dpg.file_dialog(
                 directory_selector=False,
                 default_filename="newmask.mask",
-                default_path="../save",
+                default_path="../../save",
                 show=False,
                 callback=self.save_button,
                 id="save_dialog",
@@ -351,10 +338,10 @@ class window():
         for i, poly in enumerate(self.polygons):
             with dpg.group(horizontal=True, parent="polygons_list"):
                 with dpg.group(horizontal=True, tag="const_visible" + str(i)):
-                    self.add_alfa_button("icons/visabilityon.png",
+                    self.add_alfa_button("../icons/visabilityon.png",
                                          (lambda fixed: lambda s, a: self.hide_polygon(fixed))(poly['points']),
                                          "hide_button" + str(i), True)
-                    self.add_alfa_button("icons/visabilityoff.png",
+                    self.add_alfa_button("../icons/visabilityoff.png",
                                          (lambda fixed: lambda s, a: self.show_polygon(fixed))(poly['points']),
                                          "show_button" + str(i), False)
 
@@ -368,13 +355,13 @@ class window():
                     dpg.bind_item_theme("poly_namespace_" + str(i), self.textbox_theme)
 
                 with dpg.group(horizontal=True, tag="non_const_visible" + str(i), show=True):
-                    self.add_alfa_button("icons/edit.png",
+                    self.add_alfa_button("../icons/edit.png",
                                          (lambda fixed: lambda s, a: self.rename_activate(fixed))(i),
                                          "edit_button_" + str(i), True)
-                    self.add_alfa_button("icons/editoff.png",
+                    self.add_alfa_button("../icons/editoff.png",
                                          (lambda fixed: lambda s, a: self.rename_polygon(fixed))(i),
                                          "edit_off_button" + str(i), False)
-                    self.add_alfa_button("icons/delete.png",
+                    self.add_alfa_button("../icons/delete.png",
                                          (lambda fixed: lambda s, a: self.delete_polygon(fixed))(poly['points']),
                                          "delete_button" + str(i), True)
 
@@ -510,13 +497,13 @@ class window():
                 dpg.delete_item("image_display")
 
             image_ratio = width / height
-            available_ratio = main_width / main_height
+            available_ratio = const.MAIN_WIDTH / const.MAIN_HEIGHT
 
             if image_ratio > available_ratio:
-                self.display_w = main_width - 50
+                self.display_w = const.MAIN_WIDTH - 50
                 self.display_h = int(self.display_w / image_ratio)
             else:
-                self.display_h = main_height - 20
+                self.display_h = const.WINDOW_HEIGHT - 20
                 self.display_w = int(self.display_h * image_ratio)
 
             with dpg.drawlist(width=self.display_w, height=self.display_h, tag="image_display", parent="main_window"):
@@ -617,7 +604,7 @@ class window():
 
     def get_screenshot_from_camera(self):
         try:
-            INPUT_DIR = "../img/results/"
+            INPUT_DIR = "../../img/results/"
             another_img = "output_open.jpg"
             mask = "../save/test4.mask"
             image = camera.get_img_sync()
