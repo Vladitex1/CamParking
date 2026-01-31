@@ -10,19 +10,34 @@ import asyncio
 import Editor.core.modules.constants as const
 from datetime import date
 
-WINDOW_NAME = "Начало"
+FILE_TAG:str = "start"
+FILE_TAG=FILE_TAG+"_"
+WINDOW_LABEL = f"{FILE_TAG}main_window"
+WINDOW_TAG = f"{FILE_TAG}main_window"
 
-def run():
-    with dpg.window(label="Start Window", tag="start_window",
-                    no_title_bar=True, no_move=True, no_resize=True, no_collapse=True, no_close=True,
-                    width=const.MAIN_WIDTH, height=const.MAIN_HEIGHT,
-                    pos=(const.MAIN_POS_X, const.MAIN_POS_Y)):
-            with dpg.group(horizontal=True):
-                dpg.add_spacer(width=int(const.TOOLS_WIDTH / 2 - 50))
-                dpg.add_text("Полигоныasdasdasda")
+class program:
+    def __init__(self):
+        if not dpg.does_item_exist(WINDOW_TAG):
+            with dpg.window(label=WINDOW_LABEL, tag=WINDOW_TAG,
+                            no_title_bar=True, no_move=True, no_resize=True, no_collapse=True, no_close=True,
+                            width=const.WINDOW_FULL_SIZE[0], height=const.WINDOW_FULL_SIZE[1]+const.MENU_BAR_HEIGHT,
+                            pos=(0, const.MENU_BAR_HEIGHT)):
 
-            dpg.add_separator()
+                with dpg.group(horizontal=True):
+                    dpg.add_spacer(width=int(const.WINDOW_FULL_SIZE[0] / 2 - 50))
+                    dpg.add_text(f"Начало")
 
-            dpg.add_text("Управление")
-            dpg.add_text("", wrap=0)
-            return WINDOW_NAME
+                dpg.add_separator()
+                dpg.add_text("Управление")
+                dpg.add_text("", wrap=0)
+
+    def bup(self):
+        print("буп")
+
+    def get_tags(self=None):
+
+        data: list = []
+        data.append(WINDOW_TAG)
+        #data.append(TOOLS_TAG)
+
+        return data
