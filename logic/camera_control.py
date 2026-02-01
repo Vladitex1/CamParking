@@ -5,7 +5,9 @@ import numpy as np
 import av
 import os
 
-
+PHOTO_DIR = "../img/camphoto/"
+FILE_NAME = "camera_photo_"
+FILE_EXTENSION = "jpg"
 
 
 def get_img_sync(debug: bool = False):
@@ -211,16 +213,14 @@ async def get_img_PyAV():
             img = result
             print("✅ Фото получено")
 
-        PHOTO_DIR = "../img/camphoto/"
-        FILENAME = "camera_photo_"
         filecount = 0
         for file in os.listdir(PHOTO_DIR):
-            if f"{FILENAME}{date.today()}" in file:
+            if f"{FILE_NAME}{date.today()}" in file:
                 filecount += 1
         if filecount == 0:
-            result_image_name = f"{PHOTO_DIR + FILENAME}{date.today()}.jpg"
+            result_image_name = f"{PHOTO_DIR + FILE_NAME}{date.today()}.{FILE_EXTENSION}"
         else:
-            result_image_name = f"{PHOTO_DIR + FILENAME}{date.today()}_{filecount}.jpg"
+            result_image_name = f"{PHOTO_DIR + FILE_NAME}{date.today()}_{filecount}.{FILE_EXTENSION}"
 
         result.to_image().save(result_image_name)
         print(f"кадр сохранен, {result_image_name} ")

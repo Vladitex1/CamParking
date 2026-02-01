@@ -1,6 +1,6 @@
 from pathlib import Path
 
-PROJECT_ROOT = Path(__file__).parent.parent.parent.parent
+PROJECT_ROOT = str(Path(__file__).parent.parent.parent.parent)
 
 MENU_BAR_HEIGHT = 24
 ASPECT_RATIO = 16 / 9
@@ -28,28 +28,18 @@ GLOBAL_BAR_TAG: str = "global_bar"
 
 LANGUAGE: str = "ru"
 # ======================= Paths ==========================
-NULL_IMAGE = f"{PROJECT_ROOT}/Editor/dev/nullimage.png"
+NULL_IMAGE = f"{PROJECT_ROOT}/Editor/dev/nullimage2.png"
 CURRENT_FONT = "default_font.ttf"
 FONT_PATH = f"{PROJECT_ROOT}/Editor/Fonts/{CURRENT_FONT}"
 
 # ======================= Bar config ==========================
 
-start: dict = {
-    "start_zaglushka": {
-        "label": {"ru": "заглушка", "en": "zaglushka"},
-        "items": [
-            {
-                "label": {"ru": "БУП!", "en": "BoooP!"},
-                "action": {"type": "self", "method": "bup"}
-            },
-        ]
-    }
-}
+
 
 
 
 always_visible: dict = {
-    "always_visible_Navigation": {
+    "always_visible_navigation": {
         "label": {"ru": "Навигация", "en": "Navigation"},
         "items": [
             {
@@ -68,14 +58,31 @@ always_visible: dict = {
     }
 }
 
+start: dict = {
+    "start_zaglushka": {
+        "label": {"ru": "заглушка", "en": "zaglushka"},
+        "items": [
+            {
+                "label": {"ru": "БУП!", "en": "BoooP!"},
+                "action": {"type": "self", "method": "bup"}
+            },
+        ]
+    }
+}
+
 editor: dict = {
     "editor_file": {
         "label": {"ru": "Файл", "en": "File"},
         "items": [
             {
-                "label": {"ru": "Открыть файл", "en": "Open file"},
+                "label": {"ru": "Открыть изображение", "en": "Open image"},
                 "action": {"type": "dpg", "method": "show_item", "arg": "editor_file_dialog"}
-            },
+            }]}}
+
+editor2: dict = {
+    "editor_file": {
+        "label": {"ru": "Файл", "en": "File"},
+        "items": [
             {
                 "label": {"ru": "Открыть", "en": "Open"},
                 "action": {"type": "dpg", "method": "show_item", "arg": "editor_mask_dialog"}

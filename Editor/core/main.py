@@ -30,7 +30,7 @@ class window():
         self.create_all_windows()
         # Показываем стартовое окно
         self.show_window(1)
-        self.print_windows_stack()
+        #self.print_windows_stack()
         dpg.setup_dearpygui()
         dpg.show_viewport()
         dpg.start_dearpygui()
