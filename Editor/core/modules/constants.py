@@ -4,7 +4,7 @@ PROJECT_ROOT = str(Path(__file__).parent.parent.parent.parent)
 
 MENU_BAR_HEIGHT = 24
 ASPECT_RATIO = 16 / 9
-WINDOW_FULL_SIZE = [1800, 900]
+WINDOW_FULL_SIZE = [1200,900]#[1800, 900]
 WINDOW_HEIGHT = WINDOW_FULL_SIZE[1]
 TOOLS_POS_X = 0
 TOOLS_POS_Y = MENU_BAR_HEIGHT
@@ -77,16 +77,22 @@ editor: dict = {
             {
                 "label": {"ru": "Открыть изображение", "en": "Open image"},
                 "action": {"type": "dpg", "method": "show_item", "arg": "editor_file_dialog"}
-            }]}}
+            },
+            {
+                "label": {"ru": "Открыть маску", "en": "Open mask"},
+                "action": {"type": "dpg", "method": "show_item", "arg": "editor_mask_dialog"}
+            },
+            {
+                "label": {"ru": "Сохранить маску", "en": "Save mask"},
+                "action": {"type": "dpg", "method": "show_item", "arg": "editor_save_dialog"}
+            },
+
+        ]}}
 
 editor2: dict = {
     "editor_file": {
         "label": {"ru": "Файл", "en": "File"},
         "items": [
-            {
-                "label": {"ru": "Открыть", "en": "Open"},
-                "action": {"type": "dpg", "method": "show_item", "arg": "editor_mask_dialog"}
-            },
             {
                 "label": {"ru": "Сохранить", "en": "Save"},
                 "action": {"type": "self", "method": "fast_save"}

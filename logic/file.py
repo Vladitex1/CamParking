@@ -19,7 +19,7 @@ def save_data(data, filename="saved_data.txt", parentfile=None):
 # чтение файла файл
 def read_data(filename="saved_data.txt"):
     print(SAVEDIR+filename)
-    with open(SAVEDIR+filename, 'r', encoding='utf-8') as file:
+    with open(filename, 'r', encoding='utf-8') as file:
         content = file.read().strip()
 
     # Пробуем загрузить как JSON

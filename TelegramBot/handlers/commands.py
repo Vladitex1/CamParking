@@ -16,7 +16,7 @@ async def start_command(message: types.Message):  # Исправлено: messag
             "✅ У вас уже есть доступ!\n",
             reply_markup=keyboards.keyboardH("Войти", "user:menu:get")
             )
-        await message.delete()
+        #await message.delete()
     else:
         await message.answer("Добро пожаловать в CamParking!\n"
                              "для начала работы вам необходимо запросить доступ"

@@ -8,6 +8,9 @@ import logic.visualizer as visualizer
 import logic.detector as detector
 import Editor.core.modules.constants as const
 import Editor.core.modules.themes as themes
+
+from pathlib import Path
+
 FILE_TAG:str = "editor"
 FILE_TAG=FILE_TAG+"_"
 
@@ -21,7 +24,7 @@ class program:
     def __init__(self):
         global FILE_TAG
         if not dpg.does_item_exist(WINDOW_TAG):
-            self.project_root = const.PROJECT_ROOT
+            self.project_root = Path(__file__).parent.parent.parent.parent.resolve()
             self.null_image = "../dev/nullimage2.png"
             self.texture_id = None
             self.img_info = None
@@ -38,9 +41,10 @@ class program:
             self.image_data = None
             self.file_tag = FILE_TAG
             self.current_texture_tag:str = ""
+            self.image_data:list = []
 
             print(const.PROJECT_ROOT)
-            self.image_instance=self.image(self)
+            self.file_instance=self.file(self)
             self.front_instance=self.front(self)
 
 
@@ -70,7 +74,7 @@ class program:
                             width=const.MAIN_WIDTH, height=const.MAIN_HEIGHT,
                             pos=(const.MAIN_POS_X, const.MAIN_POS_Y)):
 
-                self.parent.image_instance.upload_image()
+                self.parent.file_instance.upload_image()
 
         def interface_tool_window(self):
             with dpg.window(label=TOOLS_TAG, tag=TOOLS_TAG,
@@ -357,123 +361,47 @@ class program:
 
 
 
-    class image:
-        def __init__(self,parent):
+    class file:
+        def __init__(self, parent):
             self.parent = parent
             self.program_presets()
 
         def bar_open_img(self, sender, app_data):
             if app_data["file_path_name"]:
-                filepath = self.repath_file(app_data["file_path_name"])
-                #print("file_load:Загружаем файл:", filepath)
-                #print(f"Размеры: {self.width}x{self.height}")
-                self.upload_image(filepath)
-                #self.clear_polygon_list()###################################
-                self.editor_online = True
+                #filepath = self.repath_file(app_data["file_path_name"])
+                data = self.upload_image(app_data["file_path_name"])
+                self.current_image_data(True,data)
+                self.parent.editor_online = True
+
+        def bar_open_mask(self,sender,app_data):
+            self.savedata = {}
+            file_path = app_data["file_path_name"]
+            #self.relative_path = os.path.relpath(self.selected_filepath, self.project_root)
+            #print(f"1: {self.selected_filepath}")
+            #print(f"2: {self.project_root}")
+            #print(f"3: {self.relative_path}")
 
 
-        def upload_image(self, image_path: str = "null"):
-            try:
-                if image_path == "null":
-                    #pass
-                    image_path = self.parent.null_image
-                #DEBUG:upload_image:input_path:'..\img\camphoto\camera_photo_2026-02-01.jpg'
-                #DEBUG: upload_image:input_path: '../dev/nullimage2.png'
-                print(f"\n\n")
-                print(f"DEBUG:upload_image:input_path:'{image_path}'")
-                print(f"\n\n")
-                read_image = cv2.imread(image_path, cv2.IMREAD_UNCHANGED)
+            saved_data, parent_file = file.read_data(file_path)#self.selected_filepath)
+            print(f"INFO:bar_open_mask:Parent file: {parent_file}")
+            if not dpg.get_value("onlymask"):
+                self.upload_image(parent_file)
+            else:
+                pass
+                #dpg.set_value(f"{self.parent.file_tag}current_file", f"Загружена маска от файла:{os.path.basename(self.relative_path)}")
 
-                file_dir = image_path  # = os.path.relpath(image_input, self.project_root)
+            #self.current_polygon.clear()
+            #self.polygons.clear()
+            #for sd_value in saved_data:
+            #    self.current_polygon = saved_data[sd_value]
+            #    if len(self.current_polygon) > 0 and self.current_polygon[0] != self.current_polygon[-1]:
+            #        self.current_polygon.append(self.current_polygon[0])
+            #    self.complete_polygon(sd_value)
+            #self.update_polygons_list()
+            #self.update_display()
+            #self.editor_online = True
 
-                if read_image is None:
-                    print(f"❌ Не удалось загрузить изображение")
-                    read_image = np.zeros((100, 100, 4), dtype=np.uint8)
-                print("prepare_image:Загружаем файл:", image_path)
-                if read_image.shape[2] == 3:
-                    image_rgba = cv2.cvtColor(read_image, cv2.COLOR_BGR2RGBA)
-                elif read_image.shape[2] == 4:
-                    image_rgba = cv2.cvtColor(read_image, cv2.COLOR_BGRA2RGBA)
-                else:
-                    image_rgba = cv2.cvtColor(read_image, cv2.COLOR_BGR2RGBA)
-
-                #parent_file_path = image_input################################################
-                image_height, image_width = image_rgba.shape[:2]
-                data = (image_rgba.astype(np.float32) / 255.0)
-                image_data = data.flatten()
-
-                # ========= Вычисление размеров для изображения (чтоб она динамически подстраивалась под размер окна)
-                image_ratio = image_width / image_height
-                available_ratio = const.MAIN_WIDTH / const.MAIN_HEIGHT
-
-                if image_ratio > available_ratio:
-                    ratio_width = const.MAIN_WIDTH - 50
-                    ratio_height = int(ratio_width / image_ratio)
-                else:
-                    ratio_height = const.MAIN_HEIGHT - 20
-                    ratio_width = int(ratio_height * image_ratio)
-
-                # ===================== Обозначение зоны в которой располагается картинка (Холст) ===================
-
-                ### Сначала удаляем старый холст
-                if dpg.does_item_exist(f"{self.parent.file_tag}{HOLST_NAME}"): ###
-                    dpg.delete_item(f"{self.parent.file_tag}{HOLST_NAME}")### залупа какаято
-                ### Пересоздаем новый холст c новой картинкой
-                with dpg.drawlist( #Создание холста
-                    tag=f"{self.parent.file_tag}{HOLST_NAME}",
-                    parent=WINDOW_TAG,
-                    width=ratio_width,
-                    height=ratio_height):
-                    # ============== Удаление старой картинки (чтоб не было утечки памяти через теги) ==================
-                    try:
-                        if dpg.does_item_exist(self.parent.current_texture_tag):
-                            dpg.delete_item(self.parent.current_texture_tag)
-                    except Exception as e:
-                        print(f"❌ Ошибка 1 уровня в upload_image: {e}")
-
-                    with dpg.texture_registry(): #Это пареметры изображения (которое будет потом создано)
-                        self.parent.current_texture_tag = dpg.add_raw_texture(
-                            width=image_width,
-                            height=image_height,
-                            default_value=list(image_data),
-                            format=dpg.mvFormat_Float_rgba
-                        )
-
-                    dpg.draw_image( #Это непосредственно создание картинки
-                        texture_tag=self.parent.current_texture_tag,
-                        pmin = (0, 0),
-                        pmax = (ratio_width, ratio_height),
-                        uv_min=(0, 0),
-                        uv_max=(1, 1)
-                    )
-                dpg.show_item(self.parent.current_texture_tag)
-                print(f"✅ Текстура обновлена: оригинал {image_width}x{image_height}"
-                      f" -> отображение {ratio_width}x{ratio_height}")
-
-                return image_path,image_data, image_width, image_height
-                # назначение названия файла для лейбла сверху
-                # dpg.set_value(f"{self.parent.file_tag}current_file", os.path.basename(image_dir))
-
-
-            except Exception as e:
-                print(f"❌ Ошибка 2 уровня в upload_image: {e}")
-
-        def repath_file(self,input_filepath:str):
-            relative_path = os.path.relpath(input_filepath, self.parent.project_root)
-            # Вместо "..\\" используем ".." и правильное соединение
-            result_path = os.path.join("..", relative_path)
-            print(f"1:={input_filepath}")
-            print(f"2:={result_path}")
-            return result_path
-
-        def clear_file(self):
-            current_img_info = self.prepare_image()
-            self.load_image(current_img_info)
-            self.editor_online = False
-            self.polygons.clear()
-            self.update_polygons_list()
-
-        def save_button(self, sender, app_data):
+        def bar_save_mask2(self, sender, app_data):
             if len(self.polygons) != 0:
                 self.savedata = {}
                 self.selected_filepath = app_data["file_path_name"]
@@ -488,6 +416,162 @@ class program:
                 self.editor_online = True
             else:
                 print("Сохранение не удалось.")
+
+        def bar_save_mask(self, sender, app_data):
+            print(self.parent.image_data)
+            pass
+            #self.get_current_image_data()
+            #self.repath_file()
+            #file.save_data(self.savedata, filepath, self.parent_file_path)
+            #self.editor_online = True
+            #else:
+            #    print("Сохранение не удалось.")
+
+        def upload_image(self, image_path: str = "null"):
+            try:
+                if image_path == "null":
+                    image_path = self.parent.null_image
+
+                if not os.path.exists(image_path):
+                    print(f"Изображение с путем: '{image_path}' не найдено")
+                    return 0
+                else:
+                    print(f"Изображение с путем: '{image_path}' найдено")
+
+                print(f"\n\nDEBUG:upload_image:input_path:'{image_path}'\n\n")
+
+                try:
+                    read_image = cv2.imread(image_path, cv2.IMREAD_UNCHANGED)
+                except Exception as e:
+                    print(f"Ошибка 1 уровня,1 раздел в upload_image: {e}")
+                    return 0
+
+                try:
+                    if read_image is None:
+                        print(f"❌ Не удалось загрузить изображение")
+                        read_image = np.zeros((100, 100, 3), dtype=np.uint8)
+
+                    print("prepare_image:Загружаем файл:", image_path)
+
+                    if len(read_image.shape) == 2:
+                        read_image = cv2.cvtColor(read_image, cv2.COLOR_GRAY2BGR)
+
+                    if read_image.shape[2] == 3:
+                        image_rgb = cv2.cvtColor(read_image, cv2.COLOR_BGR2RGB)
+                        image_rgba = np.ones((image_rgb.shape[0], image_rgb.shape[1], 4), dtype=np.uint8) * 255
+                        image_rgba[:, :, :3] = image_rgb
+                    elif read_image.shape[2] == 4:
+                        image_bgra = cv2.cvtColor(read_image, cv2.COLOR_BGRA2RGBA)
+                        image_rgba = image_bgra
+                    else:
+                        print(f"❌ Неподдерживаемое количество каналов: {read_image.shape[2]}")
+                        return 0
+
+                except Exception as e:
+                    print(f"Ошибка 1 уровня,2 раздел в upload_image: {e}")
+                    return 0
+
+                try:
+                    image_height, image_width = image_rgba.shape[:2]
+                    image_data = (image_rgba / 255.0).flatten().astype(np.float32)
+                except Exception as e:
+                    print(f"Ошибка 1 уровня,3 раздел в upload_image: {e}")
+                    return 0
+
+                try:
+                    image_ratio = image_width / image_height
+                    available_ratio = const.MAIN_WIDTH / const.MAIN_HEIGHT
+
+                    if image_ratio > available_ratio:
+                        ratio_width = const.MAIN_WIDTH - 50
+                        ratio_height = int(ratio_width / image_ratio)
+                    else:
+                        ratio_height = const.MAIN_HEIGHT - 20
+                        ratio_width = int(ratio_height * image_ratio)
+                except Exception as e:
+                    print(f"Ошибка 1 уровня,4 раздел в upload_image: {e}")
+                    return 0
+
+                try:
+                    if dpg.does_item_exist(f"{self.parent.file_tag}{HOLST_NAME}"):
+                        dpg.delete_item(f"{self.parent.file_tag}{HOLST_NAME}")
+                        print("Элемент найден и удален")
+
+                    with dpg.drawlist(
+                            tag=f"{self.parent.file_tag}{HOLST_NAME}",
+                            parent=WINDOW_TAG,
+                            width=ratio_width,
+                            height=ratio_height):
+
+                        try:
+                            if dpg.does_item_exist(self.parent.current_texture_tag):
+                                dpg.delete_item(self.parent.current_texture_tag)
+                        except Exception as e:
+                            print(f"Ошибка 2 уровня,1 раздел в upload_image: {e}")
+                            return 0
+
+                        try:
+                            with dpg.texture_registry():
+                                self.parent.current_texture_tag = dpg.add_raw_texture(
+                                    width=image_width,
+                                    height=image_height,
+                                    default_value=image_data,
+                                    format=dpg.mvFormat_Float_rgba
+                                )
+
+                            dpg.draw_image(
+                                texture_tag=self.parent.current_texture_tag,
+                                pmin=(0, 0),
+                                pmax=(ratio_width, ratio_height),
+                                uv_min=(0, 0),
+                                uv_max=(1, 1)
+                            )
+                        except Exception as e:
+                            print(f"Ошибка 2 уровня,2 раздел в upload_image: {e}")
+                            return 0
+
+                        print(f"✅ Текстура обновлена: оригинал {image_width}x{image_height}"
+                              f" -> отображение {ratio_width}x{ratio_height}")
+
+                    self.parent.image_width = image_width
+                    self.parent.image_height = image_height
+                    self.parent.display_w = ratio_width
+                    self.parent.display_h = ratio_height
+
+                    return [image_path, image_data, image_width, image_height]
+
+                except Exception as e:
+                    print(f"Ошибка 1 уровня,6 раздел в upload_image: {e}")
+                    return 0
+            except Exception as e:
+                print(f"Общая ошибка в upload_image: {e}")
+                return 0
+
+        def repath_file(self,input_filepath:str):
+            relative_path = os.path.relpath(input_filepath, self.parent.project_root)
+            # Вместо "..\\" используем ".." и правильное соединение
+            result_path = os.path.join("..", relative_path)
+            print(f"repath_file:project_root: {self.parent.project_root}")
+            print(f"repath_file:input_filepath: {input_filepath}")
+            print(f"repath_file:result_path: {result_path}")
+            return result_path
+
+        def current_image_data(self,set:bool=False,data:list=None):
+            if set:
+                if data != None:
+                    self.parent.image_data = data
+                else:
+                    return 0
+            else: ############## РАЗНЫЕ ДАННЫЕ В СОХРАНЕНИИ!!!!
+                return data
+
+        def clear_file(self):
+            current_img_info = self.prepare_image()
+            self.load_image(current_img_info)
+            self.editor_online = False
+            self.polygons.clear()
+            self.update_polygons_list()
+
 
         def fast_save(self):
             if not self.editor_online:
@@ -505,35 +589,6 @@ class program:
 
         def get_current_image_info(self):
             return self.image_path, self.image_data, self.image_width, self.image_height
-
-        def load_mask(self, sender, app_data):
-            self.savedata = {}
-            self.selected_filepath = app_data["file_path_name"]
-            self.relative_path = os.path.relpath(self.selected_filepath, self.project_root)
-            print(f"1: {self.selected_filepath}")
-            print(f"2: {self.project_root}")
-            print(f"3: {self.relative_path}")
-
-            saved_data, prepared_file = file.read_data(self.selected_filepath)
-            print(f"Parent file: {self.parent_file_path}")
-            self.image_path = prepared_file
-            if not dpg.get_value("onlymask"):
-                self.dir, self.img_info, self.width, self.height = self.prepare_image(prepared_file)
-                self.load_image(self.width, self.height, self.img_info,self.dir)
-            else:
-                pass
-                #dpg.set_value(f"{self.parent.file_tag}current_file", f"Загружена маска от файла:{os.path.basename(self.relative_path)}")
-
-            self.current_polygon.clear()
-            self.polygons.clear()
-            for sd_value in saved_data:
-                self.current_polygon = saved_data[sd_value]
-                if len(self.current_polygon) > 0 and self.current_polygon[0] != self.current_polygon[-1]:
-                    self.current_polygon.append(self.current_polygon[0])
-                self.complete_polygon(sd_value)
-            self.update_polygons_list()
-            self.update_display()
-            self.editor_online = True
 
         def get_screenshot_from_camera(self):
             try:
@@ -592,7 +647,7 @@ class program:
                         default_filename="",
                         default_path=f"{const.PROJECT_ROOT}/save",
                         show=False,
-                        callback=self.load_mask,
+                        callback=self.bar_open_mask,
                         id=f"{self.parent.file_tag}mask_dialog",
                         width=700,
                         height=400,
@@ -610,7 +665,7 @@ class program:
                         default_filename="newmask.mask",
                         default_path=f"{const.PROJECT_ROOT}/save",
                         show=False,
-                        callback=self.save_button,
+                        callback=self.bar_save_mask,
                         id=f"{self.parent.file_tag}save_dialog",
                         width=700,
                         height=400,
