@@ -159,7 +159,7 @@ class program:
                     dpg.bind_item_theme(f"{self.var['file_tag']}polygons_list", themes.theme_editor())
                 dpg.add_separator()
 
-                dpg.add_text("ЗАЛАУПА")
+                dpg.add_text("Текущие параметры:")
                 dpg.add_text("", wrap=0)
 
         def settings(self):

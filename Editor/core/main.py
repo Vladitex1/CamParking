@@ -289,7 +289,8 @@ class window():
 
     def create_bar(self, language: str = "en"):
         """Создает единый меню-бар"""
-        with dpg.window(label=const.GLOBAL_BAR_TAG, tag=const.GLOBAL_BAR_TAG,
+        GLOBAL_BAR_TAG: str = "global_bar"
+        with dpg.window(label=GLOBAL_BAR_TAG, tag=GLOBAL_BAR_TAG,
                         no_title_bar=True, no_move=True, no_resize=True,
                         no_collapse=True, no_close=True,
                         width=const.WINDOW_FULL_SIZE[0],
@@ -299,7 +300,7 @@ class window():
             with dpg.viewport_menu_bar(tag="main_menu_bar"):
                 pass  # Меню будем добавлять динамически
 
-        return const.GLOBAL_BAR_TAG
+        return GLOBAL_BAR_TAG
 
     def show_window(self, id: int):
         print(f"=== Переключаемся на окно {id} ===")
