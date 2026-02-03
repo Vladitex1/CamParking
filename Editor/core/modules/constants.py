@@ -4,7 +4,7 @@ PROJECT_ROOT = str(Path(__file__).parent.parent.parent.parent)
 
 MENU_BAR_HEIGHT = 24
 ASPECT_RATIO = 16 / 9
-WINDOW_FULL_SIZE = [1200,900]#[1800, 900]
+WINDOW_FULL_SIZE = [1800, 900]#[1200,900]#
 WINDOW_HEIGHT = WINDOW_FULL_SIZE[1]
 TOOLS_POS_X = 0
 TOOLS_POS_Y = MENU_BAR_HEIGHT
@@ -44,15 +44,18 @@ always_visible: dict = {
         "items": [
             {
                 "label": {"ru": "Начало", "en": "Start"},
-                "action": {"type": "self", "method": "show_window", "arg": 1}
+                "func": "self.show_window",
+                "id": 1
             },
             {
                 "label": {"ru": "Редактор", "en": "Editor"},
-                "action": {"type": "self", "method": "show_window", "arg": 2}
+                "func": "self.show_window",
+                "id": 2
             },
             {
                 "label": {"ru": "Детекция", "en": "Detection"},
-                "action": {"type": "self", "method": "show_window", "arg": 3}
+                "func": "self.show_window",
+                "id": 3
             }
         ]
     }
@@ -64,28 +67,42 @@ start: dict = {
         "items": [
             {
                 "label": {"ru": "БУП!", "en": "BoooP!"},
-                "action": {"type": "self", "method": "bup"}
+                "func": "self.bup",
             },
         ]
     }
 }
 
 editor: dict = {
-    "editor_file": {
+        "editor_file": {
         "label": {"ru": "Файл", "en": "File"},
         "items": [
             {
                 "label": {"ru": "Открыть изображение", "en": "Open image"},
-                "action": {"type": "dpg", "method": "show_item", "arg": "editor_file_dialog"}
+                "func": "dpg.show_item",
+                "item": "editor_file_dialog"
             },
             {
                 "label": {"ru": "Открыть маску", "en": "Open mask"},
-                "action": {"type": "dpg", "method": "show_item", "arg": "editor_mask_dialog"}
+                "func": "dpg.show_item",
+                "item": "editor_mask_dialog"
             },
             {
                 "label": {"ru": "Сохранить маску", "en": "Save mask"},
-                "action": {"type": "dpg", "method": "show_item", "arg": "editor_save_dialog"}
+                "func": "dpg.show_item",
+                "item": "editor_save_dialog"
             },
+            {
+                "label": {"ru": "Быстрое сохранение", "en": "Fast save"},
+                "func": "self.file.bar_fast_save",
+            },
+            {
+                "label": {"ru": "Очистить рабочую область", "en": "Clear workspace"},
+                "func": "self.file.bar_clear_workspace"
+                #"self": "None"
+                # Нет аргументов - значит вызываем без них
+            },
+
 
         ]}}
 
@@ -101,10 +118,7 @@ editor2: dict = {
                 "label": {"ru": "Сохранить как...", "en": "Save as..."},
                 "action": {"type": "dpg", "method": "show_item", "arg": "editor_save_dialog"}
             },
-            {
-                "label": {"ru": "Очистить", "en": "Clear"},
-                "action": {"type": "self", "method": "clear_file"}
-            },
+
             {
                 "label": {"ru": "Настройки", "en": "Settings"},
                 "action": {"type": "self", "method": "settings"}

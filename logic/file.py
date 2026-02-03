@@ -1,5 +1,6 @@
 import ast
 import json
+import os
 pos = []
 text_data = []
 real_data = []
@@ -17,14 +18,23 @@ def save_data(data, filename="saved_data.txt", parentfile=None):
 
 
 # чтение файла файл
-def read_data(filename="saved_data.txt"):
-    print(SAVEDIR+filename)
-    with open(filename, 'r', encoding='utf-8') as file:
-        content = file.read().strip()
+def read_data(file_path:str=None):
+    try:
+        if file_path != None:
+            if not os.path.exists(file_path):
+                print(f"ОШИБКА read_data: {file_path} - НЕ СУЩЕСТВУЕТ!")
+                return None
+            with open(file_path, 'r', encoding='utf-8') as file:
+                content = file.read().strip()
+                #print(content)
 
-    # Пробуем загрузить как JSON
-    data = json.loads(content)
-    polygons = data.get("polygons", {})
-    parent_file = data.get("parent_file", "")
-    return polygons, parent_file
+            # Пробуем загрузить как JSON
+            data = json.loads(content)
+            polygons = data.get("polygons", {})
+            parent_file = data.get("parent_file", "")
+            print(data)
+
+            return polygons, parent_file
+    except Exception as e:
+        print(f"ОШИБКА read_data: {e}")
 

@@ -113,26 +113,94 @@ class window():
 
     def add_menu_item(self, item: dict, instance: object, language: str):
         """Добавляет один пункт меню"""
-        action_data = item["action"]
-        action_type = action_data["type"]
-        method_name = action_data.get("method")
-        arg = action_data.get("arg")
         label = item["label"][language]
+        func_path = item.get("func", "none")
 
-        # Создаем callback в зависимости от типа действия
-        if action_type == "none":
+        print(f"Создание меню: {label}, функция: {func_path}")
+
+        if func_path == "none":
             callback = None
-        elif action_type == "self":
-            # Callback вызывает метод у instance (редактора/детектора)
-            callback = self.create_callback(instance, method_name, arg, label)
-        elif action_type == "dpg":
-            # Callback вызывает метод dpg
-            callback = self.create_dpg_callback(method_name, arg, label)
         else:
-            callback = None
+            # Собираем все аргументы из item, кроме 'label' и 'func'
+            args = {}
+            for key, value in item.items():
+                if key not in ['label', 'func']:
+                    args[key] = value
+
+            # Создаем callback
+            callback = self.create_func_callback(instance, func_path, args, label)
 
         # Добавляем пункт меню
-        dpg.add_menu_item(label=label, callback=callback)
+        if callback is not None:
+            dpg.add_menu_item(label=label, callback=callback)
+        else:
+            dpg.add_menu_item(label=label)
+
+    def create_func_callback(self, instance, func_path: str, args: dict, label: str):
+        """Создает callback для вызова функции с аргументами"""
+
+        def callback():
+            print(f"Меню: {label}")
+            print(f"Путь к функции: {func_path}")
+            try:
+                # Разбираем путь к функции
+                if func_path.startswith("dpg."):
+                    # Вызов функции dpg
+                    parts = func_path.split('.')
+                    func_name = parts[1] if len(parts) > 1 else None
+
+                    print(f"Вызов dpg.{func_name} с аргументами: {args}")
+
+                    if func_name and hasattr(dpg, func_name):
+                        func = getattr(dpg, func_name)
+                        if args:
+                            return func(**args)
+                        else:
+                            return func()
+                    else:
+                        print(f"❌ Функция {func_name} не найдена в dpg")
+
+                elif func_path.startswith("self."):
+                    # Цепочка атрибутов: self.file.bar_clear_workspace
+                    parts = func_path.split('.')
+                    current_obj = instance
+
+                    # Пропускаем 'self' (первый элемент)
+                    for i, part in enumerate(parts[1:], 1):
+                        print(f"DEBUG: Шаг {i}: ищем '{part}' в {current_obj}")
+
+                        # Проверяем, является ли текущий объект классом (вложенным классом)
+                        # или экземпляром с доступными атрибутами
+                        if hasattr(current_obj, part):
+                            current_obj = getattr(current_obj, part)
+                            print(f"DEBUG: Найден. Новый объект: {current_obj}, тип: {type(current_obj)}")
+                        else:
+                            # Возможно, part - это имя вложенного класса, доступного через __dict__
+                            # или это имя метода внутри вложенного класса
+                            print(f"❌ Атрибут '{part}' не найден у {current_obj}")
+                            print(f"   Полный путь: {parts[:i + 1]}")
+                            return
+                    # После прохода по цепочке current_obj должен быть вызываемым объектом
+                    if callable(current_obj):
+                        if args:
+                            print(f"Вызов функции с аргументами: {args}")
+                            return current_obj(**args)
+                        else:
+                            print(f"Вызов функции без аргументов")
+                            return current_obj()
+                    else:
+                        print(f"❌ Объект {current_obj} не является вызываемым")
+
+                else:
+                    print(f"❌ Неизвестный формат функции: {func_path}")
+
+            except Exception as e:
+                print(f"❌ Ошибка в меню '{label}': {e}")
+                import traceback
+                traceback.print_exc()
+
+        return callback
+
 
 
     #####========================== Создание калбеков =====================================
