@@ -161,6 +161,10 @@ class program:
 
                 dpg.add_text("Текущие параметры:")
                 dpg.add_text("", wrap=0)
+                self.func.add_alfa_button(
+                    icon_path=os.path.join(self.var['project_root'], "Editor/icons/saveas.png"),
+                    callback=lambda s, a, u: print("Кнопка нажата"),
+                    tag=f"{self.var['file_tag']}test_{1}", show=True)
 
         def settings(self):
             if dpg.does_item_exist(f"{self.parent.file_tag}modal_window"):
@@ -189,7 +193,6 @@ class program:
                 dpg.add_separator()
                 dpg.add_text("Введите текст:")
                 dpg.add_input_text(tag=f"{self.parent.file_tag}dialog_input", width=300)
-
 
     #работа с данными из bar
     class file:
@@ -280,7 +283,6 @@ class program:
             self.var['editor_online'] = False #Блокировка области рисования
             #self.polygons.clear()
             #self.update_polygons_list()
-
 
     class functional:
         def __init__(self,parent):
@@ -522,7 +524,35 @@ class program:
                                      fill=(255, 255, 0, 100), tag=tag,
                                      parent=holst_tag)
 
+        def add_alfa_button(self, icon_path:str, callback, tag, show):
+            try:
+                image = cv2.imread(icon_path, cv2.IMREAD_UNCHANGED)
+                if image is None:
+                    print(f"❌ Не удалось загрузить иконку: {icon_path}")
+                    return
 
+                if image.shape[2] == 4:
+                    image_rgba = cv2.cvtColor(image, cv2.COLOR_BGRA2RGBA)
+                else:
+                    image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+                    h, w = image_rgb.shape[:2]
+                    image_rgba = np.ones((h, w, 4), dtype=np.uint8) * 255
+                    image_rgba[:, :, :3] = image_rgb
+
+                image_data = (image_rgba.astype(np.float32) / 255.0).flatten()
+
+                with dpg.texture_registry():
+                    texture_id = dpg.add_raw_texture(
+                        image.shape[1],
+                        image.shape[0],
+                        image_data,
+                        format=dpg.mvFormat_Float_rgba,
+                    )
+
+                dpg.add_image_button(texture_id, callback=callback, tag=tag, show=show)
+
+            except Exception as e:
+                print(f"❌ Ошибка создания кнопки: {e}")
 
 
         #####  НЕ РАБОТАЕТ (покачто)
@@ -565,7 +595,6 @@ class program:
             self.editor_online = False
             print(f"{self.parent_file_path}{self.img_info, self.width, self.height}")
 
-
     class polygons:
         def __init__(self, parent):
             self.parent = parent
@@ -582,7 +611,6 @@ class program:
             #
             draw_x = x - 8 - const.TOOLS_WIDTH
             draw_y = y - const.MENU_BAR_HEIGHT - 5
-            print("клик")
             if draw_x > 0 and draw_y > 0:
                 if draw_x < self.var['display_w'] and draw_y < self.var['display_h']:
                     print(f"🖱️ КЛИК: кнопка={mouse_button}, x={draw_x}, y={draw_y}")
@@ -600,7 +628,7 @@ class program:
 
                     self.func.update_display()
 
-        def complete_polygon(self, name='noname', new=False):
+        def complete_polygon(self, name:str='noname', new:bool=False):
             if name == 'noname':
                 name = 'noname' + " " + str(len(self.var['polygons']))
 
@@ -622,18 +650,19 @@ class program:
             for i, poly in enumerate(self.var['polygons']):
                 with dpg.group(horizontal=True, parent=f"{self.var['file_tag']}polygons_list"):
                     with dpg.group(horizontal=True, tag=f"{self.var['file_tag']}const_visible_{i}"):
-                        self.add_alfa_button(icon_path = os.path.join(self.var['project_root'], "Editor/icons/visabilityon.png"),
+                        self.func.add_alfa_button(icon_path = os.path.join(self.var['project_root'], "Editor/icons/visabilityon.png"),
                                              callback = (lambda fixed: lambda s, a: self.hide_polygon(fixed))(poly['points']),
                                              tag = f"{self.var['file_tag']}hide_button_{i}",show =  True)
 
 
-                        self.add_alfa_button(icon_path = os.path.join(self.var['project_root'], "Editor/icons/visabilityoff.png"),
+                        self.func.add_alfa_button(icon_path = os.path.join(self.var['project_root'], "Editor/icons/visabilityoff.png"),
                                              callback = (lambda fixed: lambda s, a: self.show_polygon(fixed))(poly['points']),
                                              tag = f"{self.var['file_tag']}show_button_{i}", show =False)
 
+
                         dpg.add_input_text(
                             tag=f"{self.var['file_tag']}poly_namespace_{i}",
-                            default_value=poly['name'],
+                            default_value=f"{i}{poly['name']}",
                             width=195,
                             enabled=False,
                             show=True
@@ -641,23 +670,23 @@ class program:
                         dpg.bind_item_theme(f"{self.var['file_tag']}poly_namespace_{i}", themes.theme2())
 
                     with dpg.group(horizontal=True, tag=f"{self.var['file_tag']}non_const_visible_{i}", show=True):
-                        self.add_alfa_button(icon_path = os.path.join(self.var['project_root'], "Editor/icons/edit.png"),
+                        self.func.add_alfa_button(icon_path = os.path.join(self.var['project_root'], "Editor/icons/edit.png"),
                                              callback = (lambda fixed: lambda s, a: self.rename_activate(fixed))(i),
                                              tag = f"{self.var['file_tag']}edit_button_{i}", show = True)
-                        self.add_alfa_button(icon_path = os.path.join(self.var['project_root'], "Editor/icons/editoff.png"),
+                        self.func.add_alfa_button(icon_path = os.path.join(self.var['project_root'], "Editor/icons/editoff.png"),
                                              callback = (lambda fixed: lambda s, a: self.rename_polygon(fixed))(i),
                                              tag = f"{self.var['file_tag']}edit_off_button_{i}", show = False)
-                        self.add_alfa_button(icon_path = os.path.join(self.var['project_root'], "Editor/icons/delete.png"),
+                        self.func.add_alfa_button(icon_path = os.path.join(self.var['project_root'], "Editor/icons/delete.png"),
                                              callback = (lambda fixed: lambda s, a: self.delete_polygon(fixed))(poly['points']),
                                              tag = f"{self.var['file_tag']}delete_button_{i}", show = True)
 
-        def rename_activate(self, i):
+        def rename_activate(self, i:int):
             dpg.configure_item(f"{self.var['file_tag']}poly_namespace_{i}", enabled=True)
             dpg.focus_item(f"{self.var['file_tag']}poly_namespace_{i}")
             dpg.hide_item(f"{self.var['file_tag']}edit_button_{i}")
             dpg.show_item(f"{self.var['file_tag']}edit_off_button_{i}")
 
-        def rename_polygon(self, i):
+        def rename_polygon(self, i:int):
             newname = dpg.get_value(f"{self.var['file_tag']}poly_namespace_{i}")
             self.var['polygons'][i]['name'] = newname
             dpg.configure_item(f"{self.var['file_tag']}poly_namespace_{i}", enabled=False)
@@ -694,36 +723,6 @@ class program:
         def clear_polygon_list(self):
             self.var['polygons'] = []
             self.update_polygons_list()
-
-        def add_alfa_button(self, icon_path, callback, tag, show):
-            try:
-                image = cv2.imread(icon_path, cv2.IMREAD_UNCHANGED)
-                if image is None:
-                    print(f"❌ Не удалось загрузить иконку: {icon_path}")
-                    return
-
-                if image.shape[2] == 4:
-                    image_rgba = cv2.cvtColor(image, cv2.COLOR_BGRA2RGBA)
-                else:
-                    image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-                    h, w = image_rgb.shape[:2]
-                    image_rgba = np.ones((h, w, 4), dtype=np.uint8) * 255
-                    image_rgba[:, :, :3] = image_rgb
-
-                image_data = (image_rgba.astype(np.float32) / 255.0).flatten()
-
-                with dpg.texture_registry():
-                    texture_id = dpg.add_raw_texture(
-                        image.shape[1],
-                        image.shape[0],
-                        image_data,
-                        format=dpg.mvFormat_Float_rgba,
-                    )
-
-                dpg.add_image_button(texture_id, callback=callback, tag=tag, show=show)
-
-            except Exception as e:
-                print(f"❌ Ошибка создания кнопки: {e}")
 
         def connect_button(self, sender, app_data):
             input_text = dpg.get_value("input_ip")

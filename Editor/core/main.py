@@ -100,12 +100,10 @@ class window():
         for menu_name, menu_data in menu_config.items():
             # Создаем меню (например, "Файл")
             menu_tag = f"menu_{menu_name}"
-
             with dpg.menu(label=menu_data["label"][language], tag=menu_tag, parent="main_menu_bar"):
                 # Добавляем все пункты этого меню
                 for item in menu_data["items"]:
                     self.add_menu_item(item, instance, language)
-
             # Сохраняем тег созданного меню
             self.current_menus.append(menu_tag)
 

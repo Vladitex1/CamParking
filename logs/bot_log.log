@@ -6862,3 +6862,6 @@ client_session: <aiohttp.client.ClientSession object at 0x000001F0F73B8980>
 2026-02-04 02:06:31,843 - handlers.user_handler - INFO - ✅ Фото отправлено успешно с попытки #1
 2026-02-04 02:06:31,956 - aiogram.event - INFO - Update id=216129942 is handled. Duration 6566 ms by bot id=8034081320
 2026-02-04 02:06:43,208 - aiogram.event - INFO - Update id=216129943 is handled. Duration 225 ms by bot id=8034081320
+2026-02-04 02:07:48,158 - aiogram.dispatcher - INFO - Polling stopped
+2026-02-04 02:07:48,160 - aiogram.dispatcher - ERROR - Failed to fetch updates - TelegramNetworkError: HTTP Client says - ServerDisconnectedError: Server disconnected
+2026-02-04 02:07:48,160 - aiogram.dispatcher - WARNING - Sleep for 1.000000 seconds and try again... (tryings = 0, bot id = 8034081320)
