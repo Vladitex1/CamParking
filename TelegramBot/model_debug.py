@@ -1,6 +1,6 @@
 from logic import detector
 
-occupied, free, = detector.check_auto(save="save3.mask", processed_image="test8.jpg", config_name="confwn")
+occupied, free, = detector.check_auto(mask="test_pizdec.mask", processed_image="test8.jpg", config_name="confwn")
 freetext = f"\n{"=" * 10} Свободные места: {"=" * 10}\n"
 occupiedtext = f"\n{"=" * 10} Занятые места: {"=" * 10}\n"
 freemax = 0

@@ -8,16 +8,27 @@ import logic.visualizer as visualizer
 import logic.detector as detector
 import Editor.core.modules.constants as const
 import Editor.core.modules.themes as themes
+import Editor.core.modules.global_func as glbl_func
 
 from pathlib import Path
 
 FILE_TAG:str = "editor"
 FILE_TAG=FILE_TAG+"_"
 
-WINDOW_TAG = f"{FILE_TAG}main_window"
+WINDOW_TAG = f"{FILE_TAG}back_window"
+WINDOW_CHILD_TAG = WINDOW_TAG+"_child"
+
+MAIN_TAG = f"{FILE_TAG}main_window"
+MAIN_CHILD_TAG = WINDOW_TAG+"_child"
+
 TOOLS_TAG = f"{FILE_TAG}tools_window"
+TOOLS_CHILD_TAG = TOOLS_TAG+"_child"
+
+STATUS_BAR_TAG = f"{FILE_TAG}status_bar_window"
+STATUS_BAR_CHILD_TAG = STATUS_BAR_TAG+"_child"
 ## Название тега для поля где располагается картинка (Холст) !!! НЕ САМА КАРТИНКА !!!!
 HOLST_NAME = "holst"
+TAG_LIST: list = []
 
 
 class program:
@@ -25,23 +36,21 @@ class program:
         global FILE_TAG
         if not dpg.does_item_exist(WINDOW_TAG):
             self.var:dict = {
-                'project_root' : str(Path(__file__).parent.parent.parent.parent.resolve()),
-                'null_image'   : "../dev/nullimage2.png",
                 'texture_id':None,
                 'editor_online':False,
+                'project_root': str(Path(__file__).parent.parent.parent.parent.resolve()),
                 'display_w':100,
                 'display_h':100,
                 'current_tool':1,
                 'current_polygon':[],
                 'save_data':{},
                 'polygons': [],
-                'parent_file_pathv':"",
                 'current_file_path': None,
                 'image_width':0,
                 'image_height':0,
                 'file_tag':FILE_TAG,
                 'current_texture_tag':"",
-                'image_data':[],
+                'image_path':"",
             }
 
             self.func = self.functional(self)
@@ -53,10 +62,7 @@ class program:
             self.program_presets()
 
     def get_tags(self=None):
-        data: list = []
-        data.append(WINDOW_TAG)
-        data.append(TOOLS_TAG)
-        return data
+        return TAG_LIST
 
     def setup_input_handlers(self):
         with dpg.handler_registry():
@@ -87,6 +93,7 @@ class program:
         ):
             dpg.add_file_extension("Images{.jpg,.jpeg,.png,.bmp,.gif}")
 
+
         with dpg.file_dialog(
                 directory_selector=False,
                 default_filename="",
@@ -98,12 +105,22 @@ class program:
                 height=400,
                 modal=True,
         ):
+            self.var['editor_online'] = False
+
+
             dpg.add_file_extension(".mask", color=(0, 255, 0, 255))
-            dpg.add_checkbox(
-                label="Загрузить только маску",
-                default_value=False,
-                tag=f"{self.var['file_tag']}onlymask"
-            )
+            dpg.add_file_extension(".json", color=(255, 165, 0, 255))
+            dpg.add_spacer(height=10)
+
+            with dpg.group(horizontal=False):
+                dpg.add_checkbox(
+                    label="Загрузить только маску",
+                    default_value=False,
+                    tag=f"{self.var['file_tag']}onlymask",
+                )
+                dpg.add_separator()
+                text = "Добавлят только полигоны из сохраненного файла"
+                dpg.add_text(text,color=(200, 200, 200, 255), wrap=0)
 
         with dpg.file_dialog(
                 directory_selector=False,
@@ -124,51 +141,208 @@ class program:
             self.parent = parent
             self.func = parent.func  # ЭКЗЕМПЛЯР!
             self.var = parent.var
-            self.interface_main_window()
-            self.interface_tool_window()
+            self.back_window()
+            self.setup_layout() #начальная предустановка
+            #self.interface_main_window()
+            #self.interface_tool_window()
+            #self.interface_status_bar()
 
         def get_menu_config(self):
             """Возвращает конфигурацию меню редактора"""
             return const.editor
 
-        def interface_main_window(self):
-            with dpg.window(label=WINDOW_TAG, tag=WINDOW_TAG,
-                            no_title_bar=True, no_move=True, no_resize=True,
-                            no_collapse=True, no_close=True,
-                            width=const.MAIN_WIDTH, height=const.MAIN_HEIGHT,
-                            pos=(const.MAIN_POS_X, const.MAIN_POS_Y)):
+        def setup_layout(self):
+            try:
+                viewport_width = dpg.get_viewport_width()
+                viewport_height = dpg.get_viewport_height()
 
-                self.func.upload_image()
+                # Устанавливаем начальные позиции окон
+                dpg.set_item_pos(WINDOW_TAG, [0, const.MENU_BAR_HEIGHT])
+                dpg.set_item_width(WINDOW_TAG, viewport_width)
+                dpg.set_item_height(WINDOW_TAG, viewport_height)
+
+                #dpg.set_item_pos("layers_window", [viewport_width - 290, 30])
+                #dpg.set_item_width("layers_window", 280)
+                #dpg.set_item_height("layers_window", viewport_height - 60)
+
+                #dpg.set_item_pos("workspace_window", [270, 30])
+                #dpg.set_item_width("workspace_window", viewport_width - 570)
+                #dpg.set_item_height("workspace_window", viewport_height - 60)
+
+                print("🎨 Layout configured successfully")
+            except Exception as e:
+                print(f"⚠️  Layout setup failed: {e}")
+
+        def back_window(self):
+            with dpg.window(tag=WINDOW_TAG,no_title_bar=True,
+                            width = 1920, height=1080,
+                            pos=(5,50),
+                            no_move=True,
+                            #autosize=True
+                            ):#,resizable=True):
+                TAG_LIST.append(WINDOW_TAG)
+
+        def interface_main_window(self):
+
+            TAG_LIST.append(WINDOW_TAG)
 
         def interface_tool_window(self):
+
             with dpg.window(label=TOOLS_TAG, tag=TOOLS_TAG,
-                            no_title_bar=True, no_move=True, no_resize=True, no_collapse=True, no_close=True,
-                            width=const.TOOLS_WIDTH, height=const.TOOLS_HEIGHT,
-                            pos=(const.TOOLS_POS_X, const.TOOLS_POS_Y), no_scrollbar=True):
+                            ):
+
                 with dpg.group(horizontal=True):
-                    dpg.add_spacer(width=int(const.TOOLS_WIDTH / 2 - 50))
+                    #dpg.add_spacer(width=int(const.TOOLS_WIDTH / 2 - 50))
                     dpg.add_text("Полигоны")
 
                 with dpg.child_window(
                         tag=f"{self.var['file_tag']}polygons_list",
-                        height=400,
-                        width=const.TOOLS_WIDTH - 15,
+                        #height=400,
+                        #width=const.TOOLS_WIDTH - 15,
                         horizontal_scrollbar=False,
-                        autosize_y=False
+                        #autosize_y=True,
+                        #autosize_x=True,
                 ):
                     dpg.bind_item_theme(f"{self.var['file_tag']}polygons_list", themes.theme_editor())
-                dpg.add_separator()
+                        #dpg.bind_item_theme(f"{self.var['file_tag']}polygons_list", themes.theme_editor())
+                    dpg.add_separator()
 
                 dpg.add_text("Текущие параметры:")
                 dpg.add_text("", wrap=0)
-                self.func.add_alfa_button(
-                    icon_path=os.path.join(self.var['project_root'], "Editor/icons/saveas.png"),
-                    callback=lambda s, a, u: print("Кнопка нажата"),
+                glbl_func.add_alfa_button(
+                    icon_path=os.path.join(self.var['project_root'], "Editor/icons/settings.png"),
+                    callback=lambda s, a, u: self.settings(),
                     tag=f"{self.var['file_tag']}test_{1}", show=True)
+                dpg.add_separator()
+                dpg.add_spacer(height=200)
+                TAG_LIST.append(TOOLS_TAG)
+
+        def interface_status_bar(self):
+            with dpg.window(label=STATUS_BAR_TAG, tag=STATUS_BAR_TAG,
+                            no_title_bar=True, #no_move=True,
+                            no_resize=True,
+                            #no_collapse=True, no_close=True,
+                            autosize=True,
+                            #min_size= (0,0),
+                           #width=const.STATUS_BAR_WIDTH-16, height=const.STATUS_BAR_HEIGHT,
+                            #pos=(const.STATUS_BAR_POS_X,const.STATUS_BAR_POS_Y),
+                            #no_bring_to_front_on_focus=True,
+
+                            ):
+                with dpg.child_window(
+                        #frame_style=True,
+                        #pos = (5,5),
+                        parent = STATUS_BAR_TAG,
+                        tag=STATUS_BAR_CHILD_TAG,
+                        #height=50,#const.STATUS_BAR_HEIGHT,
+                        #width=const.STATUS_BAR_WIDTH,
+                        horizontal_scrollbar=False,
+                        no_scrollbar=True,
+                        autosize_y=True,
+                        autosize_x=True,
+                        no_scroll_with_mouse=True,
+                ):
+
+
+                    dpg.add_text("asd")
+                    #dpg.add_text(default_value="Статус: готов", tag=f"{self.var['file_tag']}status_text")
+                    dpg.bind_item_theme(STATUS_BAR_TAG, themes.theme_editor())
+            TAG_LIST.append(STATUS_BAR_TAG)
+
+        def test(self):
+            with dpg.window(width=500, height=320, menubar=True):
+                with dpg.menu_bar():
+                    dpg.add_menu(label="Menu Options")
+                with dpg.child_window(autosize_x=True, height=95):
+                    with dpg.group(horizontal=True):
+                        dpg.add_button(label="Header 1", width=75, height=75)
+                        dpg.add_button(label="Header 2", width=75, height=75)
+                        dpg.add_button(label="Header 3", width=75, height=75)
+                with dpg.child_window(autosize_x=True, height=175):
+                    with dpg.group(horizontal=True, width=0):
+                        with dpg.child_window(width=102, height=150):
+                            with dpg.tree_node(label="Nav 1"):
+                                dpg.add_button(label="Button 1")
+                            with dpg.tree_node(label="Nav 2"):
+                                dpg.add_button(label="Button 2")
+                            with dpg.tree_node(label="Nav 3"):
+                                dpg.add_button(label="Button 3")
+                        with dpg.child_window(width=300, height=150):
+                            dpg.add_button(label="Button 1")
+                            dpg.add_button(label="Button 2")
+                            dpg.add_button(label="Button 3")
+                        with dpg.child_window(width=50, height=150):
+                            dpg.add_button(label="B1", width=25, height=25)
+                            dpg.add_button(label="B2", width=25, height=25)
+                            dpg.add_button(label="B3", width=25, height=25)
+
+        def setup_dynamic_layout(self):
+            """Настраивает динамический layout"""
+            #self.interface_main_window()
+            self.interface_tool_window()
+            self.interface_status_bar()
+
+            # Привязываем обновление layout к изменению viewport
+            if not hasattr(self.parent, 'layout_configured'):
+                dpg.set_viewport_resize_callback(self.update_layout)
+                self.parent.layout_configured = True
+
+        def update_layout(self):
+            """Обновляет размеры и позиции окон"""
+            viewport_width = dpg.get_viewport_width()
+            viewport_height = dpg.get_viewport_height()
+
+            # Пересчитываем размеры (аналогично constants.py, но динамически)
+            menu_bar_height = 24
+            status_bar_height = 50
+
+            #tools_width = 400#int(viewport_width * 0.25)
+            #tools_height = 400#viewport_height - menu_bar_height# * 0.4
+            tools_pos_x = 0
+            tools_pos_y = menu_bar_height
+
+            #tools_child_width = tools_width - 5
+            #tools_child_height = tools_width - 1
+
+            main_width = viewport_width# - tools_width - 16
+            main_height = viewport_height - menu_bar_height - status_bar_height-40
+            main_pos_x = 0#tools_width
+            main_pos_y = 0#menu_bar_height
+
+            status_bar_width = main_width
+            status_bar_pos_x = main_pos_x
+            status_bar_pos_y = main_pos_y + main_height
+
+            # Обновляем окно инструментов
+            #if dpg.does_item_exist(TOOLS_TAG):
+                #dpg.configure_item(TOOLS_TAG,
+                                   #width=tools_width,
+                                  # height=tools_height,
+                                  #pos=(tools_pos_x, tools_pos_y))
+
+                # Обновляем ширину child_window внутри
+                #child_tag = f"{self.var['file_tag']}polygons_list"
+                #if dpg.does_item_exist(child_tag):
+                    #dpg.configure_item(child_tag, width=tools_child_width,height = tools_child_height)# - 55)
+
+            # Обновляем основное окно
+            if dpg.does_item_exist(WINDOW_TAG):
+                dpg.configure_item(WINDOW_TAG,
+                                   width=main_width,
+                                   height=main_height,
+                                   pos=(main_pos_x, main_pos_y))
+
+            # Обновляем статус-бар
+            if dpg.does_item_exist(STATUS_BAR_TAG):
+                dpg.configure_item(STATUS_BAR_TAG,
+                                   width=status_bar_width,
+                                   height=status_bar_height,
+                                   pos=(status_bar_pos_x, status_bar_pos_y))
+
 
         def settings(self):
-            if dpg.does_item_exist(f"{self.parent.file_tag}modal_window"):
-                dpg.delete_item(f"{self.parent.file_tag}modal_window")
+            if dpg.does_item_exist(f"{self.var['file_tag']}modal_window"):
+                dpg.delete_item(f"{self.var['file_tag']}modal_window")
             x = const.TOOLS_POS_X + (const.WINDOW_WIDTH - const.SETTINGS_WIDTH) // 2
             y = const.TOOLS_POS_Y + (const.WINDOW_HEIGHT - const.SETTINGS_HEIGHT) // 2
 
@@ -176,11 +350,14 @@ class program:
                     label="Настройки",
                     modal=True,
                     show=True,
-                    id=f"{self.parent.file_tag}modal_window",
+                    id=f"{self.var['file_tag']}modal_window",
                     no_title_bar=False,
-                    no_move=True,
+                    no_move=False,
+                    collapsed=True,
                     width=const.SETTINGS_WIDTH,
                     height=const.SETTINGS_HEIGHT,
+                    horizontal_scrollbar=True,
+                    max_size=(const.WINDOW_WIDTH,const.WINDOW_HEIGHT),
                     pos=(x, y - 20),
             ):
                 with dpg.group(horizontal=True):
@@ -192,7 +369,7 @@ class program:
 
                 dpg.add_separator()
                 dpg.add_text("Введите текст:")
-                dpg.add_input_text(tag=f"{self.parent.file_tag}dialog_input", width=300)
+                dpg.add_input_text(tag=f"{self.var['file_tag']}dialog_input", width=300)
 
     #работа с данными из bar
     class file:
@@ -205,13 +382,16 @@ class program:
         def bar_open_img(self, sender, app_data):
             if app_data["file_path_name"]:
                 #filepath = self.repath_file(app_data["file_path_name"])
-                data = self.func.upload_image(app_data["file_path_name"])
-                self.var['image_data'] = data
+                self.func.set_img_data(glbl_func.upload_image(image_path = app_data["file_path_name"],
+                 parent = WINDOW_CHILD_TAG,
+                 file_tag = self.var['file_tag'],
+                 current_texture_tag = self.var['current_texture_tag']))
                 self.var['editor_online'] = True
 
         def bar_open_mask(self,sender,app_data):
             self.savedata = {}
             file_path = app_data["file_path_name"]
+            self.var['editor_online'] = True
             #self.relative_path = os.path.relpath(self.selected_filepath, self.project_root)
             #print(f"1: {self.selected_filepath}")
             #print(f"2: {self.project_root}")
@@ -223,7 +403,11 @@ class program:
             self.var['current_file_path'] = file_path
             #print(f"INFO:bar_open_mask:Parent file: {parent_file}")
             if not dpg.get_value("onlymask"):
-                self.func.upload_image(self.func.absolute_path(parent_file))
+                self.func.set_img_data(glbl_func.upload_image(image_path = glbl_func.absolute_path(parent_file),
+                 parent = WINDOW_CHILD_TAG,
+                 file_tag = self.var['file_tag'],
+                 current_texture_tag = self.var['current_texture_tag']))
+
             else:
                 pass
                 #dpg.set_value(f"{self.parent.file_tag}current_file", f"Загружена маска от файла:{os.path.basename(self.relative_path)}")
@@ -238,8 +422,6 @@ class program:
             self.poly.update_polygons_list()
 
             self.func.update_display()
-            self.var['editor_online'] = True
-
 
         def bar_save_mask(self, sender, app_data):
             print(f"current_filepath: {self.var['image_data']}")
@@ -253,8 +435,8 @@ class program:
                         del poly['points'][-1]
                     self.var['savedata'].setdefault(poly['name'], poly['points'])
                 print(self.var['image_data'][0])
-                file.save_data(self.var['savedata'], filepath, self.var['image_data'][0])
-                self.var['editor_online'] = True
+                file.save_data(self.var['savedata'], filepath, self.var['image_path'])
+
             else:
                 print("Сохранение не удалось.")
 
@@ -268,19 +450,21 @@ class program:
                     if len(poly['points']) > 0 and poly['points'][0] == poly['points'][-1]:
                         del poly['points'][-1]
                     self.var['savedata'].setdefault(poly['name'], poly['points'])
-                    file.save_data(self.var['savedata'], self.var['current_file_path'], self.var['image_data'][0])
+                    file.save_data(self.var['savedata'], self.var['current_file_path'], self.var['image_path'])
             else:
                 print("быстрое сохранение не удалось")
 
-
         def bar_clear_workspace(self):
             print("область очищена")
-            self.var['image_data'] = [] #Очищение текущих метаданных
-            self.func.upload_image()
+            #self.var['image_data'] = [] #Очищение текущих метаданных
+            #self.func.set_img_data([])
+            self.func.set_img_data(glbl_func.upload_image(image_path=None,
+                                                          parent=WINDOW_CHILD_TAG,
+                                                          file_tag=self.var['file_tag'],
+                                                          current_texture_tag=self.var['current_texture_tag']))
             self.func.delete_active_tags()
             self.poly.clear_polygon_list()
             self.var['current_file_path'] = None
-            self.var['editor_online'] = False #Блокировка области рисования
             #self.polygons.clear()
             #self.update_polygons_list()
 
@@ -290,149 +474,21 @@ class program:
             self.var = parent.var
             self.poly = parent.polygons  # ЭКЗЕМПЛЯР!
 
-        def upload_image(self,
-                         image_path: str = None):
-            """
-            Загружает и отображает изображение.
-
-            Args:
-                image_path: Путь к файлу изображения
-                upload_with_data: Массив numpy с данными изображения
-
-            Returns:
-                List: [путь, данные, ширина, высота] при успехе
-                int: 0 при ошибке
-            """
-            try:
-
-                # Загружаем из файла
-                if image_path is None or image_path == "null":
-                    image_path = self.var['null_image']
-
-                if not os.path.exists(image_path):
-                    print(f"Изображение не найдено: '{image_path}'")
-                    return 0
-
-                # Чтение изображения
-                image_data = cv2.imread(image_path, cv2.IMREAD_UNCHANGED)
-                if image_data is None:
-                    print(f"Не удалось загрузить изображение: '{image_path}'")
-                    return 0
-
-                # --- 2. КОНВЕРТАЦИЯ В RGBA ---
-                # Приведение к 4 каналам (RGBA)
-                if len(image_data.shape) == 2:  # Grayscale
-                    image_data = cv2.cvtColor(image_data, cv2.COLOR_GRAY2RGBA)
-                elif image_data.shape[2] == 3:  # RGB/BGR
-                    if image_data.dtype == np.uint8:
-                        # Конвертация BGR → RGBA
-                        image_rgba = cv2.cvtColor(image_data, cv2.COLOR_BGR2RGBA)
-                    else:
-                        # Для float и других типов
-                        image_rgba = np.ones((*image_data.shape[:2], 4), dtype=image_data.dtype)
-                        image_rgba[:, :, :3] = cv2.cvtColor(image_data, cv2.COLOR_BGR2RGB)
-                        image_rgba[:, :, 3] = 255 if image_data.dtype == np.uint8 else 1.0
-                elif image_data.shape[2] == 4:  # Уже RGBA/BGRA
-                    image_rgba = cv2.cvtColor(image_data, cv2.COLOR_BGRA2RGBA)
-                else:
-                    print(f"Неподдерживаемый формат: {image_data.shape} каналов")
-                    return 0
-
-                # --- 3. РАСЧЕТ МАСШТАБИРОВАНИЯ ---
-                image_height, image_width = image_rgba.shape[:2]
-                image_ratio = image_width / image_height
-
-                # Константы (должны быть определены в модуле const)
-                try:
-                    main_width = const.MAIN_WIDTH
-                    main_height = const.MAIN_HEIGHT
-                except AttributeError:
-                    # Значения по умолчанию если константы не определены
-                    main_width, main_height = 800, 600
-
-                available_ratio = main_width / main_height
-
-                if image_ratio > available_ratio:
-                    ratio_width = main_width - 50
-                    ratio_height = int(ratio_width / image_ratio)
-                else:
-                    ratio_height = main_height - 20
-                    ratio_width = int(ratio_height * image_ratio)
-
-                # --- 4. СОЗДАНИЕ ТЕКСТУРЫ И ОТОБРАЖЕНИЕ ---
-                # Подготовка тега для drawlist
-                holst_tag = f"{self.var['file_tag']}{HOLST_NAME}"
-
-                # Удаляем существующий drawlist если есть
-                if dpg.does_item_exist(holst_tag):
-                    dpg.delete_item(holst_tag)
-
-                # Создаем новый drawlist
-                with dpg.drawlist(tag=holst_tag, parent=WINDOW_TAG,
-                                  width=ratio_width, height=ratio_height):
-
-                    # Удаляем старую текстуру
-                    texture_tag = self.var['current_texture_tag']
-                    if dpg.does_item_exist(texture_tag):
-                        dpg.delete_item(texture_tag)
-
-                    # Создаем новую текстуру
-                    with dpg.texture_registry():
-                        # Нормализуем данные для DearPyGui
-                        if image_rgba.dtype == np.uint8:
-                            texture_data = image_rgba.astype(np.float32) / 255.0
-                        else:
-                            texture_data = image_rgba.astype(np.float32)
-
-                        texture_data_flat = texture_data.flatten()
-
-                        self.var['current_texture_tag'] = dpg.add_raw_texture(
-                            width=image_width,
-                            height=image_height,
-                            default_value=texture_data_flat,
-                            format=dpg.mvFormat_Float_rgba
-                        )
-
-                    # Рисуем изображение
-                    dpg.draw_image(
-                        texture_tag=self.var['current_texture_tag'],
-                        pmin=(0, 0),
-                        pmax=(ratio_width, ratio_height),
-                        uv_min=(0, 0),
-                        uv_max=(1, 1)
-                    )
-
-                # --- 5. СОХРАНЕНИЕ ДАННЫХ И ВОЗВРАТ ---
-                # Обновляем данные в родительском объекте
-                self.var['image_width'] = image_width
-                self.var['image_height'] = image_height
-                self.var['display_w'] = ratio_width
-                self.var['display_h'] = ratio_height
-
-                print(f"✅ Изображение загружено: {image_width}x{image_height} -> {ratio_width}x{ratio_height}")
-
-                return [
-                    image_path if image_path else "from_data",
-                    image_rgba,  # Возвращаем RGBA массив
-                    image_width,
-                    image_height
-                ]
-
-            except Exception as e:
-                print(f"Ошибка в upload_image: {e}")
+        def set_img_data(self,data):
+            if data == 0:
+                print("ошибка присвоения данных")
                 return 0
-
-            # функция для воспросизведения патча входной КОРОТКИЙ -> Длинный с рутом -> загрузка
-
-        def relative_path(self, input_filepath: str):
-            result = os.path.relpath(input_filepath, self.var['project_root'])
-            return result
-            # функция для воспросизведения патча входной Длинный -> Короткий -> Сохранение
-
-        def absolute_path(self, input_filepath: str):
-            result = os.path.join(self.var['project_root'], input_filepath)
-            return result
-            # функция для переназначения текущих данных
+            self.var['image_path'] = data[0]
+            self.var['image_data'] = data[1]
+            self.var['image_width'] = data[2]
+            self.var['image_height'] = data[3]
+            self.var['current_texture_tag'] = data[4]
+            self.var['display_w'] = data[5]
+            self.var['display_h'] = data[6]
+            if data[7] == True:
+                self.var['editor_online'] = False
+            else:
+                self.var['editor_online'] = True
 
         def scale_points_for_display(self, points):
             scale_x = self.var['display_w'] / self.var['image_width']
@@ -523,36 +579,6 @@ class program:
                     dpg.draw_polygon(scaled_current_fill, color=(0, 255, 0, 100),
                                      fill=(255, 255, 0, 100), tag=tag,
                                      parent=holst_tag)
-
-        def add_alfa_button(self, icon_path:str, callback, tag, show):
-            try:
-                image = cv2.imread(icon_path, cv2.IMREAD_UNCHANGED)
-                if image is None:
-                    print(f"❌ Не удалось загрузить иконку: {icon_path}")
-                    return
-
-                if image.shape[2] == 4:
-                    image_rgba = cv2.cvtColor(image, cv2.COLOR_BGRA2RGBA)
-                else:
-                    image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-                    h, w = image_rgb.shape[:2]
-                    image_rgba = np.ones((h, w, 4), dtype=np.uint8) * 255
-                    image_rgba[:, :, :3] = image_rgb
-
-                image_data = (image_rgba.astype(np.float32) / 255.0).flatten()
-
-                with dpg.texture_registry():
-                    texture_id = dpg.add_raw_texture(
-                        image.shape[1],
-                        image.shape[0],
-                        image_data,
-                        format=dpg.mvFormat_Float_rgba,
-                    )
-
-                dpg.add_image_button(texture_id, callback=callback, tag=tag, show=show)
-
-            except Exception as e:
-                print(f"❌ Ошибка создания кнопки: {e}")
 
 
         #####  НЕ РАБОТАЕТ (покачто)
@@ -650,33 +676,32 @@ class program:
             for i, poly in enumerate(self.var['polygons']):
                 with dpg.group(horizontal=True, parent=f"{self.var['file_tag']}polygons_list"):
                     with dpg.group(horizontal=True, tag=f"{self.var['file_tag']}const_visible_{i}"):
-                        self.func.add_alfa_button(icon_path = os.path.join(self.var['project_root'], "Editor/icons/visabilityon.png"),
+                        dpg.add_text(f"#{i}: ")
+                        glbl_func.add_alfa_button(icon_path = os.path.join(self.var['project_root'], "Editor/icons/visabilityon.png"),
                                              callback = (lambda fixed: lambda s, a: self.hide_polygon(fixed))(poly['points']),
                                              tag = f"{self.var['file_tag']}hide_button_{i}",show =  True)
 
 
-                        self.func.add_alfa_button(icon_path = os.path.join(self.var['project_root'], "Editor/icons/visabilityoff.png"),
+                        glbl_func.add_alfa_button(icon_path = os.path.join(self.var['project_root'], "Editor/icons/visabilityoff.png"),
                                              callback = (lambda fixed: lambda s, a: self.show_polygon(fixed))(poly['points']),
                                              tag = f"{self.var['file_tag']}show_button_{i}", show =False)
-
-
                         dpg.add_input_text(
                             tag=f"{self.var['file_tag']}poly_namespace_{i}",
-                            default_value=f"{i}{poly['name']}",
-                            width=195,
+                            default_value=f"{poly['name']}",
+                            width=155,
                             enabled=False,
                             show=True
                         )
-                        dpg.bind_item_theme(f"{self.var['file_tag']}poly_namespace_{i}", themes.theme2())
+                        dpg.bind_item_theme(f"{self.var['file_tag']}poly_namespace_{i}", themes.theme_editor())
 
                     with dpg.group(horizontal=True, tag=f"{self.var['file_tag']}non_const_visible_{i}", show=True):
-                        self.func.add_alfa_button(icon_path = os.path.join(self.var['project_root'], "Editor/icons/edit.png"),
+                        glbl_func.add_alfa_button(icon_path = os.path.join(self.var['project_root'], "Editor/icons/edit.png"),
                                              callback = (lambda fixed: lambda s, a: self.rename_activate(fixed))(i),
                                              tag = f"{self.var['file_tag']}edit_button_{i}", show = True)
-                        self.func.add_alfa_button(icon_path = os.path.join(self.var['project_root'], "Editor/icons/editoff.png"),
+                        glbl_func.add_alfa_button(icon_path = os.path.join(self.var['project_root'], "Editor/icons/editoff.png"),
                                              callback = (lambda fixed: lambda s, a: self.rename_polygon(fixed))(i),
                                              tag = f"{self.var['file_tag']}edit_off_button_{i}", show = False)
-                        self.func.add_alfa_button(icon_path = os.path.join(self.var['project_root'], "Editor/icons/delete.png"),
+                        glbl_func.add_alfa_button(icon_path = os.path.join(self.var['project_root'], "Editor/icons/delete.png"),
                                              callback = (lambda fixed: lambda s, a: self.delete_polygon(fixed))(poly['points']),
                                              tag = f"{self.var['file_tag']}delete_button_{i}", show = True)
 

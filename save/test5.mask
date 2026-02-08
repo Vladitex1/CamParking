@@ -163,5 +163,5 @@
       ]
     ]
   },
-  "parent_file": "img\\camphoto\\camera_photo_2026-01-28.jpg"
+  "parent_file": "C:\\MyPrograms\\pycharm\\CamParking_diplom\\img\\camphoto\\camera_photo_2026-01-28.jpg"
 }

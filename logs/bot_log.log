@@ -6865,3 +6865,75 @@ client_session: <aiohttp.client.ClientSession object at 0x000001F0F73B8980>
 2026-02-04 02:07:48,158 - aiogram.dispatcher - INFO - Polling stopped
 2026-02-04 02:07:48,160 - aiogram.dispatcher - ERROR - Failed to fetch updates - TelegramNetworkError: HTTP Client says - ServerDisconnectedError: Server disconnected
 2026-02-04 02:07:48,160 - aiogram.dispatcher - WARNING - Sleep for 1.000000 seconds and try again... (tryings = 0, bot id = 8034081320)
+2026-02-07 16:16:43,012 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-02-07 16:16:43,220 - aiogram.dispatcher - INFO - Start polling
+2026-02-07 16:16:43,272 - aiogram.dispatcher - INFO - Run polling for bot @camparkingbot id=8034081320 - 'ParkingBot'
+2026-02-07 16:16:50,136 - aiogram.dispatcher - INFO - Polling stopped
+2026-02-07 16:16:50,137 - aiogram.dispatcher - ERROR - Failed to fetch updates - TelegramNetworkError: HTTP Client says - ServerDisconnectedError: Server disconnected
+2026-02-07 16:16:50,137 - aiogram.dispatcher - WARNING - Sleep for 1.000000 seconds and try again... (tryings = 0, bot id = 8034081320)
+2026-02-07 16:16:50,397 - aiogram.dispatcher - INFO - Polling stopped for bot @camparkingbot id=8034081320 - 'ParkingBot'
+2026-02-07 16:51:19,492 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-02-07 16:51:19,638 - aiogram.dispatcher - INFO - Start polling
+2026-02-07 16:51:19,691 - aiogram.dispatcher - INFO - Run polling for bot @camparkingbot id=8034081320 - 'ParkingBot'
+2026-02-07 16:51:31,197 - handlers.user_handler - INFO - Показ ID для user_id=413700636
+2026-02-07 16:51:31,483 - aiogram.event - INFO - Update id=216129945 is handled. Duration 290 ms by bot id=8034081320
+2026-02-07 16:51:32,480 - handlers.user_handler - DEBUG - Обработка user:menu:get для user_id=413700636
+2026-02-07 16:51:32,480 - handlers.user_handler - INFO - Показано меню пользователя для user_id=413700636
+2026-02-07 16:51:32,600 - aiogram.event - INFO - Update id=216129946 is handled. Duration 123 ms by bot id=8034081320
+2026-02-07 16:51:33,135 - handlers.user_handler - INFO - запрос парковочных мест user_id=413700636
+2026-02-07 16:51:33,188 - handlers.user_handler - ERROR - ❌ Критическая ошибка в get_parking: Telegram server says - Bad Request: message can't be deleted for everyone
+2026-02-07 16:51:33,337 - aiogram.event - INFO - Update id=216129947 is handled. Duration 204 ms by bot id=8034081320
+2026-02-07 16:51:34,874 - aiogram.event - INFO - Update id=216129948 is handled. Duration 586 ms by bot id=8034081320
+2026-02-07 16:51:35,700 - handlers.user_handler - INFO - запрос парковочных мест user_id=413700636
+2026-02-07 16:52:33,035 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-02-07 16:52:45,432 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-02-07 16:52:45,585 - aiogram.dispatcher - INFO - Start polling
+2026-02-07 16:52:45,635 - aiogram.dispatcher - INFO - Run polling for bot @camparkingbot id=8034081320 - 'ParkingBot'
+2026-02-07 16:52:51,840 - handlers.user_handler - INFO - Показ ID для user_id=413700636
+2026-02-07 16:52:52,288 - aiogram.event - INFO - Update id=216129950 is handled. Duration 451 ms by bot id=8034081320
+2026-02-07 16:52:53,386 - handlers.user_handler - DEBUG - Обработка user:menu:get для user_id=413700636
+2026-02-07 16:52:53,386 - handlers.user_handler - INFO - Показано меню пользователя для user_id=413700636
+2026-02-07 16:52:53,537 - aiogram.event - INFO - Update id=216129951 is handled. Duration 153 ms by bot id=8034081320
+2026-02-07 16:52:56,123 - handlers.user_handler - INFO - запрос парковочных мест user_id=413700636
+2026-02-07 16:52:56,167 - handlers.user_handler - ERROR - ❌ Критическая ошибка в get_parking: Telegram server says - Bad Request: message can't be deleted for everyone
+2026-02-07 16:52:56,355 - aiogram.event - INFO - Update id=216129952 is handled. Duration 234 ms by bot id=8034081320
+2026-02-07 16:52:57,840 - aiogram.event - INFO - Update id=216129953 is handled. Duration 384 ms by bot id=8034081320
+2026-02-07 16:52:58,842 - handlers.user_handler - INFO - запрос парковочных мест user_id=413700636
+2026-02-07 16:53:08,012 - handlers.user_handler - INFO - Попытка отправки фото #1
+2026-02-07 16:53:08,674 - handlers.user_handler - ERROR - ❌ Ошибка при отправке фото (попытка 1): Telegram server says - Bad Request: can't parse entities: Can't find end of the entity starting at byte offset 150
+2026-02-07 16:53:10,688 - handlers.user_handler - INFO - Попытка отправки фото #2
+2026-02-07 16:53:11,489 - handlers.user_handler - ERROR - ❌ Ошибка при отправке фото (попытка 2): Telegram server says - Bad Request: can't parse entities: Can't find end of the entity starting at byte offset 150
+2026-02-07 16:53:13,500 - handlers.user_handler - INFO - Попытка отправки фото #3
+2026-02-07 16:53:15,422 - handlers.user_handler - ERROR - ❌ Ошибка при отправке фото (попытка 3): Telegram server says - Bad Request: can't parse entities: Can't find end of the entity starting at byte offset 150
+2026-02-07 16:53:17,433 - handlers.user_handler - INFO - Попытка отправки фото #4
+2026-02-07 16:53:18,741 - handlers.user_handler - ERROR - ❌ Ошибка при отправке фото (попытка 4): Telegram server says - Bad Request: can't parse entities: Can't find end of the entity starting at byte offset 150
+2026-02-07 16:53:20,755 - handlers.user_handler - INFO - Попытка отправки фото #5
+2026-02-07 16:53:21,811 - handlers.user_handler - ERROR - ❌ Ошибка при отправке фото (попытка 5): Telegram server says - Bad Request: can't parse entities: Can't find end of the entity starting at byte offset 150
+2026-02-07 16:53:23,813 - handlers.user_handler - INFO - Попытка отправки фото #6
+2026-02-07 16:53:24,897 - handlers.user_handler - ERROR - ❌ Ошибка при отправке фото (попытка 6): Telegram server says - Bad Request: can't parse entities: Can't find end of the entity starting at byte offset 150
+2026-02-07 16:53:26,900 - handlers.user_handler - INFO - Попытка отправки фото #7
+2026-02-07 16:53:27,941 - handlers.user_handler - ERROR - ❌ Ошибка при отправке фото (попытка 7): Telegram server says - Bad Request: can't parse entities: Can't find end of the entity starting at byte offset 150
+2026-02-07 16:53:29,945 - handlers.user_handler - INFO - Попытка отправки фото #8
+2026-02-07 16:53:31,236 - handlers.user_handler - ERROR - ❌ Ошибка при отправке фото (попытка 8): Telegram server says - Bad Request: can't parse entities: Can't find end of the entity starting at byte offset 150
+2026-02-07 16:53:33,249 - handlers.user_handler - INFO - Попытка отправки фото #9
+2026-02-07 16:53:34,500 - handlers.user_handler - ERROR - ❌ Ошибка при отправке фото (попытка 9): Telegram server says - Bad Request: can't parse entities: Can't find end of the entity starting at byte offset 150
+2026-02-07 16:53:36,510 - handlers.user_handler - INFO - Попытка отправки фото #10
+2026-02-07 16:53:37,816 - handlers.user_handler - ERROR - ❌ Ошибка при отправке фото (попытка 10): Telegram server says - Bad Request: can't parse entities: Can't find end of the entity starting at byte offset 150
+2026-02-07 16:53:37,816 - handlers.user_handler - ERROR - ❌ Критическая ошибка в get_parking: Telegram server says - Bad Request: can't parse entities: Can't find end of the entity starting at byte offset 150
+2026-02-07 16:53:37,962 - handlers.admin_handler - ERROR - ⚠️ Произошла ошибка.,TelegramBadRequest:Telegram server says - Bad Request: query is too old and response timeout expired or query ID is invalid
+2026-02-07 16:53:37,962 - aiogram.event - INFO - Update id=216129954 is handled. Duration 39122 ms by bot id=8034081320
+2026-02-07 16:53:40,017 - aiogram.dispatcher - INFO - Polling stopped
+2026-02-07 16:53:40,019 - aiogram.dispatcher - ERROR - Failed to fetch updates - TelegramNetworkError: HTTP Client says - ServerDisconnectedError: Server disconnected
+2026-02-07 16:53:40,019 - aiogram.dispatcher - WARNING - Sleep for 1.000000 seconds and try again... (tryings = 0, bot id = 8034081320)
+2026-02-07 16:55:35,243 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-02-07 16:55:51,537 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-02-07 16:55:51,700 - aiogram.dispatcher - INFO - Start polling
+2026-02-07 16:55:51,758 - aiogram.dispatcher - INFO - Run polling for bot @camparkingbot id=8034081320 - 'ParkingBot'
+2026-02-07 16:55:59,346 - aiogram.event - INFO - Update id=216129958 is handled. Duration 367 ms by bot id=8034081320
+2026-02-07 16:56:07,076 - handlers.user_handler - INFO - запрос парковочных мест user_id=413700636
+2026-02-07 16:56:11,987 - handlers.user_handler - INFO - Попытка отправки фото #1
+2026-02-07 16:56:13,690 - handlers.user_handler - INFO - ✅ Фото отправлено успешно с попытки #1
+2026-02-07 16:56:13,965 - aiogram.event - INFO - Update id=216129959 is handled. Duration 6891 ms by bot id=8034081320
+2026-02-07 16:58:17,072 - aiogram.dispatcher - INFO - Polling stopped
+2026-02-07 16:58:17,074 - aiogram.dispatcher - ERROR - Failed to fetch updates - TelegramNetworkError: HTTP Client says - ServerDisconnectedError: Server disconnected
+2026-02-07 16:58:17,074 - aiogram.dispatcher - WARNING - Sleep for 1.000000 seconds and try again... (tryings = 0, bot id = 8034081320)

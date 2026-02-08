@@ -3,19 +3,34 @@ from pathlib import Path
 PROJECT_ROOT = str(Path(__file__).parent.parent.parent.parent)
 
 MENU_BAR_HEIGHT = 24
+STATUS_BAR_HEIGHT = 50
 ASPECT_RATIO = 16 / 9
-WINDOW_FULL_SIZE = [1800, 900]#[1200,900]#
-WINDOW_HEIGHT = WINDOW_FULL_SIZE[1]
-TOOLS_POS_X = 0
-TOOLS_POS_Y = MENU_BAR_HEIGHT
-TOOLS_WIDTH = int(WINDOW_FULL_SIZE[0] / 100 * 21)
-TOOLS_HEIGHT = WINDOW_HEIGHT
 
-MAIN_POS_X = TOOLS_WIDTH
-MAIN_POS_Y = MENU_BAR_HEIGHT
-MAIN_WIDTH = int(WINDOW_FULL_SIZE[0] - TOOLS_WIDTH)
-MAIN_HEIGHT = WINDOW_HEIGHT
-WINDOW_WIDTH = TOOLS_WIDTH + MAIN_WIDTH
+WINDOW_FULL_SIZE = [1800, 900]
+WINDOW_WIDTH, WINDOW_HEIGHT = WINDOW_FULL_SIZE
+
+# Меню бар (верхняя панель)
+MENU_BAR_POS = (0, 0)
+MENU_BAR_WIDTH = WINDOW_WIDTH
+
+# Панель инструментов (слева)
+TOOLS_WIDTH = int(WINDOW_WIDTH * 0.21)  # 21% от ширины = 378
+TOOLS_HEIGHT = WINDOW_HEIGHT - MENU_BAR_HEIGHT  # 876 (не 900!)
+TOOLS_POS_X = 0
+TOOLS_POS_Y = MENU_BAR_HEIGHT  # 24
+
+# Основное окно (справа)
+MAIN_WIDTH = WINDOW_WIDTH - TOOLS_WIDTH  # 1800 - 378 = 1422
+MAIN_HEIGHT = WINDOW_HEIGHT - MENU_BAR_HEIGHT - STATUS_BAR_HEIGHT   # 746
+MAIN_POS_X = TOOLS_WIDTH  # 378
+MAIN_POS_Y = MENU_BAR_HEIGHT  # 24
+
+# Статус бар (внизу основного окна)
+STATUS_BAR_WIDTH = MAIN_WIDTH  # 1422
+# Позиция относительно ВСЕГО окна:
+STATUS_BAR_POS_X = MAIN_POS_X  # 378
+STATUS_BAR_POS_Y = MAIN_POS_Y + MAIN_HEIGHT  # 24 + 746 = 770
+
 
 SETTINGS_WIDTH = 1000
 SETTINGS_HEIGHT = 600
@@ -45,17 +60,17 @@ always_visible: dict = {
             {
                 "label": {"ru": "Начало", "en": "Start"},
                 "func": "self.show_window",
-                "id": 1
+                "name": "start"
             },
             {
                 "label": {"ru": "Редактор", "en": "Editor"},
                 "func": "self.show_window",
-                "id": 2
+                "name": "editor"
             },
             {
                 "label": {"ru": "Детекция", "en": "Detection"},
                 "func": "self.show_window",
-                "id": 3
+                "name": "detector"
             }
         ]
     }
@@ -108,7 +123,7 @@ editor: dict = {
 
 editor2: dict = {
     "editor_file": {
-        "label": {"ru": "Файл", "en": "File"},
+        "label": {"ru": "Файл2", "en": "File"},
         "items": [
             {
                 "label": {"ru": "Сохранить", "en": "Save"},

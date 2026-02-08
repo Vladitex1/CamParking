@@ -21,6 +21,7 @@ class program:
             with dpg.window(label=WINDOW_LABEL, tag=WINDOW_TAG,
                             no_title_bar=True, no_move=True, no_resize=True, no_collapse=True, no_close=True,
                             width=const.WINDOW_FULL_SIZE[0], height=const.WINDOW_FULL_SIZE[1]+const.MENU_BAR_HEIGHT,
+                            no_saved_settings = True,
                             pos=(0, const.MENU_BAR_HEIGHT)):
 
                 with dpg.group(horizontal=True):
