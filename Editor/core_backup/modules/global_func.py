@@ -2,10 +2,10 @@ import os
 import dearpygui.dearpygui as dpg
 import cv2
 import numpy as np
-import Editor.core.modules.constants as const
+import Editor.core.app.constants as const
 from pathlib import Path
-import Editor.core.modules.themes as themes
-from Editor.core.modules.themes import theme_editor
+import Editor.core.app.themes as themes
+from Editor.core.app.themes import theme_editor
 
 var: dict = {
     'project_root': str(Path(__file__).parent.parent.parent.parent.resolve()),

@@ -6,9 +6,10 @@ import logic.file as file
 import logic.camera_control as camera
 import logic.visualizer as visualizer
 import logic.detector as detector
-import Editor.core.modules.constants as const
-import Editor.core.modules.themes as themes
-import Editor.core.modules.global_func as glbl_func
+import Editor.core.app.constants as const
+import Editor.core.app.themes as themes
+import Editor.core.app.global_func as glbl_func
+#import time
 
 from pathlib import Path
 
@@ -51,6 +52,7 @@ class program:
                 'file_tag':FILE_TAG,
                 'current_texture_tag':"",
                 'image_path':"",
+                'last_window_positions':{},
             }
 
             self.func = self.functional(self)
@@ -141,55 +143,50 @@ class program:
             self.parent = parent
             self.func = parent.func  # ЭКЗЕМПЛЯР!
             self.var = parent.var
-            self.back_window()
-            self.setup_layout() #начальная предустановка
-            #self.interface_main_window()
-            #self.interface_tool_window()
-            #self.interface_status_bar()
-
-        def get_menu_config(self):
-            """Возвращает конфигурацию меню редактора"""
-            return const.editor
-
-        def setup_layout(self):
-            try:
-                viewport_width = dpg.get_viewport_width()
-                viewport_height = dpg.get_viewport_height()
-
-                # Устанавливаем начальные позиции окон
-                dpg.set_item_pos(WINDOW_TAG, [0, const.MENU_BAR_HEIGHT])
-                dpg.set_item_width(WINDOW_TAG, viewport_width)
-                dpg.set_item_height(WINDOW_TAG, viewport_height)
-
-                #dpg.set_item_pos("layers_window", [viewport_width - 290, 30])
-                #dpg.set_item_width("layers_window", 280)
-                #dpg.set_item_height("layers_window", viewport_height - 60)
-
-                #dpg.set_item_pos("workspace_window", [270, 30])
-                #dpg.set_item_width("workspace_window", viewport_width - 570)
-                #dpg.set_item_height("workspace_window", viewport_height - 60)
-
-                print("🎨 Layout configured successfully")
-            except Exception as e:
-                print(f"⚠️  Layout setup failed: {e}")
+            self.last_window_positions = {}
+            #self.back_window()
+            #self.setup_layout() #начальная предустановка
+            #self.setup_dynamic_layout()
+            #self.test()
+            self.interface_main_window()
+            self.interface_tool_window()
+            self.interface_status_bar()
+            dpg.set_frame_callback(5, self.setup_initial_layout)
 
         def back_window(self):
             with dpg.window(tag=WINDOW_TAG,no_title_bar=True,
                             width = 1920, height=1080,
                             pos=(5,50),
                             no_move=True,
+                            no_bring_to_front_on_focus=True,
                             #autosize=True
                             ):#,resizable=True):
                 TAG_LIST.append(WINDOW_TAG)
 
         def interface_main_window(self):
-
-            TAG_LIST.append(WINDOW_TAG)
+            with dpg.window(label=MAIN_TAG, tag=MAIN_TAG,
+                            #no_title_bar=True,# no_move=True,# no_resize=True,
+                            no_collapse=True,
+                            no_close=True,#no_bring_to_front_on_focus=True,
+                            #width=const.MAIN_WIDTH, height=const.MAIN_HEIGHT, ##начальные показатели
+                            #pos=(const.MAIN_POS_X, const.MAIN_POS_Y)
+                            ): ##начальные показатели
+                self.func.set_img_data(glbl_func.upload_image(parent=WINDOW_CHILD_TAG,
+                                                              file_tag=self.var['file_tag'],
+                                                              current_texture_tag=self.var['current_texture_tag']))
+            TAG_LIST.append(MAIN_TAG)
 
         def interface_tool_window(self):
 
             with dpg.window(label=TOOLS_TAG, tag=TOOLS_TAG,
-                            ):
+                            #parent = MAIN_TAG,
+                            #no_title_bar=True, #no_move=True,
+                            #no_resize=True,
+                            no_collapse=True,
+                            no_close=True,
+                            #width=const.TOOLS_WIDTH, height=const.TOOLS_HEIGHT,
+                            #pos=(const.TOOLS_POS_X, const.TOOLS_POS_Y),
+                            no_scrollbar=True):
 
                 with dpg.group(horizontal=True):
                     #dpg.add_spacer(width=int(const.TOOLS_WIDTH / 2 - 50))
@@ -219,12 +216,14 @@ class program:
 
         def interface_status_bar(self):
             with dpg.window(label=STATUS_BAR_TAG, tag=STATUS_BAR_TAG,
-                            no_title_bar=True, #no_move=True,
-                            no_resize=True,
-                            #no_collapse=True, no_close=True,
-                            autosize=True,
+                            #no_title_bar=True, #no_move=True,
+                            #parent=MAIN_TAG,
+                            #no_resize=True,
+                            no_collapse=True,
+                            no_close=True,
+                            #autosize=True,
                             #min_size= (0,0),
-                           #width=const.STATUS_BAR_WIDTH-16, height=const.STATUS_BAR_HEIGHT,
+                            #width=const.STATUS_BAR_WIDTH-16, height=const.STATUS_BAR_HEIGHT,
                             #pos=(const.STATUS_BAR_POS_X,const.STATUS_BAR_POS_Y),
                             #no_bring_to_front_on_focus=True,
 
@@ -234,111 +233,85 @@ class program:
                         #pos = (5,5),
                         parent = STATUS_BAR_TAG,
                         tag=STATUS_BAR_CHILD_TAG,
-                        #height=50,#const.STATUS_BAR_HEIGHT,
+                        height=50,#const.STATUS_BAR_HEIGHT,
                         #width=const.STATUS_BAR_WIDTH,
                         horizontal_scrollbar=False,
                         no_scrollbar=True,
-                        autosize_y=True,
+                        #autosize_y=True,
                         autosize_x=True,
                         no_scroll_with_mouse=True,
                 ):
 
 
-                    dpg.add_text("asd")
+                    dpg.add_text("widgets")
                     #dpg.add_text(default_value="Статус: готов", tag=f"{self.var['file_tag']}status_text")
                     dpg.bind_item_theme(STATUS_BAR_TAG, themes.theme_editor())
             TAG_LIST.append(STATUS_BAR_TAG)
 
-        def test(self):
-            with dpg.window(width=500, height=320, menubar=True):
-                with dpg.menu_bar():
-                    dpg.add_menu(label="Menu Options")
-                with dpg.child_window(autosize_x=True, height=95):
-                    with dpg.group(horizontal=True):
-                        dpg.add_button(label="Header 1", width=75, height=75)
-                        dpg.add_button(label="Header 2", width=75, height=75)
-                        dpg.add_button(label="Header 3", width=75, height=75)
-                with dpg.child_window(autosize_x=True, height=175):
-                    with dpg.group(horizontal=True, width=0):
-                        with dpg.child_window(width=102, height=150):
-                            with dpg.tree_node(label="Nav 1"):
-                                dpg.add_button(label="Button 1")
-                            with dpg.tree_node(label="Nav 2"):
-                                dpg.add_button(label="Button 2")
-                            with dpg.tree_node(label="Nav 3"):
-                                dpg.add_button(label="Button 3")
-                        with dpg.child_window(width=300, height=150):
-                            dpg.add_button(label="Button 1")
-                            dpg.add_button(label="Button 2")
-                            dpg.add_button(label="Button 3")
-                        with dpg.child_window(width=50, height=150):
-                            dpg.add_button(label="B1", width=25, height=25)
-                            dpg.add_button(label="B2", width=25, height=25)
-                            dpg.add_button(label="B3", width=25, height=25)
+        def setup_initial_layout(self):
+            """Настраивает начальный layout"""
+            # Инициализируем позиции окон
+            from Editor.core.main import LAYOUT_FILE
+            # Если файл существует, layout уже загружен через load_init_file=True
+            if not os.path.exists(LAYOUT_FILE):
+                # Устанавливаем начальные позиции
+                dpg.set_item_pos(TOOLS_TAG, [const.TOOLS_POS_X,const.TOOLS_POS_Y])
+                #dpg.set_item_width(TOOLS_TAG, const.TOOLS_WIDTH)
+                #dpg.set_item_height(TOOLS_TAG, const.TOOLS_HEIGHT)
+
+                dpg.set_item_pos(MAIN_TAG, [const.MAIN_POS_X,const.MAIN_POS_Y])
+                #dpg.set_item_width(MAIN_TAG, const.MAIN_WIDTH)
+                #dpg.set_item_height(MAIN_TAG, const.MAIN_HEIGHT)
+
+                dpg.set_item_pos(STATUS_BAR_TAG, [const.STATUS_BAR_POS_X,const.STATUS_BAR_POS_Y])
+                #dpg.set_item_width(STATUS_BAR_TAG, const.STATUS_BAR_WIDTH)
+                #dpg.set_item_height(STATUS_BAR_TAG, const.STATUS_BAR_HEIGHT)
+
+                # Сохраняем начальный layout
+                print("✅ Created initial layout")
+            else:
+                print("✅ Layout loaded automatically")
+
+        def setup_layout(self):
+            try:
+                viewport_width = dpg.get_viewport_width()
+                viewport_height = dpg.get_viewport_height()
+
+                # Устанавливаем начальные позиции окон
+                if dpg.does_item_exist(WINDOW_TAG):
+                    dpg.configure_item(WINDOW_TAG, pos=(0, const.MENU_BAR_HEIGHT), width=viewport_width,
+                                       height=viewport_height)
+
+                if dpg.does_item_exist(MAIN_TAG):
+                    dpg.configure_item(MAIN_TAG, pos=(const.MAIN_POS_X,
+                                                      const.MAIN_POS_Y))  # ,width=viewport_width,height=viewport_height)
+
+                if dpg.does_item_exist(TOOLS_TAG):
+                    dpg.configure_item(TOOLS_TAG, pos=(0, const.MENU_BAR_HEIGHT), width=viewport_width,
+                                       height=viewport_height)
+
+                if dpg.does_item_exist(STATUS_BAR_TAG):
+                    dpg.configure_item(STATUS_BAR_TAG, pos=(0, const.MENU_BAR_HEIGHT), width=viewport_width,
+                                       height=viewport_height)
+
+                # dpg.set_item_pos("layers_window", [viewport_width - 290, 30])
+                # dpg.set_item_width("layers_window", 280)
+                # dpg.set_item_height("layers_window", viewport_height - 60)
+
+                # dpg.set_item_pos("workspace_window", [270, 30])
+                # dpg.set_item_width("workspace_window", viewport_width - 570)
+                # dpg.set_item_height("workspace_window", viewport_height - 60)
+
+                print("🎨 Layout configured successfully")
+            except Exception as e:
+                print(f"⚠️  Layout setup failed: {e}")
 
         def setup_dynamic_layout(self):
             """Настраивает динамический layout"""
-            #self.interface_main_window()
-            self.interface_tool_window()
-            self.interface_status_bar()
-
             # Привязываем обновление layout к изменению viewport
             if not hasattr(self.parent, 'layout_configured'):
-                dpg.set_viewport_resize_callback(self.update_layout)
-                self.parent.layout_configured = True
-
-        def update_layout(self):
-            """Обновляет размеры и позиции окон"""
-            viewport_width = dpg.get_viewport_width()
-            viewport_height = dpg.get_viewport_height()
-
-            # Пересчитываем размеры (аналогично constants.py, но динамически)
-            menu_bar_height = 24
-            status_bar_height = 50
-
-            #tools_width = 400#int(viewport_width * 0.25)
-            #tools_height = 400#viewport_height - menu_bar_height# * 0.4
-            tools_pos_x = 0
-            tools_pos_y = menu_bar_height
-
-            #tools_child_width = tools_width - 5
-            #tools_child_height = tools_width - 1
-
-            main_width = viewport_width# - tools_width - 16
-            main_height = viewport_height - menu_bar_height - status_bar_height-40
-            main_pos_x = 0#tools_width
-            main_pos_y = 0#menu_bar_height
-
-            status_bar_width = main_width
-            status_bar_pos_x = main_pos_x
-            status_bar_pos_y = main_pos_y + main_height
-
-            # Обновляем окно инструментов
-            #if dpg.does_item_exist(TOOLS_TAG):
-                #dpg.configure_item(TOOLS_TAG,
-                                   #width=tools_width,
-                                  # height=tools_height,
-                                  #pos=(tools_pos_x, tools_pos_y))
-
-                # Обновляем ширину child_window внутри
-                #child_tag = f"{self.var['file_tag']}polygons_list"
-                #if dpg.does_item_exist(child_tag):
-                    #dpg.configure_item(child_tag, width=tools_child_width,height = tools_child_height)# - 55)
-
-            # Обновляем основное окно
-            if dpg.does_item_exist(WINDOW_TAG):
-                dpg.configure_item(WINDOW_TAG,
-                                   width=main_width,
-                                   height=main_height,
-                                   pos=(main_pos_x, main_pos_y))
-
-            # Обновляем статус-бар
-            if dpg.does_item_exist(STATUS_BAR_TAG):
-                dpg.configure_item(STATUS_BAR_TAG,
-                                   width=status_bar_width,
-                                   height=status_bar_height,
-                                   pos=(status_bar_pos_x, status_bar_pos_y))
-
+                dpg.set_viewport_resize_callback(self.setup_layout)
+                #self.parent.layout_configured = True
 
         def settings(self):
             if dpg.does_item_exist(f"{self.var['file_tag']}modal_window"):

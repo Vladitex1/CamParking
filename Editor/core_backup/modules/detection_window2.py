@@ -6,8 +6,8 @@ import logic.file as file
 import logic.camera_control as camera
 import logic.visualizer as visualizer
 import logic.detector as detector
-import Editor.core.modules.constants as const
-import Editor.core.modules.themes as themes
+import Editor.core.app.constants as const
+import Editor.core.app.themes as themes
 
 FILE_TAG:str = "detector"
 FILE_TAG=FILE_TAG+"_"

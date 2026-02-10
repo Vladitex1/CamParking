@@ -1,5 +1,5 @@
 import dearpygui.dearpygui as dpg
-import Editor.core.modules.constants as const
+import Editor.core.app.constants as const
 
 COLORS = {
     # Фоны с разными уровнями глубины

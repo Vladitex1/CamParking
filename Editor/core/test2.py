@@ -1,394 +1,393 @@
-import dearpygui.dearpygui as dpg
+import sys
+import cv2
+import numpy as np
+from PySide6.QtWidgets import *
+from PySide6.QtCore import *
+from PySide6.QtGui import *
+import queue
+import threading
+import time
 
-dpg.create_context()
 
-# == 1. Включаем экспериментальный докинг ==
-dpg.configure_app(docking=True, docking_space=True, docking_shift_only=False)
-dpg.configure_app(init_file="docking_layout.ini")
+class VideoThread(QThread):
+    """Поток для чтения видео с буферизацией"""
+    frame_signal = Signal(np.ndarray)
+    error_signal = Signal(str)
 
-# == 2. Расширенная стилизация ==
-# Цветовая палитра (современная темная тема с акцентами)
-COLORS = {
-    "bg_dark": (18, 18, 24, 255),
-    "bg_panel": (30, 32, 40, 255),
-    "bg_panel_light": (40, 42, 54, 255),
-    "accent_primary": (100, 149, 237, 255),
-    "accent_secondary": (147, 112, 219, 255),
-    "accent_success": (46, 204, 113, 255),
-    "accent_warning": (241, 196, 15, 255),
-    "accent_danger": (231, 76, 60, 255),
-    "text_primary": (220, 220, 220, 255),
-    "text_secondary": (150, 152, 160, 255),
-    "border": (60, 63, 80, 255),
-    "border_light": (80, 85, 105, 255),
-}
+    def __init__(self):
+        super().__init__()
+        self.cap = None
+        self.running = False
+        self.rtsp_url = ""
+        self.buffer = queue.Queue(maxsize=2)  # Буфер на 2 кадра
+        self.latest_frame = None
+        self.lock = threading.Lock()
 
-# Создаем главную тему
-with dpg.theme(tag="__global_theme"):
-    with dpg.theme_component(dpg.mvAll):
-        dpg.add_theme_color(dpg.mvThemeCol_WindowBg, COLORS["bg_dark"])
-        dpg.add_theme_color(dpg.mvThemeCol_ChildBg, COLORS["bg_panel"])
-        dpg.add_theme_color(dpg.mvThemeCol_FrameBg, COLORS["bg_panel_light"])
-        dpg.add_theme_color(dpg.mvThemeCol_FrameBgHovered, (50, 52, 68, 255))
-        dpg.add_theme_color(dpg.mvThemeCol_FrameBgActive, (60, 62, 78, 255))
-        dpg.add_theme_color(dpg.mvThemeCol_TitleBg, COLORS["bg_panel"])
-        dpg.add_theme_color(dpg.mvThemeCol_TitleBgActive, COLORS["accent_primary"])
-        dpg.add_theme_color(dpg.mvThemeCol_CheckMark, COLORS["accent_primary"])
-        dpg.add_theme_color(dpg.mvThemeCol_SliderGrab, COLORS["accent_primary"])
-        dpg.add_theme_color(dpg.mvThemeCol_SliderGrabActive, COLORS["accent_secondary"])
-        dpg.add_theme_color(dpg.mvThemeCol_Button, (60, 63, 80, 255))
-        dpg.add_theme_color(dpg.mvThemeCol_ButtonHovered, (80, 85, 105, 255))
-        dpg.add_theme_color(dpg.mvThemeCol_ButtonActive, (100, 105, 125, 255))
-        dpg.add_theme_color(dpg.mvThemeCol_Header, COLORS["accent_primary"])
-        dpg.add_theme_color(dpg.mvThemeCol_HeaderHovered, (120, 169, 255, 255))
-        dpg.add_theme_color(dpg.mvThemeCol_HeaderActive, (140, 189, 255, 255))
-        dpg.add_theme_color(dpg.mvThemeCol_Separator, COLORS["border"])
-        dpg.add_theme_color(dpg.mvThemeCol_SeparatorHovered, COLORS["accent_primary"])
-        dpg.add_theme_color(dpg.mvThemeCol_SeparatorActive, COLORS["accent_secondary"])
-        dpg.add_theme_color(dpg.mvThemeCol_ResizeGrip, (100, 100, 100, 100))
-        dpg.add_theme_color(dpg.mvThemeCol_ResizeGripHovered, COLORS["accent_primary"])
-        dpg.add_theme_color(dpg.mvThemeCol_ResizeGripActive, COLORS["accent_secondary"])
-        dpg.add_theme_color(dpg.mvThemeCol_Text, COLORS["text_primary"])
-        dpg.add_theme_color(dpg.mvThemeCol_TextSelectedBg, COLORS["accent_primary"])
-        dpg.add_theme_style(dpg.mvStyleVar_FrameRounding, 6)
-        dpg.add_theme_style(dpg.mvStyleVar_GrabRounding, 6)
-        dpg.add_theme_style(dpg.mvStyleVar_WindowRounding, 10)
-        dpg.add_theme_style(dpg.mvStyleVar_ChildRounding, 8)
-        dpg.add_theme_style(dpg.mvStyleVar_PopupRounding, 8)
-        dpg.add_theme_style(dpg.mvStyleVar_FramePadding, 10, 6)
-        dpg.add_theme_style(dpg.mvStyleVar_ItemSpacing, 10, 8)
-        dpg.add_theme_style(dpg.mvStyleVar_ItemInnerSpacing, 6, 6)
-        dpg.add_theme_style(dpg.mvStyleVar_WindowPadding, 15, 15)
-        dpg.add_theme_style(dpg.mvStyleVar_WindowBorderSize, 1)
-        dpg.add_theme_style(dpg.mvStyleVar_FrameBorderSize, 1)
-        dpg.add_theme_style(dpg.mvStyleVar_PopupBorderSize, 1)
-        dpg.add_theme_style(dpg.mvStyleVar_ChildBorderSize, 1)
+    def connect(self, url):
+        """Подключение к камере"""
+        self.rtsp_url = url
+        if self.cap:
+            self.cap.release()
+            self.cap = None
 
-# Специальная тема для кнопок с акцентом
-with dpg.theme(tag="accent_button_theme"):
-    with dpg.theme_component(dpg.mvButton):
-        dpg.add_theme_color(dpg.mvThemeCol_Button, COLORS["accent_primary"])
-        dpg.add_theme_color(dpg.mvThemeCol_ButtonHovered, (120, 169, 255, 255))
-        dpg.add_theme_color(dpg.mvThemeCol_ButtonActive, (140, 189, 255, 255))
-        dpg.add_theme_color(dpg.mvThemeCol_Text, (255, 255, 255, 255))
-        dpg.add_theme_style(dpg.mvStyleVar_FrameRounding, 8)
-        dpg.add_theme_style(dpg.mvStyleVar_FramePadding, 12, 8)
+        try:
+            # Добавляем параметры для стабильности
+            if 'rtsp_transport' not in url:
+                if '?' in url:
+                    url += '&rtsp_transport=tcp'
+                else:
+                    url += '?rtsp_transport=tcp'
 
-# Тема для панелей с заголовком
-with dpg.theme(tag="panel_theme"):
-    with dpg.theme_component(dpg.mvChildWindow):
-        dpg.add_theme_color(dpg.mvThemeCol_ChildBg, COLORS["bg_panel"])
-        dpg.add_theme_color(dpg.mvThemeCol_Border, COLORS["border_light"])
-        dpg.add_theme_style(dpg.mvStyleVar_ChildRounding, 8)
-        dpg.add_theme_style(dpg.mvStyleVar_WindowPadding, 12, 12)
+            self.cap = cv2.VideoCapture(url, cv2.CAP_FFMPEG)
 
-# Тема для разделителей
-with dpg.theme(tag="separator_theme"):
-    with dpg.theme_component(dpg.mvSeparator):
-        dpg.add_theme_color(dpg.mvThemeCol_Separator, COLORS["accent_secondary"])
-        dpg.add_theme_style(dpg.mvStyleVar_SeparatorTextAlign, 0.5)
-        dpg.add_theme_style(dpg.mvStyleVar_SeparatorTextPadding, 0, 5)
+            # Настройки для снижения задержки
+            self.cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)
+            self.cap.set(cv2.CAP_PROP_FPS, 30)
 
-# == 3. Создаем viewport с улучшенным заголовком ==
-dpg.create_viewport(
-    title='✨ Advanced Docking Editor | Dark Theme v1.0',
-    width=1400,
-    height=850,
-    small_icon="",
-    large_icon=""
-)
-dpg.set_viewport_resizable(True)
+            if not self.cap.isOpened():
+                raise Exception("Не удалось открыть камеру")
 
-# == 4. Стилизация разделителей докинга (если доступно) ==
-try:
-    with dpg.theme() as docking_theme:
-        with dpg.theme_component(dpg.mvAll):
-            dpg.add_theme_style(dpg.mvStyleVar_DockingSeparatorSize, 4.0)
-            dpg.add_theme_color(dpg.mvThemeCol_DockingPreview, COLORS["accent_primary"])
-            dpg.add_theme_color(dpg.mvThemeCol_DockingEmptyBg, COLORS["bg_panel_light"])
-except:
-    pass
+            # Очищаем буфер
+            while not self.buffer.empty():
+                try:
+                    self.buffer.get_nowait()
+                except queue.Empty:
+                    pass
 
-# == 5. Создаем окна с богатой стилизацией ==
-# Панель инструментов (слева)
-with dpg.window(
-        label="🛠️ Tools",
-        tag="tools_window",
-        no_title_bar=True,
-        no_move=False,
-        width=250,
-        height=400
-):
-    # Заголовок панели
-    with dpg.group(horizontal=True):
-        dpg.add_spacer(width=5)
-        dpg.add_text("🔧 TOOLSET", color=COLORS["accent_primary"])
+        except Exception as e:
+            self.error_signal.emit(f"Ошибка подключения: {str(e)}")
+            return False
 
-    dpg.add_separator()
-    dpg.add_spacer(height=5)
+        return True
 
-    # Группа основных инструментов
-    dpg.add_text("Main Tools", color=COLORS["text_secondary"])
-    dpg.add_button(label="  ✏️  Select Tool", width=220, height=40)
-    dpg.add_button(label="  🖌️  Brush Tool", width=220, height=40)
-    dpg.add_button(label="  🅰️  Text Tool", width=220, height=40)
-    dpg.add_button(label="  ⬡  Shape Tool", width=220, height=40)
+    def run(self):
+        """Основной цикл чтения кадров"""
+        self.running = True
 
-    dpg.add_spacer(height=15)
-    dpg.add_separator()
-    dpg.add_spacer(height=10)
+        while self.running:
+            if self.cap and self.cap.isOpened():
+                try:
+                    ret, frame = self.cap.read()
 
-    # Группа настроек
-    dpg.add_text("Tool Properties", color=COLORS["text_secondary"])
-    dpg.add_slider_float(label="Size", default_value=15.0, min_value=1.0, max_value=100.0, width=220)
-    dpg.add_slider_float(label="Opacity", default_value=1.0, min_value=0.0, max_value=1.0, width=220)
-    dpg.add_slider_float(label="Hardness", default_value=0.5, min_value=0.0, max_value=1.0, width=220)
+                    if ret:
+                        # Обновляем последний кадр
+                        with self.lock:
+                            self.latest_frame = frame.copy()
 
-    dpg.add_spacer(height=10)
-    dpg.add_color_edit((255, 255, 255), label="Color", width=220)
+                        # Добавляем в буфер если есть место
+                        if self.buffer.qsize() < 2:
+                            try:
+                                self.buffer.put_nowait(frame)
+                            except queue.Full:
+                                pass
 
-    dpg.add_spacer(height=15)
-    with dpg.group(horizontal=True):
-        dpg.add_button(label="Save Preset", width=105)
-        dpg.add_button(label="Load Preset", width=105)
+                        # Отправляем кадр в GUI
+                        self.frame_signal.emit(frame)
+                    else:
+                        self.error_signal.emit("Потеря соединения с камерой")
+                        time.sleep(1)  # Пауза перед повторной попыткой
 
-# Центральная рабочая область
-with dpg.window(
-        label="🎨 Workspace",
-        tag="workspace_window",
-        no_title_bar=True,
-        no_move=False
-):
-    # Декоративный верхний бар
-    with dpg.group(horizontal=True):
-        dpg.add_button(label="🞂", width=30, height=30)
-        dpg.add_button(label="⬤", width=30, height=30)
-        dpg.add_button(label="✕", width=30, height=30)
-        dpg.add_spacer(width=10)
-        dpg.add_text("ACTIVE DOCUMENT: Untitled.psd", color=COLORS["text_secondary"])
-        dpg.add_spacer()
-        dpg.add_button(label="💾 Save", width=80)
-        dpg.add_button(label="📤 Export", width=80)
+                except Exception as e:
+                    print(f"Ошибка чтения: {e}")
+                    time.sleep(0.1)
+            else:
+                time.sleep(0.1)
 
-    dpg.add_separator()
-    dpg.add_spacer(height=20)
+    def stop(self):
+        """Остановка потока"""
+        self.running = False
+        if self.cap:
+            self.cap.release()
+            self.cap = None
+        self.wait()
 
-    # Основное содержимое
-    with dpg.group(horizontal=True, width=-1):
-        dpg.add_spacer(width=50)
-        with dpg.child_window(width=600, height=400, border=True):
-            dpg.add_text("🖼️  Canvas Preview", color=COLORS["accent_primary"])
-            dpg.add_separator()
-            dpg.add_spacer(height=150)
-            with dpg.group(horizontal=True):
-                dpg.add_spacer()
-                dpg.add_text("Your Creative Workspace", color=COLORS["text_secondary"])
-                dpg.add_spacer()
-            dpg.add_spacer(height=150)
-            with dpg.group(horizontal=True):
-                dpg.add_spacer()
-                dpg.add_button(label="Create New Canvas", width=180, height=40)
-                dpg.add_spacer()
+    def get_latest_frame(self):
+        """Получение последнего кадра"""
+        with self.lock:
+            return self.latest_frame.copy() if self.latest_frame is not None else None
 
-        dpg.add_spacer(width=50)
 
-    dpg.add_spacer(height=20)
-    dpg.add_separator()
+class RTSPViewer(QMainWindow):
+    """Быстрое приложение для RTSP трансляции с рисованием точек"""
 
-    # Статус бар
-    with dpg.group(horizontal=True):
-        dpg.add_text("Status:", color=COLORS["text_secondary"])
-        dpg.add_text("  Ready", color=COLORS["accent_success"])
-        dpg.add_spacer()
-        dpg.add_text("Zoom: 100%", color=COLORS["text_secondary"])
-        dpg.add_spacer(width=20)
-        dpg.add_text("Position: X:0 Y:0", color=COLORS["text_secondary"])
+    def __init__(self):
+        super().__init__()
+        self.video_thread = VideoThread()
+        self.points = []  # Список точек
+        self.current_frame = None
 
-# Панель слоев (справа)
-with dpg.window(
-        label="📑 Layers",
-        tag="layers_window",
-        no_title_bar=True,
-        no_move=False,
-        width=280,
-        height=500
-):
-    # Заголовок с элементами управления
-    with dpg.group(horizontal=True):
-        dpg.add_text("LAYER STACK", color=COLORS["accent_primary"])
-        dpg.add_spacer()
-        dpg.add_button(label="+", width=30)
-        dpg.add_button(label="−", width=30)
+        self.init_ui()
 
-    dpg.add_separator()
-    dpg.add_spacer(height=10)
+    def init_ui(self):
+        """Инициализация интерфейса"""
+        self.setWindowTitle("RTSP Viewer - Fast")
+        self.setGeometry(100, 100, 900, 600)
 
-    # Список слоев с улучшенным видом
-    layers_data = [
-        {"name": "Background", "visible": True, "locked": False, "color": (66, 135, 245)},
-        {"name": "Foreground", "visible": True, "locked": True, "color": (245, 66, 135)},
-        {"name": "Text Layer", "visible": True, "locked": False, "color": (135, 245, 66)},
-        {"name": "Effects", "visible": False, "locked": False, "color": (245, 135, 66)},
-        {"name": "Adjustments", "visible": True, "locked": False, "color": (135, 66, 245)},
-    ]
+        # Центральный виджет
+        central_widget = QWidget()
+        self.setCentralWidget(central_widget)
 
-    for i, layer in enumerate(layers_data):
-        with dpg.child_window(height=60, border=True):
-            with dpg.group(horizontal=True):
-                # Цветной индикатор
-                with dpg.drawlist(width=20, height=45):
-                    dpg.draw_rectangle((0, 0), (15, 45), fill=layer["color"], color=layer["color"])
+        layout = QVBoxLayout()
 
-                dpg.add_spacer(width=5)
+        # Верхняя панель
+        top_panel = QWidget()
+        top_layout = QHBoxLayout()
 
-                # Информация о слое
-                with dpg.group():
-                    dpg.add_text(layer["name"], color=COLORS["text_primary"])
-                    dpg.add_text(f"Layer {i + 1}", color=COLORS["text_secondary"])
+        self.url_edit = QLineEdit()
+        self.url_edit.setPlaceholderText("rtsp://адрес")
+        self.url_edit.setMinimumWidth(400)
 
-                dpg.add_spacer()
+        self.connect_btn = QPushButton("▶")
+        self.connect_btn.setFixedSize(40, 30)
 
-                # Элементы управления
-                visibility_icon = "👁️" if layer["visible"] else "👁️‍🗨️"
-                lock_icon = "🔓" if not layer["locked"] else "🔒"
+        self.clear_btn = QPushButton("🗑")
+        self.clear_btn.setFixedSize(40, 30)
+        self.clear_btn.setEnabled(False)
 
-                dpg.add_button(label=visibility_icon, width=40)
-                dpg.add_button(label=lock_icon, width=40)
-                dpg.add_button(label="⋮", width=30)
+        self.quality_combo = QComboBox()
+        self.quality_combo.addItems(["Высокое", "Среднее", "Низкое"])
+        self.quality_combo.currentTextChanged.connect(self.update_quality)
 
-        dpg.add_spacer(height=5)
+        top_layout.addWidget(QLabel("RTSP:"))
+        top_layout.addWidget(self.url_edit)
+        top_layout.addWidget(self.connect_btn)
+        top_layout.addWidget(self.clear_btn)
+        top_layout.addWidget(QLabel("Качество:"))
+        top_layout.addWidget(self.quality_combo)
+        top_layout.addStretch()
 
-    dpg.add_spacer(height=15)
-    dpg.add_separator()
-    dpg.add_spacer(height=10)
+        top_panel.setLayout(top_layout)
 
-    # Группа действий со слоями
-    dpg.add_text("Layer Actions", color=COLORS["text_secondary"])
-    with dpg.group(horizontal=True):
-        dpg.add_button(label="Merge Down", width=130)
-        dpg.add_button(label="Flatten", width=130)
+        # Область видео
+        self.video_label = QLabel()
+        self.video_label.setAlignment(Qt.AlignCenter)
+        self.video_label.setMinimumSize(640, 480)
+        self.video_label.setStyleSheet("""
+            QLabel {
+                background-color: #000;
+                border: 2px solid #444;
+            }
+        """)
 
-    with dpg.group(horizontal=True):
-        dpg.add_button(label="Add Mask", width=130)
-        dpg.add_button(label="Apply Filter", width=130)
+        # Статус бар
+        self.status_bar = QStatusBar()
+        self.setStatusBar(self.status_bar)
 
-    dpg.add_spacer(height=10)
-    dpg.add_slider_float(label = "Opacity", default_value=100.0, min_value=0.0, max_value=100.0, format="%.0f%%")
+        # Информация о точках
+        self.points_label = QLabel("Точек: 0")
+        self.status_bar.addPermanentWidget(self.points_label)
 
-# == 6. Применяем темы ==
-dpg.bind_theme("__global_theme")
-dpg.bind_item_theme("tools_window", "panel_theme")
-dpg.bind_item_theme("layers_window", "panel_theme")
+        # FPS счетчик
+        self.fps_label = QLabel("FPS: 0")
+        self.status_bar.addPermanentWidget(self.fps_label)
 
-# Применяем акцентную тему к некоторым кнопкам
-accent_buttons = ["Create New Canvas", "Save", "Export"]
-for item in dpg.get_all_items():
+        layout.addWidget(top_panel)
+        layout.addWidget(self.video_label, 1)
+
+        central_widget.setLayout(layout)
+
+        # Подключаем сигналы
+        self.connect_btn.clicked.connect(self.toggle_connection)
+        self.clear_btn.clicked.connect(self.clear_points)
+        self.video_thread.frame_signal.connect(self.update_frame)
+        self.video_thread.error_signal.connect(self.handle_error)
+
+        # Обработчик кликов
+        self.video_label.mousePressEvent = self.video_clicked
+
+        # Таймер для FPS расчета
+        self.fps_timer = QElapsedTimer()
+        self.fps_timer.start()
+        self.frame_counter = 0
+
+        # Таймер для обновления дисплея
+        self.display_timer = QTimer()
+        self.display_timer.setInterval(33)  # 30 FPS
+        self.display_timer.timeout.connect(self.update_display)
+
+        # Устанавливаем качество
+        self.quality = 1.0
+
+    def toggle_connection(self):
+        """Подключение/отключение"""
+        if not self.video_thread.isRunning():
+            self.connect_camera()
+        else:
+            self.disconnect_camera()
+
+    def connect_camera(self):
+        """Подключение к камере"""
+        url = self.url_edit.text().strip()
+        if not url:
+            self.status_bar.showMessage("Введите URL камеры")
+            return
+
+        if self.video_thread.connect(url):
+            self.video_thread.start()
+            self.connect_btn.setText("⏹")
+            self.clear_btn.setEnabled(True)
+            self.url_edit.setEnabled(False)
+            self.display_timer.start()
+            self.status_bar.showMessage("Подключение...")
+        else:
+            self.status_bar.showMessage("Ошибка подключения")
+
+    def disconnect_camera(self):
+        """Отключение камеры"""
+        self.video_thread.stop()
+        self.connect_btn.setText("▶")
+        self.clear_btn.setEnabled(False)
+        self.url_edit.setEnabled(True)
+        self.display_timer.stop()
+        self.video_label.clear()
+        self.status_bar.showMessage("Отключено")
+
+    def update_frame(self, frame):
+        """Получение нового кадра из потока"""
+        self.current_frame = frame.copy()
+        self.frame_counter += 1
+
+    def update_display(self):
+        """Обновление отображения (вызывается таймером)"""
+        if self.current_frame is not None:
+            # Рассчитываем FPS
+            elapsed = self.fps_timer.elapsed() / 1000.0
+            if elapsed >= 1.0:  # Каждую секунду
+                fps = self.frame_counter / elapsed
+                self.fps_label.setText(f"FPS: {fps:.1f}")
+                self.frame_counter = 0
+                self.fps_timer.restart()
+
+            frame = self.current_frame.copy()
+
+            # Применяем масштабирование качества
+            if self.quality != 1.0:
+                h, w = frame.shape[:2]
+                new_w = int(w * self.quality)
+                new_h = int(h * self.quality)
+                frame = cv2.resize(frame, (new_w, new_h))
+
+            # Рисуем точки
+            if self.points and frame is not None:
+                h, w = frame.shape[:2]
+                for point in self.points:
+                    x, y = point
+                    # Масштабируем координаты если нужно
+                    if self.quality != 1.0:
+                        x = int(x * self.quality)
+                        y = int(y * self.quality)
+                    cv2.circle(frame, (int(x), int(y)), 6, (0, 255, 0), -1)
+                    cv2.circle(frame, (int(x), int(y)), 7, (255, 0, 0), 2)
+
+            # Конвертируем в RGB
+            frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+
+            # Создаем QImage
+            h, w, ch = frame_rgb.shape
+            bytes_per_line = ch * w
+            qt_image = QImage(frame_rgb.data, w, h, bytes_per_line, QImage.Format_RGB888)
+
+            # Создаем QPixmap и отображаем
+            pixmap = QPixmap.fromImage(qt_image)
+            self.video_label.setPixmap(pixmap.scaled(
+                self.video_label.size(),
+                Qt.KeepAspectRatio,
+                Qt.SmoothTransformation
+            ))
+
+    def update_quality(self, quality_text):
+        """Обновление качества"""
+        if quality_text == "Высокое":
+            self.quality = 1.0
+        elif quality_text == "Среднее":
+            self.quality = 0.5
+        elif quality_text == "Низкое":
+            self.quality = 0.3
+
+    def video_clicked(self, event):
+        """Обработка клика по видео"""
+        if not self.video_thread.isRunning() or self.current_frame is None:
+            return
+
+        pixmap = self.video_label.pixmap()
+        if not pixmap:
+            return
+
+        # Получаем клик
+        pos = event.position()
+
+        # Получаем размеры
+        label_size = self.video_label.size()
+        pixmap_size = pixmap.size()
+
+        # Вычисляем смещение (центрирование)
+        x_offset = (label_size.width() - pixmap_size.width()) / 2
+        y_offset = (label_size.height() - pixmap_size.height()) / 2
+
+        # Координаты на pixmap
+        pixmap_x = pos.x() - x_offset
+        pixmap_y = pos.y() - y_offset
+
+        # Пропорции
+        scale_x = self.current_frame.shape[1] / pixmap_size.width()
+        scale_y = self.current_frame.shape[0] / pixmap_size.height()
+
+        # Координаты на оригинальном кадре
+        x = pixmap_x * scale_x / self.quality
+        y = pixmap_y * scale_y / self.quality
+
+        # Добавляем точку
+        self.points.append((x, y))
+        self.points_label.setText(f"Точек: {len(self.points)}")
+
+    def clear_points(self):
+        """Очистка точек"""
+        self.points = []
+        self.points_label.setText("Точек: 0")
+
+    def handle_error(self, error_msg):
+        """Обработка ошибок"""
+        self.status_bar.showMessage(f"Ошибка: {error_msg}")
+        if "Потеря соединения" in error_msg:
+            QTimer.singleShot(2000, lambda: self.video_thread.connect(self.url_edit.text()))
+
+    def resizeEvent(self, event):
+        """Изменение размера окна"""
+        super().resizeEvent(event)
+
+    def closeEvent(self, event):
+        """Закрытие приложения"""
+        self.video_thread.stop()
+        event.accept()
+
+
+if __name__ == "__main__":
+    app = QApplication(sys.argv)
+
+    # Проверяем OpenCV
     try:
-        label = dpg.get_item_label(item)
-        if label in accent_buttons:
-            dpg.bind_item_theme(item, "accent_button_theme")
-    except:
-        pass
+        import cv2
+    except ImportError:
+        QMessageBox.critical(None, "Ошибка",
+                             "OpenCV не установлен!\n"
+                             "pip install opencv-python")
+        sys.exit(1)
 
+    # Минималистичный стиль
+    app.setStyle("Fusion")
 
-# == 7. Заглушка для кнопок с улучшенным выводом ==
-def button_callback(sender, app_data):
-    label = dpg.get_item_label(sender)
-    print(f"🖱️  Button clicked: {label}")
-    # Визуальная обратная связь
-    original_color = dpg.get_item_configuration(sender)["colors"][0] if "colors" in dpg.get_item_configuration(
-        sender) else None
-    if original_color:
-        dpg.configure_item(sender, color=(200, 200, 255, 255))
-        dpg.split_frame(delay=5)
-        dpg.configure_item(sender, color=original_color)
+    # Темная тема для лучшего отображения видео
+    palette = QPalette()
+    palette.setColor(QPalette.Window, QColor(30, 30, 30))
+    palette.setColor(QPalette.WindowText, Qt.white)
+    palette.setColor(QPalette.Base, QColor(20, 20, 20))
+    palette.setColor(QPalette.Button, QColor(45, 45, 45))
+    palette.setColor(QPalette.ButtonText, Qt.white)
+    palette.setColor(QPalette.Highlight, QColor(0, 120, 215))
+    palette.setColor(QPalette.HighlightedText, Qt.white)
+    app.setPalette(palette)
 
+    window = RTSPViewer()
+    window.show()
 
-for item in dpg.get_all_items():
-    if "Button" in str(dpg.get_item_type(item)):
-        dpg.set_item_callback(item, button_callback)
-
-
-# == 8. Функция для попытки настроить layout после запуска ==
-def setup_layout():
-    try:
-        viewport_width = dpg.get_viewport_width()
-        viewport_height = dpg.get_viewport_height()
-
-        # Устанавливаем начальные позиции окон
-        dpg.set_item_pos("tools_window", [10, 30])
-        dpg.set_item_width("tools_window", 250)
-        dpg.set_item_height("tools_window", viewport_height - 60)
-
-        dpg.set_item_pos("layers_window", [viewport_width - 290, 30])
-        dpg.set_item_width("layers_window", 280)
-        dpg.set_item_height("layers_window", viewport_height - 60)
-
-        dpg.set_item_pos("workspace_window", [270, 30])
-        dpg.set_item_width("workspace_window", viewport_width - 570)
-        dpg.set_item_height("workspace_window", viewport_height - 60)
-
-        print("🎨 Layout configured successfully")
-    except Exception as e:
-        print(f"⚠️  Layout setup failed: {e}")
-
-
-# == 4. Полная стилизация системы докинга ==
-try:
-    with dpg.theme(tag="docking_theme"):
-        with dpg.theme_component(dpg.mvAll):
-            # === ОСНОВНЫЕ ЦВЕТА ДОКИНГА ===
-
-            # Цвет квадратика предпросмотра (синего) при закреплении
-            # Варианты: accent_primary(синий), accent_secondary(фиолетовый),
-            # accent_success(зеленый), accent_warning(желтый), accent_danger(красный)
-            dpg.add_theme_color(dpg.mvThemeCol_DockingPreview,
-                                COLORS["accent_primary"])  # Основной цвет превью
-
-            # Цвет фона пустой области для докинга
-            dpg.add_theme_color(dpg.mvThemeCol_DockingEmptyBg,
-                                (40, 45, 60, 180))  # Темный полупрозрачный фон
-
-            # === РАЗМЕРЫ И СТИЛИ ===
-
-            # Толщина разделителя между закрепленными окнами (в пикселях)
-            dpg.add_theme_style(dpg.mvStyleVar_DockingSeparatorSize, 6.0)
-
-            # === ЭКСПЕРИМЕНТАЛЬНЫЕ НАСТРОЙКИ (могут не поддерживаться) ===
-            try:
-                # Попытка установить закругление углов разделителя
-                dpg.add_theme_style(dpg.mvStyleVar_DockingSeparatorRounding, 3.0)
-            except:
-                pass  # Игнорируем если не поддерживается
-
-            try:
-                # Попытка установить отступ разделителя
-                dpg.add_theme_style(dpg.mvStyleVar_DockingSeparatorPadding, 2.0, 2.0)
-            except:
-                pass
-
-    # Применяем созданную тему докинга
-    dpg.bind_theme("docking_theme")
-    print("✅ Docking styling applied successfully")
-
-except Exception as e:
-    print(f"⚠️  Partial or no docking styling available: {e}")
-    # Резервный минимальный стиль, если основные настройки не работают
-    try:
-        with dpg.theme(tag="docking_theme_fallback"):
-            with dpg.theme_component(dpg.mvAll):
-                dpg.add_theme_style(dpg.mvStyleVar_DockingSeparatorSize, 4.0)
-        dpg.bind_theme("docking_theme_fallback")
-        print("✅ Applied fallback docking style")
-    except:
-        print("❌ Docking styling completely unavailable in this version")
-
-# == 9. Запускаем приложение ==
-dpg.setup_dearpygui()
-dpg.show_viewport()
-
-# Пытаемся настроить layout через небольшую задержку
-dpg.set_frame_callback(5, setup_layout)
-
-dpg.start_dearpygui()
-dpg.destroy_context()
+    sys.exit(app.exec())

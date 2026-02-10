@@ -29,7 +29,7 @@ MAIN_POS_Y = MENU_BAR_HEIGHT  # 24
 STATUS_BAR_WIDTH = MAIN_WIDTH  # 1422
 # Позиция относительно ВСЕГО окна:
 STATUS_BAR_POS_X = MAIN_POS_X  # 378
-STATUS_BAR_POS_Y = MAIN_POS_Y + MAIN_HEIGHT  # 24 + 746 = 770
+STATUS_BAR_POS_Y = MAIN_POS_Y + MAIN_HEIGHT-200  # 24 + 746 = 770
 
 
 SETTINGS_WIDTH = 1000
@@ -71,6 +71,15 @@ always_visible: dict = {
                 "label": {"ru": "Детекция", "en": "Detection"},
                 "func": "self.show_window",
                 "name": "detector"
+            },
+            {
+                "label": {"ru": "Сохранить layout", "en": "deb"},
+                "func": "self.save_layout",
+            }
+,
+            {
+                "label": {"ru":"Загрузить layout", "en": "deb"},
+                "func": "self.load_layout",
             }
         ]
     }
