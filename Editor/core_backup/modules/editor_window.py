@@ -6,9 +6,9 @@ import logic.file as file
 import logic.camera_control as camera
 import logic.visualizer as visualizer
 import logic.detector as detector
-import Editor.core.app.constants as const
-import Editor.core.app.themes as themes
-import Editor.core.app.global_func as glbl_func
+import Editor.core_backup.modules.constants as const
+import Editor.core_backup.modules.themes as themes
+import Editor.core_backup.modules.global_func as glbl_func
 #import time
 
 from pathlib import Path
@@ -701,6 +701,7 @@ class program:
             self.func.update_display()
 
         def hide_polygon(self, points):
+            print(self.var['polygons'])
             for i, poly in enumerate(self.var['polygons']):
                 if self.var['polygons'][i]['points'] == points:
                     dpg.hide_item(f"{self.var['file_tag']}polygon_{i}")

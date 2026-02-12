@@ -7,7 +7,7 @@ import logic.camera_control as camera
 import logic.visualizer as visualizer
 import logic.detector as detector
 import asyncio
-import Editor.core.app.constants as const
+import Editor.core_backup.modules.constants as const
 from datetime import date
 
 FILE_TAG:str = "start"
