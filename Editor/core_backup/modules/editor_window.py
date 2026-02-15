@@ -371,7 +371,7 @@ class program:
             #print(f"3: {self.relative_path}")
 
             print(f"{file_path}")
-            saved_data, parent_file = file.read_data(file_path)#self.selected_filepath)
+            saved_data, parent_file = file.load_data(file_path)#self.selected_filepath)
             self.var['image_data'] = [parent_file,None,None,None]
             self.var['current_file_path'] = file_path
             #print(f"INFO:bar_open_mask:Parent file: {parent_file}")

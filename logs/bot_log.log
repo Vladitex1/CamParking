@@ -6937,3 +6937,22 @@ client_session: <aiohttp.client.ClientSession object at 0x000001F0F73B8980>
 2026-02-07 16:58:17,072 - aiogram.dispatcher - INFO - Polling stopped
 2026-02-07 16:58:17,074 - aiogram.dispatcher - ERROR - Failed to fetch updates - TelegramNetworkError: HTTP Client says - ServerDisconnectedError: Server disconnected
 2026-02-07 16:58:17,074 - aiogram.dispatcher - WARNING - Sleep for 1.000000 seconds and try again... (tryings = 0, bot id = 8034081320)
+2026-02-14 13:14:29,434 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-02-14 13:14:29,719 - aiogram.dispatcher - INFO - Start polling
+2026-02-14 13:14:29,768 - aiogram.dispatcher - INFO - Run polling for bot @camparkingbot id=8034081320 - 'ParkingBot'
+2026-02-14 13:14:51,194 - aiogram.event - INFO - Update id=216129962 is handled. Duration 668 ms by bot id=8034081320
+2026-02-14 13:14:58,409 - handlers.user_handler - INFO - запрос парковочных мест user_id=413700636
+2026-02-14 13:15:05,250 - handlers.user_handler - INFO - Попытка отправки фото #1
+2026-02-14 13:15:10,266 - handlers.user_handler - WARNING - ⏱️ Таймаут при отправке фото (попытка 1)
+2026-02-14 13:15:12,271 - handlers.user_handler - INFO - Попытка отправки фото #2
+2026-02-14 13:15:16,936 - handlers.user_handler - INFO - ✅ Фото отправлено успешно с попытки #2
+2026-02-14 13:15:17,300 - handlers.admin_handler - ERROR - ⚠️ Произошла ошибка.,TelegramBadRequest:Telegram server says - Bad Request: query is too old and response timeout expired or query ID is invalid
+2026-02-14 13:15:17,300 - aiogram.event - INFO - Update id=216129963 is handled. Duration 18894 ms by bot id=8034081320
+2026-02-14 13:21:55,489 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-02-14 13:21:56,058 - aiogram.dispatcher - INFO - Start polling
+2026-02-14 13:21:56,112 - aiogram.dispatcher - INFO - Run polling for bot @camparkingbot id=8034081320 - 'ParkingBot'
+2026-02-14 13:22:00,756 - handlers.user_handler - INFO - Показ ID для user_id=413700636
+2026-02-14 13:22:01,454 - aiogram.event - INFO - Update id=216129970 is handled. Duration 703 ms by bot id=8034081320
+2026-02-14 13:22:05,996 - handlers.user_handler - DEBUG - Обработка user:menu:get для user_id=413700636
+2026-02-14 13:22:05,997 - handlers.user_handler - INFO - Показано меню пользователя для user_id=413700636
+2026-02-14 13:22:06,428 - aiogram.event - INFO - Update id=216129971 is handled. Duration 434 ms by bot id=8034081320
