@@ -7,6 +7,9 @@ import numpy as np
 import logic.file as file
 import os
 from pathlib import Path
+from PySide6.QtWidgets import QStatusBar, QLabel, QProgressBar, QPushButton
+from PySide6.QtCore import QTimer, QDateTime
+from PySide6.QtGui import QFont
 
 
 class ImageDockWidget(QMainWindow):
@@ -63,10 +66,87 @@ class ImageDockWidget(QMainWindow):
         self.create_toolbar()
         self.dock_editor()
 
+        self.status_bar = QStatusBar(self)
+        self.setStatusBar(self.status_bar)
+        self.status_bar.setStyleSheet("""
+                QStatusBar {
+                    background-color: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+                                                      stop:0 #2c3e50, stop:1 #3498db);
+                    color: white;
+                    border-top: 1px solid #1a2632;
+                    max-height: 30px;
+                }
+                QStatusBar QLabel {
+                    color: white;
+                    padding: 3px 10px;
+                    border-radius: 3px;
+                    background-color: rgba(0,0,0,0.2);
+                    margin: 2px;
+                }
+                QStatusBar QProgressBar {
+                    border: none;
+                    border-radius: 3px;
+                    background-color: rgba(255,255,255,0.2);
+                    max-height: 16px;
+                    min-width: 150px;
+                    margin: 2px;
+                }
+                QStatusBar QProgressBar::chunk {
+                    border-radius: 3px;
+                    background-color: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+                                                      stop:0 #f1c40f, stop:1 #e67e22);
+                }
+            """)
+
+
         # Устанавливаем обработчик событий мыши для метки
         self.image_label.mousePressEvent = self.image_mouse_press
         self.image_label.mouseMoveEvent = self.image_mouse_move
         self.image_label.mouseReleaseEvent = self.image_mouse_release
+
+        # Обработчик кнопки – показывает временное сообщение и меняет цвет индикатора
+    def show_temp_message(self, msg_type: str, success: bool, data=None):
+        # Словарь с шаблонами сообщений
+        templates = {
+            "new_save": {
+                True: f"Новое сохранение {data} создано успешно",
+                False: "Ошибка создания сохранения"
+            },
+            "fast_save": {
+                True: f"Быстрое сохранение {data} выполнено успешно",
+                False: "Ошибка выполнения быстрого сохранения"
+            },
+            "load_image": {
+                True: f"Изображение {data} создано успешно",
+                False: "Ошибка создания изображения"
+            },
+            "load_mask": {
+                True: f"Маска {data} загружена",
+                False: "Ошибка загрузки маски"
+            },
+            "test_image": {
+                True: f"Тестовое изображение {data} загружено",
+                False: "Ошибка загрузки тестового изображения"
+            }
+        }
+
+        # Если тип не найден – ничего не делаем (или можно показать просто текст)
+        if msg_type not in templates:
+            return
+
+        # Выбираем нужный текст
+        text = templates[msg_type][success]
+
+        # Добавляем эмодзи в начало
+        emoji = "🟢" if success else "🔴"
+        full_text = f"{emoji} | {text}"
+
+        # Показываем в статус-баре (например, на 2 секунды)
+        self.status_bar.showMessage(full_text, 5000)
+
+
+
+
 
     def clear_display(self):
         self.current_points:list = []
@@ -121,7 +201,8 @@ class ImageDockWidget(QMainWindow):
 
         self.manual_load_action = QAction(self)
         self.manual_load_action.setIcon(QIcon("../icons/exp.png"))
-        self.manual_load_action.triggered.connect(lambda: self.manual_load_image("C:/MyPrograms/pycharm/CamParking_diplom/img/camphoto/camera_photo_2026-01-28.jpg"))
+        self.manual_load_action.triggered.connect(lambda: (self.manual_load_image("C:/MyPrograms/pycharm/CamParking_diplom/img/camphoto/camera_photo_2026-01-28.jpg"),
+                                                           self.show_temp_message("test_image",False,"хуй")))
         toolbar.addAction(self.manual_load_action)
 
     def dock_editor(self):
@@ -385,83 +466,76 @@ class ImageDockWidget(QMainWindow):
 
         if pixmap:
             # Добавляем новую точку
-            if event.button() == Qt.LeftButton:
-                for i, point in enumerate(self.current_points):
-                    distance = np.sqrt((x - point[0]) ** 2 + (y - point[1]) ** 2)
-                    if distance < self.point_radius * 2:
-                        self.dragging_point = i
-                        self.dragging_polygon = -1  # 👈 НОВОЕ: тащим из current
-                        return
-
-                # 👇 НОВОЕ: проверяем точки в полигонах
-                for polygon_num, polygon in enumerate(self.polygons):
-                    for point_num, point in enumerate(polygon['points']):
+            match event.button():
+                case Qt.LeftButton:
+                    clicked = False
+                    for i, point in enumerate(self.current_points):
                         distance = np.sqrt((x - point[0]) ** 2 + (y - point[1]) ** 2)
                         if distance < self.point_radius * 2:
-                            self.dragging_polygon = polygon_num
-                            self.dragging_point = point_num
-                            return
-                self.current_points.append((x, y))
-                self.coords_label.setText(f"Точки: {len(self.current_points)}")
-            elif event.button() == Qt.MiddleButton:
-                point_inserted = False  # 👈 НОВО: флаг, что точка уже вставлена
-
-                for polygon_num, polygon in enumerate(self.polygons):
-                    if point_inserted:  # 👈 если уже вставили, выходим из внешнего цикла
-                        break
-                    points = polygon['points']
-                    for i in range(len(points)):
-                        if point_inserted:  # 👈 если уже вставили, выходим из внутреннего цикла
+                            self.dragging_point = i
+                            self.dragging_polygon = -1  # 👈 НОВОЕ: тащим из current
+                            clicked = True
                             break
-                        if i + 1 < len(points):
-                            end_point = points[i + 1]
-                        else:
-                            end_point = points[0]
-                        start_point = points[i]
+                    if not clicked: # 👇 НОВОЕ: проверяем точки в полигонах
+                        for polygon_num, polygon in enumerate(self.polygons):
+                            for point_num, point in enumerate(polygon['points']):
+                                distance = np.sqrt((x - point[0]) ** 2 + (y - point[1]) ** 2)
+                                if distance < self.point_radius * 2:
+                                    self.dragging_polygon = polygon_num
+                                    self.dragging_point = point_num
+                                    clicked = True
+                                    break
+                    if not clicked:
+                        self.current_points.append((x, y))
+                        self.coords_label.setText(f"Точки: {len(self.current_points)}")
+                case Qt.MiddleButton:
+                    for polygon_num, polygon in enumerate(self.polygons):
+                        points = polygon['points']
+                        for i in range(len(points)):
+                            if i + 1 < len(points):
+                                end_point = points[i + 1]
+                            else:
+                                end_point = points[0]
+                            start_point = points[i]
 
-                        x1, y1 = start_point
-                        x2, y2 = end_point
+                            x1, y1 = start_point
+                            x2, y2 = end_point
 
-                        cross = abs((y - y1) * (x2 - x1) - (y2 - y1) * (x - x1))
-                        line_length = np.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)
+                            cross = abs((y - y1) * (x2 - x1) - (y2 - y1) * (x - x1))
+                            line_length = np.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)
 
-                        if line_length > 0:
-                            distance_to_line = cross / line_length
-                            dot_product = (x - x1) * (x2 - x1) + (y - y1) * (y2 - y1)
-                            squared_length = line_length ** 2
+                            if line_length > 0:
+                                distance_to_line = cross / line_length
+                                dot_product = (x - x1) * (x2 - x1) + (y - y1) * (y2 - y1)
+                                squared_length = line_length ** 2
 
-                            if squared_length > 0:
-                                t = dot_product / squared_length
-                                if -0.1 <= t <= 1.1:
-                                    if distance_to_line < self.point_radius * 2:
-                                        print(f"точка x,y лежит между {self.polygons[polygon_num]['name']}")
-                                        # Ищем позицию для вставки
-                                        for num in range(len(self.polygons[polygon_num]['points'])):
-                                            if self.polygons[polygon_num]['points'][num] == start_point:
-                                                self.polygons[polygon_num]['points'].insert(num + 1, (x, y))
-                                                point_inserted = True  # 👈 запоминаем, что вставили
-                                                break
-                                        # 👇 после вставки выходим из внутреннего цикла
-                                        break
-                        # если вставили, прерываем внутренний цикл (на случай, если break выше не сработал)
-                        if point_inserted:
-                            break
+                                if squared_length > 0:
+                                    t = dot_product / squared_length
+                                    if -0.1 <= t <= 1.1:
+                                        if distance_to_line < self.point_radius * 2:
+                                            print(f"точка x,y лежит между {self.polygons[polygon_num]['name']}")
+                                            # Ищем позицию для вставки
+                                            for num in range(len(self.polygons[polygon_num]['points'])):
+                                                if self.polygons[polygon_num]['points'][num] == start_point:
+                                                    self.polygons[polygon_num]['points'].insert(num + 1, (x, y))
+                                                    break
+                                            # 👇 после вставки выходим из внутреннего цикла
+                                            break
+                            # если вставили, прерываем внутренний цикл (на случай, если break выше не сработал)
+                    # 👇 после всех проверок, если точка была вставлена, обновляем картинку и выходим из метода
 
-                # 👇 после всех проверок, если точка была вставлена, обновляем картинку и выходим из метода
-                if point_inserted:
-                    self.display_image()
-                    return
-            elif event.button() == Qt.RightButton:
-                for polygon_num, polygon in enumerate(self.polygons):
-                    for point_num, point in enumerate(polygon['points']):
-                        distance = np.sqrt((x - point[0]) ** 2 + (y - point[1]) ** 2)
-                        if distance < self.point_radius * 2:
-                            self.polygons[polygon_num]['points'].pop(point_num)
-                            return
-                # 👇 ИСПРАВЛЕНО: проверяем current_points, а не points
-                if len(self.current_points) > 3:  # Минимум 3 точки для полигона
-                    self.add_polygon_meta()
-                self.update_polygons_list_widget()
+                case Qt.RightButton:
+                    for polygon_num, polygon in enumerate(self.polygons):
+                        for point_num, point in enumerate(polygon['points']):
+                            distance = np.sqrt((x - point[0]) ** 2 + (y - point[1]) ** 2)
+                            if distance < self.point_radius * 2:
+                                self.polygons[polygon_num]['points'].pop(point_num)
+                                break
+                    # 👇 ИСПРАВЛЕНО: проверяем current_points, а не points
+                    if len(self.current_points) > 3:  # Минимум 3 точки для полигона
+                        self.add_polygon_meta()
+
+            self.update_polygons_list_widget()
             self.display_image()
 
     def image_mouse_move(self, event):
