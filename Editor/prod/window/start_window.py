@@ -25,6 +25,8 @@ class TextPageWidget(QWidget):
         # Создаем кнопку
         self.message_btn = QPushButton("Показать сообщение")
         self.message_btn.clicked.connect(self.show_message)
+        self.message_btn.setProperty("button", "st1")
+        self.message_btn.style().polish(self.message_btn)
 
         # Создаем текстовое поле
         self.text_edit = QTextEdit()

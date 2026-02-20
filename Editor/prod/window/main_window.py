@@ -37,9 +37,6 @@ class MainWindow(QMainWindow):
         self.setStatusBar(self.status_bar)
         self.status_bar.showMessage("Готово. Текущая страница: Текстовая")
 
-        # Докинг окно для дополнительной информации
-        self.create_dock_widget()
-
 
     def create_menu(self):
         """Создание меню"""
@@ -100,51 +97,7 @@ class MainWindow(QMainWindow):
         image_page_btn.triggered.connect(lambda: self.switch_page(1))
         toolbar.addAction(image_page_btn)
 
-    def create_dock_widget(self):
-        """Создание докинг окон"""
-        self.dock_help()
 
-    def dock_help(self):
-        dock = QDockWidget("Информация", self)
-        dock.setAllowedAreas(Qt.LeftDockWidgetArea | Qt.RightDockWidgetArea)
-
-        # Содержимое докинг окна
-        dock_content = QWidget()
-        layout = QVBoxLayout()
-
-        info_label = QLabel(
-            """
-            <h2>🎨 ArtStudio Pro</h2>
-            <p><b>Версия:</b> 1.0.0</p>
-            <p><b>Описание:</b> Профессиональный редактор изображений</p>
-
-            <h3>Возможности:</h3>
-            <ul>
-                <li>Рисование различными кистями</li>
-                <li>Работа со слоями</li>
-                <li>Фильтры и эффекты</li>
-                <li>Инструменты для работы с фигурами</li>
-                <li>Добавление текста</li>
-                <li>История действий (Undo/Redo)</li>
-            </ul>
-
-            <p><i>Создано с использованием PySide6</i></p>
-            """
-        )
-        info_label.setWordWrap(True)
-
-        layout.addWidget(info_label)
-        layout.addStretch()
-
-        # Добавляем переключатель видимости докинга
-        self.dock_visibility = QCheckBox("Показывать панель информации")
-        self.dock_visibility.setChecked(True)
-        self.dock_visibility.toggled.connect(dock.setVisible)
-        layout.addWidget(self.dock_visibility)
-
-        dock_content.setLayout(layout)
-        dock.setWidget(dock_content)
-        self.addDockWidget(Qt.RightDockWidgetArea, dock)
 
 
     def switch_page(self, index):

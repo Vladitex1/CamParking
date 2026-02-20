@@ -5,7 +5,7 @@ import numpy as np
 from PIL import ImageFont, ImageDraw, Image
 import logic.file as file
 
-font_path = "../Editor/Fonts/default_font.ttf"
+font_path = "../Editor/fonts/default_font.ttf"
 font_size = 50  # Увеличьте размер шрифта (5 слишком маленький!)
 SAVES_PATH = "../save/"
 
