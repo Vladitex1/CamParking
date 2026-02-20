@@ -5,6 +5,8 @@ from PySide6.QtGui import QPixmap, QPainter, QPen, QBrush, QColor, QAction, QIma
 import numpy as np
 import logic.file as file
 import os
+from PySide6 import QtGui
+from qt_material_icons import MaterialIcon
 from pathlib import Path
 from PySide6.QtWidgets import QStatusBar, QLabel, QProgressBar, QPushButton
 from PySide6.QtCore import QTimer, QDateTime
@@ -96,31 +98,39 @@ class ImageDockWidget(QMainWindow):
         self.update_polygons_list_widget()
         self.image = None
 
-
     def create_toolbar(self):
         toolbar = QToolBar("Панель инструментов2")
         self.addToolBar(toolbar)
-        toolbar.setProperty("toolbar", "toolbar")  # для селектора в QSS
+        toolbar.setProperty("toolbar", "toolbar")
+        toolbar.style().polish(toolbar)
 
-        # Создаём действия с иконками SVG (после конвертации)
+        self.action_icon_data = {}  # действие -> (icon_name, is_material)
+
+        # Данные для действий: (имя_действия, имя_иконки Material, обработчик)
         actions_data = [
-            ("load_mask", "../icons/comedy_mask.png", self.load_mask),
-            ("load_image", "../icons/load_image.png", self.load_image),
-            ("save_mask", "../icons/saveas.png", self.new_save_mask),
-            ("fast_save", "../icons/save.png", self.fast_save_mask),
-            ("clear", "../icons/clear.svg", self.clear_display),
-            ("manual", "../icons/exp.png", lambda:(
-            self.manual_load_image("C:/MyPrograms/pycharm/CamParking_diplom/img/camphoto/camera_photo_2026-01-28.jpg"),
-            self.statusbar_show_temp_message("test_image",False,"хуй"))),
-
+            ("load_mask", "comedy_mask", self.load_mask),
+            ("load_image", "image", self.load_image),
+            ("save_mask", "save_as", self.new_save_mask),
+            ("fast_save", "save", self.fast_save_mask),
+            ("clear", "delete", self.clear_display),
+            # ("manual", ...) пока убираем
         ]
 
-        for name, icon_path, slot in actions_data:
+        for action_name, icon_name, slot in actions_data:
             action = QAction(self)
-            action.setText(name)
-            #action.setIcon(QIcon(icon_path))
+            action.setObjectName(action_name)
+
+            # Создаём MaterialIcon с текущим цветом темы
+            color_hex = style.STYLE[style.current_color]["text_color"]
+            icon = MaterialIcon(icon_name)
+            icon.set_color(QColor(color_hex))
+
+            action.setIcon(icon)
             action.triggered.connect(slot)
             toolbar.addAction(action)
+
+            # Запоминаем, что это MaterialIcon (для обновления цвета)
+            self.action_icon_data[action] = (icon_name, True)
 
     def create_statusbar(self):
         self.status_bar = QStatusBar(self)
@@ -160,7 +170,7 @@ class ImageDockWidget(QMainWindow):
 
         text = templates[msg_type][success]
         emoji = "🟢" if success else "🔴"
-        full_text = f"{emoji} | {text}"
+        full_text = f"{emoji} - {text}"
         self.status_bar.showMessage(full_text, 5000)
 
 
@@ -292,18 +302,22 @@ class ImageDockWidget(QMainWindow):
             "Изображения (*.png *.jpg *.jpeg *.bmp *.gif)"
         )
         print(filename)
-        if filename:
-            self.image_path = filename
-            self.image = QPixmap(filename)
-            self.display_image()
+        self.manual_load_image(filename)
 
 
     def manual_load_image(self, path:str):
         """Загрузка изображения"""
         if path:
-            self.image_path = path
-            self.image = QPixmap(path)
-            self.display_image()
+            if not os.path.exists(path):
+                print("ошибка загрузки изображения: изображение не существует ",path)
+                self.statusbar_show_temp_message("load_image", False, path)
+                return
+            elif os.path.exists(path):
+                print("успешная загрузка изображения ",path)
+                self.statusbar_show_temp_message("load_image", True, path)
+                self.image_path = path
+                self.image = QPixmap(path)
+                self.display_image()
 
 
     def get_image_coordinates(self, event):
@@ -576,7 +590,7 @@ class ImageDockWidget(QMainWindow):
                     "name": polygon['name'],
                     "points": polygon['points']
                 })
-
+            print(self.relative_path(self.image_path),"хуй",self.image_path)
             file.save_data(saved_data, self.loaded_mask,  self.relative_path(self.image_path))
             print(f"Маска сохранена: {self.loaded_mask}")
 
@@ -588,7 +602,7 @@ class ImageDockWidget(QMainWindow):
                 "name": polygon['name'],
                 "points": polygon['points']
             })
-
+        correct: bool = False
         file.save_data(saved_data, self.loaded_mask, self.relative_path(self.image_path))
         print(f"Быстрое сохранение: {self.loaded_mask}")
 

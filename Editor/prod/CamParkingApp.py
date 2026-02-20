@@ -7,6 +7,11 @@ import numpy as np
 import Editor.prod.data.style as style
 
 if __name__ == "__main__":
+    # Включить High DPI масштабирование (часто включено по умолчанию в Qt6)
+    QApplication.setAttribute(Qt.AA_EnableHighDpiScaling, True)
+    # Использовать иконки высокого разрешения, если они есть
+    QApplication.setAttribute(Qt.AA_UseHighDpiPixmaps, True)
+
     app = QApplication(sys.argv)
     style.load_font()
     # Устанавливаем стиль

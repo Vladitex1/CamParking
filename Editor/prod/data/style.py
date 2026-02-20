@@ -1,4 +1,5 @@
 from PySide6.QtGui import QFontDatabase, QFont
+import os
 
 STYLESHEET_DARK2 = """
     /* === Базовые настройки для главного окна === */
@@ -111,8 +112,9 @@ FONT_FAMILY=""
 def load_font():
     global FONT_FAMILY
     # Загружаем шрифт (возвращает ID или -1 при ошибке)
+    font_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "fonts", "Lorenzo Sans Medium.ttf"))
     #font_id = QFontDatabase.addApplicationFont("../fonts/default_font.ttf")
-    font_id = QFontDatabase.addApplicationFont("../fonts/Lorenzo Sans Medium.ttf")
+    font_id = QFontDatabase.addApplicationFont(font_path)
     if font_id != -1:
         families = QFontDatabase.applicationFontFamilies(font_id) # Получаем список семейств, которые добавились (обычно одно)
         if families:
