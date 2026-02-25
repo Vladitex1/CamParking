@@ -1,113 +1,10 @@
 from PySide6.QtGui import QFontDatabase, QFont
 import os
+import qtawesome as qta
+import base64
 
-STYLESHEET_DARK2 = """
-    /* === Базовые настройки для главного окна === */
-    QMainWindow {
-        background-color: #1e1e1e;   /* Цвет фона всего главного окна (тёмно-серый) */
-    }
+####иконки: qta-browser в shell
 
-    /* === Статус-бар (полоса внизу окна) === */
-    QStatusBar {
-        font: 22px "Segoe UI", sans-serif;  /* Шрифт: размер 22px, семейство Segoe UI, запасной sans-serif */
-        border: 1px solid white;           /* Рамка: толщина 1px, сплошная, цвет тёмно-сине-серый */
-        border-radius: 3px;                  /* Скругление углов рамки */
-        padding: 2px 5px;                    /* Внутренние отступы: 2px сверху/снизу, 5px слева/справа */
-        max-height: 28px;                     /* Максимальная высота статус-бара — 28 пикселей */
-    }
-    /* Стиль для всех QLabel, которые находятся внутри QStatusBar (например, для постоянных сообщений) */
-    QStatusBar QLabel {
-        color: white;                         /* Цвет текста — белый */
-        padding: 3px 10px;                    /* Отступы внутри метки: 3px сверху/снизу, 10px слева/справа */
-        border-radius: 3px;                    /* Скругление углов фона метки */
-        background-color: rgba(0,0,0,0.2);    /* Полупрозрачный чёрный фон (20% непрозрачности) */
-        margin: 2px;                           /* Внешние отступы вокруг метки */
-    }
-
-    /* === Обычные кнопки (QPushButton) === */
-    QPushButton {
-        font-size: 17px;                       /* Размер шрифта 17px */
-        border-radius: 10px;                    /* Сильное скругление углов (овальные кнопки) */
-        background-color: #2d2d2d;              /* Тёмно-серый фон */
-        color: white;                            /* Белый текст */
-        padding: 5px 10px;                       /* Внутренние отступы: 5px сверху/снизу, 10px слева/справа */
-        border: none;                             /* Убираем стандартную рамку */
-    }
-    /* Состояние при наведении курсора */
-    QPushButton:hover {
-        background-color: #3d3d3d;               /* Чуть более светлый серый при наведении */
-    }
-    /* Состояние, когда кнопка зажата (checked) — например, для toggle-кнопок */
-    QPushButton:checked {
-        background-color: #007acc;               /* Синий фон, когда кнопка активна/выбрана */
-    }
-    /* Состояние при нажатии (pressed) */
-    QPushButton:pressed {
-        background-color: #005a9e;               /* Ещё более тёмный синий при нажатии */
-    }
-
-    /* === Чекбоксы (используются как кнопки выбора полигона) === */
-    QCheckBox {
-        font-size: 23px;                          /* Крупный шрифт */
-        border-radius: 10px;                       /* Сильное скругление */
-        background-color: #2d2d2d;                 /* Тёмно-серый фон */
-        color: white;                               /* Белый текст */
-        spacing: 8px;                               /* Расстояние между индикатором и текстом/иконкой */
-        padding: 5px;                               /* Внутренние отступы со всех сторон */
-    }
-    /* Псевдоэлемент indicator — квадратик-галочка, который мы скрываем */
-    QCheckBox::indicator {
-        left: -5px;          /* Сдвигаем индикатор влево за пределы видимой области */
-        width: 0px;          /* Делаем ширину нулевой (скрываем) */
-        height: 0px;         /* Делаем высоту нулевой (скрываем) */
-    }
-    /* Состояние индикатора, когда чекбокс отмечен */
-    QCheckBox::indicator:checked {
-        background-color: #007acc;   /* Задаём цвет фона для скрытого индикатора (не влияет на внешний вид, но можно оставить) */
-    }
-    /* Наведение на чекбокс */
-    QCheckBox:hover {
-        background-color: #3d3d3d;
-    }
-    /* Чекбокс в отмеченном состоянии (сам виджет) */
-    QCheckBox:checked {
-        background-color: #007acc;    /* Синий фон для всего чекбокса, когда он отмечен */
-    }
-
-    /* === Поля ввода (однострочные) === */
-    QLineEdit {
-        font-size: 17px;               /* Размер шрифта 17px */
-        border-radius: 10px;            /* Скругление углов */
-        background-color: #2d2d2d;      /* Тёмно-серый фон */
-        color: white;                   /* Белый текст */
-        padding-left: 5px;              /* Отступ текста от левого края */
-        border: 1px solid #34495e;      /* Тонкая рамка такого же цвета, как у статус-бара */
-        selection-background-color: #007acc;  /* Цвет фона выделенного текста (синий) */
-    }
-
-    /* === Обычные метки (QLabel) === */
-    QLabel {
-        font-size: 17px;               /* Размер шрифта 17px */
-        border-radius: 10px;            /* Скругление углов фона */
-        background-color: #2d2d2d;      /* Тёмно-серый фон */
-        color: white;                   /* Белый текст */
-        padding: 5px;                   /* Отступы со всех сторон */
-    }
-
-    /* === Группа с рамкой (QGroupBox), например, для области со списком полигонов === */
-    QGroupBox {
-        border: 1px solid #34495e;      /* Тонкая рамка вокруг группы */
-        border-radius: 5px;              /* Небольшое скругление углов рамки */
-        margin-top: 10px;                 /* Внешний отступ сверху, чтобы освободить место для заголовка */
-        padding-top: 10px;                /* Внутренний отступ сверху, чтобы содержимое не прилипало к заголовку */
-    }
-    /* Псевдоэлемент title — заголовок группы */
-    QGroupBox::title {
-        subcontrol-origin: margin;        /* Заголовок позиционируется относительно внешнего отступа (margin) */
-        left: 10px;                        /* Сдвигаем заголовок вправо на 10px от левого края */
-        padding: 0 5px 0 5px;              /* Внутренние отступы заголовка: сверху/снизу 0, слева/справа 5px */
-    }
-"""
 FONT_FAMILY=""
 def load_font():
     global FONT_FAMILY
@@ -145,19 +42,22 @@ def calc_color(color:str,percent:int):
 STYLE = {
     "global":{
         "hover": 10,
-        "clicked": 20,
         "pressed": 15,
+        "checked": 15,
+
         "style_margin": "5px",
         "style_border_radius": "10px",
         ## тулбары
         "toolbar_icon_size_toolbar": "32px",
-        ## кнопка
+        ## кнопка  верхнее меню дока
+        "button_icon_size_dock": "25px",
+        ## кнопка стиль 1
         "button_font_size_st1": "17px",
         "button_padding_x_st1": "5px",
         "button_padding_y_st1": "10px",
         "button_text_align_st1": "left",
         "button_layout_st1": "RightToLeft",
-        "button_icon_size_st1": "20px",
+        "button_icon_size_st1": "25px",
     },
     "dark":{
         ## оформление окна
@@ -181,13 +81,15 @@ STYLE = {
     #Кнопка при наведении
 }
 
-#current_color = "light"
-current_color = "dark"
+current_color = "light"
+#current_color = "dark"
 # Глобальные параметры стиля
 STYLESHEET = f"""
 *{{
     font-family: "{FONT_FAMILY}";
 }}
+
+
 QPushButton[button="st1"] {{ /* Кнопки для редактора  */
     background-color: {STYLE[current_color]["button_background_color_st1"]};
     color: {STYLE[current_color]["text_color"]};
@@ -201,99 +103,80 @@ QPushButton[button="st1"] {{ /* Кнопки для редактора  */
 
 }}
 QPushButton:hover[button="st1"] {{
-    background-color: {calc_color(STYLE[current_color]["button_background_color_st1"], 7)};
+    background-color: {calc_color(STYLE[current_color]["button_background_color_st1"], STYLE["global"]["hover"])};
 }}
 QPushButton:pressed[button="st1"] {{
-    background-color: {calc_color(STYLE[current_color]["button_background_color_st1"], 15)}; 
+    background-color: {calc_color(STYLE[current_color]["button_background_color_st1"], STYLE["global"]["pressed"])}; 
 }}
 QPushButton:checked[button="st1"] {{
-    background-color: {calc_color(STYLE[current_color]["button_background_color_st1"], 5)}; 
+    background-color: {calc_color(STYLE[current_color]["button_background_color_st1"], STYLE["global"]["checked"])}; 
 }}
+
+
+QPushButton[button="dock"] {{ 
+    background-color: transparent;
+    border: none;              
+    border-radius: {STYLE["global"]["style_border_radius"]};  
+    qproperty-iconSize: {STYLE["global"]["button_icon_size_dock"]} {STYLE["global"]["button_icon_size_dock"]};
+
+    
+}}
+QPushButton:hover[button="dock"] {{
+    background-color: {calc_color(STYLE[current_color]["dock_color"], STYLE["global"]["hover"])};
+}}
+QPushButton:pressed[button="dock"] {{
+    background-color: {calc_color(STYLE[current_color]["dock_color"], STYLE["global"]["pressed"])}; 
+}}
+
+
 
 
 /* === Стилизация Окна (QMainWindow) === */
 
 QMainWindow {{
     background-color: {STYLE[current_color]["main_window_color"]};
+    color: {STYLE[current_color]["text_color"]};
 }}
+
+
+
 /* === Стилизация док-окон (QDockWidget) === */
+QDockWidget {{
+    background-color: {STYLE[current_color]["dock_color"]};
+}}
 
 QDockWidget[dock="main"] {{
-    background-color: {STYLE[current_color]["dock_color"]};
-    titlebar-close-icon: none;
-    titlebar-normal-icon: none;
-    color: {STYLE[current_color]["text_color"]};
-    min-width: 230;
+    min-width: 250;
     max-width: 500;
+ 
 }}
 
 QDockWidget[dock="help"] {{
-    background-color: {STYLE[current_color]["dock_color"]};
-    titlebar-close-icon: none;
-    titlebar-normal-icon: none;
-    color: {STYLE[current_color]["text_color"]};
     min-width: 300;
     max-width: 350;
+
 }}
 
-QDockWidget QWidget {{
-    background-color: {calc_color(STYLE[current_color]["dock_color"], 1)};
-    border-bottom-left-radius: {STYLE["global"]["style_border_radius"]};
-    border-bottom-right-radius: {STYLE["global"]["style_border_radius"]};
+
+QLabel,QVBoxLayout ,QScrollArea, QGroupBox, QWidget#dockMainContent {{
+    background-color: red;
+}}
+
+
+
+#dockTitleBar {{
+    background-color: {STYLE[current_color]["dock_color"]};
     margin-right: 5px;
     margin-left: 5px;
-    min-width: 10px;
-
-}}
-
-QDockWidget::title {{
-    background-color: {STYLE[current_color]["dock_color"]};
-    color: {STYLE[current_color]["text_color"]};
-    padding-left: 5px;
-    padding-top: 10px;   /* примерные значения для центрирования */
-    padding-bottom: 10px;
     border-top-left-radius: {STYLE["global"]["style_border_radius"]};
     border-top-right-radius: {STYLE["global"]["style_border_radius"]};
-    margin-left: 5px;
-    margin-right: 5px;
+    qproperty-iconSize: {STYLE["global"]["toolbar_icon_size_toolbar"]} {STYLE["global"]["toolbar_icon_size_toolbar"]};
 }}
 
-QDockWidget::float-button{{
+#dock_main_scroll_widget {{/*####################################################################*/
     background-color: {STYLE[current_color]["dock_color"]};
-    background-image: url("../icons/close_fullscreen.png");
-    background-repeat: no-repeat;
-    background-position: center;
-    border-radius: {STYLE["global"]["style_border_radius"]};
-    position: right;
-    right: 45px;
-    min-width: 20px;
-    min-height: 20px;
-    subcontrol-position: center right;
+
 }}
-
-QDockWidget::close-button {{
-    background-color: {STYLE[current_color]["dock_color"]};
-    background-image: url("../icons/remove.svg");
-
-    background-repeat: no-repeat;
-    background-position: center;
-    border-radius: {STYLE["global"]["style_border_radius"]};
-    position: right;
-    right: 15px;
-    min-width: 20px;
-    min-height: 20px;
-    subcontrol-position: center right;
-}}
-
-QDockWidget::close-button:hover, QDockWidget::float-button:hover {{
-    background-color: {calc_color(STYLE[current_color]["dock_color"], STYLE["global"]["hover"])};
-}}
-
-QDockWidget::close-button:pressed, QDockWidget::float-button:pressed {{
-    background-color: {calc_color(STYLE[current_color]["dock_color"], STYLE["global"]["pressed"])};
-}}
-
-
 
 /* Toolbar */
 

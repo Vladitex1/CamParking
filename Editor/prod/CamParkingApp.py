@@ -1,16 +1,10 @@
-import sys
-from PySide6.QtWidgets import *
-from PySide6.QtCore import Qt, QPoint, QRect
-from PySide6.QtGui import QPixmap, QPainter, QPen, QBrush, QColor, QAction, QImage
 from window import main_window
-import numpy as np
 import Editor.prod.data.style as style
+import sys
+from PySide6.QtWidgets import QApplication
+from PySide6.QtCore import Qt
 
 if __name__ == "__main__":
-    # Включить High DPI масштабирование (часто включено по умолчанию в Qt6)
-    QApplication.setAttribute(Qt.AA_EnableHighDpiScaling, True)
-    # Использовать иконки высокого разрешения, если они есть
-    QApplication.setAttribute(Qt.AA_UseHighDpiPixmaps, True)
 
     app = QApplication(sys.argv)
     style.load_font()

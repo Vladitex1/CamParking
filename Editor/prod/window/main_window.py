@@ -29,7 +29,7 @@ class MainWindow(QMainWindow):
         self.create_menu()
 
         # Создаем панель инструментов
-        self.create_nav_toolbar()
+        #self.create_nav_toolbar()
 #        self.create_toolbar()
 
         # Создаем статус бар

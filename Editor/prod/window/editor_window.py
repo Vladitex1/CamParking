@@ -6,12 +6,13 @@ import numpy as np
 import logic.file as file
 import os
 from PySide6 import QtGui
-from qt_material_icons import MaterialIcon
+import qtawesome as qta
 from pathlib import Path
 from PySide6.QtWidgets import QStatusBar, QLabel, QProgressBar, QPushButton
 from PySide6.QtCore import QTimer, QDateTime
 from PySide6.QtGui import QFont
 import Editor.prod.data.style as style
+from Editor.prod.data.properties import DockTitleBar     # если в data
 
 
 class ImageDockWidget(QMainWindow):
@@ -99,45 +100,32 @@ class ImageDockWidget(QMainWindow):
         self.image = None
 
     def create_toolbar(self):
-        toolbar = QToolBar("Панель инструментов2")
+
+
+        toolbar = QToolBar("Панель инструментов")
         self.addToolBar(toolbar)
         toolbar.setProperty("toolbar", "toolbar")
-        toolbar.style().polish(toolbar)
 
-        self.action_icon_data = {}  # действие -> (icon_name, is_material)
-
-        # Данные для действий: (имя_действия, имя_иконки Material, обработчик)
         actions_data = [
-            ("load_mask", "comedy_mask", self.load_mask),
-            ("load_image", "image", self.load_image),
-            ("save_mask", "save_as", self.new_save_mask),
-            ("fast_save", "save", self.fast_save_mask),
-            ("clear", "delete", self.clear_display),
-            # ("manual", ...) пока убираем
+            ("load_mask", "mdi6.vector-polygon", self.load_mask),
+            ("load_image", "mdi6.image", self.load_image),
+            ("save_mask", "mdi6.content-save-edit", self.new_save_mask),
+            ("fast_save", "mdi6.content-save", self.fast_save_mask),
+            ("clear", "mdi6.eraser", self.clear_display),
+            ("manual", "mdi.flask", lambda: (
+                self.manual_load_image(self.absolute_path("img/camphoto/camera_photo_2026-01-28.jpg")),)),
         ]
 
-        for action_name, icon_name, slot in actions_data:
+        for name, icon_path, slot in actions_data:
             action = QAction(self)
-            action.setObjectName(action_name)
-
-            # Создаём MaterialIcon с текущим цветом темы
-            color_hex = style.STYLE[style.current_color]["text_color"]
-            icon = MaterialIcon(icon_name)
-            icon.set_color(QColor(color_hex))
-
-            action.setIcon(icon)
+            action.setIcon(qta.icon(icon_path, color=style.STYLE[style.current_color]["text_color"]))
             action.triggered.connect(slot)
             toolbar.addAction(action)
 
-            # Запоминаем, что это MaterialIcon (для обновления цвета)
-            self.action_icon_data[action] = (icon_name, True)
 
     def create_statusbar(self):
         self.status_bar = QStatusBar(self)
         self.status_bar.setProperty("statusbar", "statusbar")
-        self.status_bar.style().polish(self.status_bar)
-
-
         self.setStatusBar(self.status_bar)
 
     def statusbar_show_temp_message(self, msg_type: str, success: bool, data=None):
@@ -176,11 +164,15 @@ class ImageDockWidget(QMainWindow):
 
     def dock_help(self):
         dock = QDockWidget("Помощь", self)
+        dock.setTitleBarWidget(DockTitleBar("Помощь", dock))
         dock.setAllowedAreas(Qt.LeftDockWidgetArea | Qt.RightDockWidgetArea)
+        dock.setProperty("dock", "help")
 
         # Содержимое докинг окна
         dock_content = QWidget()
+        #dock_content.setObjectName("dockMainContent")
         layout = QVBoxLayout()
+        layout.setContentsMargins(30, 20, 15, 0)
 
         info_label = QLabel(
             """
@@ -188,16 +180,15 @@ class ImageDockWidget(QMainWindow):
 
             <h3>Управление:</h3>
             <ul>
-                <li>ЛКМ - Создание новой точки  - ЛКМ </li>
-                <li>СКМ - Добавление точки в маску - СКМ </li>
-                <li>ПКМ - Завершить полигон - </li>
+                <li>ЛКМ - Создание новой точки</li>
+                <li>СКМ - Добавление точки в маску</li>
+                <li>ПКМ - Завершить полигон</li>
             </ul>
-
             <p><i>Создано с использованием PySide6</i></p>
             """
         )
         info_label.setWordWrap(True)
-
+        #info_label.setObjectName("dockMainContent")
         layout.addWidget(info_label)
         layout.addStretch()
 
@@ -210,20 +201,19 @@ class ImageDockWidget(QMainWindow):
         dock_content.setLayout(layout)
         dock.setWidget(dock_content)
 
-
-        dock.setProperty("dock", "help")
-        dock.style().polish(dock)
-
         self.addDockWidget(Qt.RightDockWidgetArea, dock)
 
 
 
-
     def dock_editor(self):
-        self.EditorDock = QDockWidget("Информация", self)
-        self.EditorDock.setAllowedAreas(Qt.LeftDockWidgetArea | Qt.RightDockWidgetArea)
+        EditorDock = QDockWidget("Полигоны", self)
+        EditorDock.setTitleBarWidget(DockTitleBar("Полигоны", EditorDock))
+        EditorDock.setAllowedAreas(Qt.LeftDockWidgetArea | Qt.RightDockWidgetArea)
+        EditorDock.setProperty("dock", "main")
 
         dock_content = QWidget()
+        #dock_content.setObjectName("dockMainContent")
+
         layout = QVBoxLayout(dock_content)
 
         # === ГРУППА ПОЛИГОНОВ ===
@@ -232,11 +222,14 @@ class ImageDockWidget(QMainWindow):
         polygon_group.setMinimumWidth(50)
 
         title_label = QLabel("Полигоны:")
-        title_label.setStyleSheet("font-size: 18px; font-weight: bold;")  # оставляем локальный стиль (можно заменить на объектное имя)
+        #title_label.setObjectName("dockMainContent")
+        title_label.setStyleSheet(
+            "font-size: 18px; font-weight: bold;")  # оставляем локальный стиль (можно заменить на объектное имя)
         title_label.setAlignment(Qt.AlignCenter)
         layout.addWidget(title_label)
 
         scroll_content = QWidget()
+        #scroll_content.setObjectName("dock_main_scroll_widget")
         scroll_layout = QVBoxLayout(scroll_content)
         scroll_layout.setContentsMargins(2, 2, 2, 2)
         scroll_layout.setSpacing(2)
@@ -244,6 +237,7 @@ class ImageDockWidget(QMainWindow):
         self.scroll_layout = scroll_layout
 
         scroll_area = QScrollArea()
+
         scroll_area.setWidget(scroll_content)
         scroll_area.setWidgetResizable(True)
         scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
@@ -258,33 +252,29 @@ class ImageDockWidget(QMainWindow):
 
         layout.addWidget(polygon_group)
 
-        btn2 = QPushButton("Удалить выбранные")
-        btn2.setIcon(QIcon("../icons/delete"))
-        btn2.clicked.connect(lambda: (self.del_polygon(),
+        actions_data = [
+            ("Удалить выбранные", "mdi6.delete", (lambda: (self.del_polygon(),
                                       self.display_image(),
-                                      self.debug()))
-        btn3 = QPushButton("Скрыть всё")
-        btn3.setIcon(QIcon("../icons/visabilityoff"))
-        btn4 = QPushButton("Показать все")
-        btn4.setIcon(QIcon("../icons/visabilityon"))
-        btn5 = QPushButton("Дебаг")
-        btn5.setIcon(QIcon("../icons/renew"))
-        btn5.clicked.connect(lambda: self.debug())
-
-        for i in [btn2, btn3, btn4, btn5]:
-            i.setProperty("button", "st1")
-            i.style().polish(i)
-            # !!! Удалён локальный stylesheet для этих кнопок
-            layout.addWidget(i)
+                                      self.debug()))),
+            ("Скрыть всё", "mdi6.eye", None),
+            ("Показать все", "mdi6.eye-off", None),
+            ("Дебаг", "mdi.access-point", lambda: (self.debug(),)),
+        ]
+        for name, icon_path, slot in actions_data:
+            button=QPushButton(name)
+            button.setIcon(qta.icon(icon_path, color=style.STYLE[style.current_color]["text_color"]))
+            if slot != None:
+                button.clicked.connect(slot)
+            button.setProperty("button", "st1")
+            layout.addWidget(button)
 
         layout.addStretch()
 
-        self.EditorDock.setWidget(dock_content)
-        self.EditorDock.setProperty("dock", "main")
-        self.EditorDock.style().polish(self.EditorDock)
+        EditorDock.setWidget(dock_content)
+        EditorDock.setProperty("dock", "main")
 
-        self.addDockWidget(Qt.LeftDockWidgetArea, self.EditorDock)
 
+        self.addDockWidget(Qt.LeftDockWidgetArea, EditorDock)
 
     def relative_path(self, input_filepath: str) -> str:
         result = os.path.relpath(input_filepath, self.project_root)
