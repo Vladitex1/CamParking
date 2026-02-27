@@ -15,42 +15,49 @@ class DockTitleBar(QWidget):
     - кнопку "закрыть" (иконка mdi.close)
     Иконки меняют цвет в зависимости от текущей темы (style.current_color).
     """
+
     def __init__(self, title: str, dock_widget):
         super().__init__(dock_widget)
         self.dock = dock_widget
-        self.toggle_float_bool: bool = False
-        self.setObjectName("dockTitleBar") #Назначение стиля для объекта
-        self.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True) # Разрешаем рисование фона через стили
+        self.toggle_float_bool = False
 
-        # Основной layout (Панель где располагаются лейбл и кнопки)
-        layout = QHBoxLayout(self)
-        layout.setContentsMargins(20, 0, 8, 0)
+        # Главный layout для всего заголовка (без отступов)
+        main_layout = QHBoxLayout(self)
+        main_layout.setContentsMargins(0, 0, 0, 0)
+        main_layout.setSpacing(0)
+
+        # Виджет, который будет фоном и содержать кнопки
+        texture = QWidget(self)  # родитель — сам заголовок
+        texture.setProperty("dock", "title")  # ключевое свойство для стиля
+        main_layout.addWidget(texture)
+
+        # Layout для содержимого texture
+        layout = QHBoxLayout(texture)
+        layout.setContentsMargins(20, 0, 8, 0)  # отступы: слева 20, справа 8
         layout.setSpacing(4)
 
         # Заголовок слева
-        self.label = QLabel(title)
-        self.label.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
-        layout.addWidget(self.label)
+        label = QLabel(title)
+        label.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
+        layout.addWidget(label)
 
         # Растяжка, прижимающая кнопки вправо
         layout.addStretch()
 
+        # Кнопки
         self.buttons = [
-            ("dock_float_button",self.toggle_float,"mdi.chevron-down"),
-            ("dock_close_button",self.dock.close,"mdi.close"),
+            ("dock_float_button", self.toggle_float, "mdi.chevron-down"),
+            ("dock_close_button", self.dock.close, "mdi.close"),
         ]
-
-        self.button_icons= []
-        for name,action,icon in self.buttons:
+        self.button_icons = []
+        for name, action, icon in self.buttons:
             button = QPushButton()
             button.clicked.connect(action)
-            button.setProperty("button", "dock")
+            button.setProperty("button", "dock")  # свойство для стилизации кнопок
             layout.addWidget(button)
+            self.button_icons.append([button, icon])
 
-            self.button_icons.append([button,icon])
-
-        # Устанавливаем иконки в соответствии с текущей темой
-
+        # Устанавливаем иконки
         self.update_theme()
 
     def toggle_float(self):

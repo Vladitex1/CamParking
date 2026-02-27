@@ -100,8 +100,6 @@ class ImageDockWidget(QMainWindow):
         self.image = None
 
     def create_toolbar(self):
-
-
         toolbar = QToolBar("Панель инструментов")
         self.addToolBar(toolbar)
         toolbar.setProperty("toolbar", "toolbar")
@@ -170,6 +168,8 @@ class ImageDockWidget(QMainWindow):
 
         # Содержимое докинг окна
         dock_content = QWidget()
+        dock_content.setProperty("dock", "main")
+        dock_content.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True)
         #dock_content.setObjectName("dockMainContent")
         layout = QVBoxLayout()
         layout.setContentsMargins(30, 20, 15, 0)
@@ -203,33 +203,32 @@ class ImageDockWidget(QMainWindow):
 
         self.addDockWidget(Qt.RightDockWidgetArea, dock)
 
-
-
     def dock_editor(self):
-        EditorDock = QDockWidget("Полигоны", self)
-        EditorDock.setTitleBarWidget(DockTitleBar("Полигоны", EditorDock))
-        EditorDock.setAllowedAreas(Qt.LeftDockWidgetArea | Qt.RightDockWidgetArea)
-        EditorDock.setProperty("dock", "main")
+        dock = QDockWidget("Полигоны", self)
+        dock.setTitleBarWidget(DockTitleBar("Полигоны", dock))
+        dock.setAllowedAreas(Qt.LeftDockWidgetArea | Qt.RightDockWidgetArea)
+        dock.setProperty("dock", "main")  # свойство для самого дока (опционально)
 
+        # Содержимое док-окна
         dock_content = QWidget()
-        #dock_content.setObjectName("dockMainContent")
+        dock_content.setProperty("dock", "main")  # ключевое свойство для стиля содержимого
+        dock_content.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True)
 
         layout = QVBoxLayout(dock_content)
+        layout.setContentsMargins(30, 20, 15, 0)
 
         # === ГРУППА ПОЛИГОНОВ ===
         polygon_group = QGroupBox()
         polygon_group.setMinimumHeight(300)
-        polygon_group.setMinimumWidth(50)
+        polygon_group.setFlat(False)  # убирает рамку (опционально)
 
         title_label = QLabel("Полигоны:")
-        #title_label.setObjectName("dockMainContent")
-        title_label.setStyleSheet(
-            "font-size: 18px; font-weight: bold;")  # оставляем локальный стиль (можно заменить на объектное имя)
+        title_label.setStyleSheet("font-size: 18px; font-weight: bold;")
         title_label.setAlignment(Qt.AlignCenter)
         layout.addWidget(title_label)
 
         scroll_content = QWidget()
-        #scroll_content.setObjectName("dock_main_scroll_widget")
+        scroll_content.setProperty("dock", "scroll")
         scroll_layout = QVBoxLayout(scroll_content)
         scroll_layout.setContentsMargins(2, 2, 2, 2)
         scroll_layout.setSpacing(2)
@@ -237,7 +236,6 @@ class ImageDockWidget(QMainWindow):
         self.scroll_layout = scroll_layout
 
         scroll_area = QScrollArea()
-
         scroll_area.setWidget(scroll_content)
         scroll_area.setWidgetResizable(True)
         scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
@@ -252,29 +250,25 @@ class ImageDockWidget(QMainWindow):
 
         layout.addWidget(polygon_group)
 
+        # Кнопки действий
         actions_data = [
-            ("Удалить выбранные", "mdi6.delete", (lambda: (self.del_polygon(),
-                                      self.display_image(),
-                                      self.debug()))),
+            ("Удалить выбранные", "mdi6.delete", lambda: (self.del_polygon(), self.display_image(), self.debug())),
             ("Скрыть всё", "mdi6.eye", None),
             ("Показать все", "mdi6.eye-off", None),
-            ("Дебаг", "mdi.access-point", lambda: (self.debug(),)),
+            ("Дебаг", "mdi.access-point", lambda: self.debug()),
         ]
         for name, icon_path, slot in actions_data:
-            button=QPushButton(name)
+            button = QPushButton(name)
             button.setIcon(qta.icon(icon_path, color=style.STYLE[style.current_color]["text_color"]))
-            if slot != None:
+            if slot:
                 button.clicked.connect(slot)
             button.setProperty("button", "st1")
             layout.addWidget(button)
 
         layout.addStretch()
 
-        EditorDock.setWidget(dock_content)
-        EditorDock.setProperty("dock", "main")
-
-
-        self.addDockWidget(Qt.LeftDockWidgetArea, EditorDock)
+        dock.setWidget(dock_content)
+        self.addDockWidget(Qt.LeftDockWidgetArea, dock)
 
     def relative_path(self, input_filepath: str) -> str:
         result = os.path.relpath(input_filepath, self.project_root)

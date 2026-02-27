@@ -1,57 +1,41 @@
-from PySide6.QtGui import QFontDatabase, QFont
+from PySide6.QtGui import QFontDatabase
 import os
-import qtawesome as qta
-import base64
 
-####иконки: qta-browser в shell
+#### иконки: qta-browser в shell
 
-FONT_FAMILY=""
+FONT_FAMILY = ""
+
 def load_font():
     global FONT_FAMILY
     # Загружаем шрифт (возвращает ID или -1 при ошибке)
     font_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "fonts", "Lorenzo Sans Medium.ttf"))
-    #font_id = QFontDatabase.addApplicationFont("../fonts/default_font.ttf")
     font_id = QFontDatabase.addApplicationFont(font_path)
     if font_id != -1:
-        families = QFontDatabase.applicationFontFamilies(font_id) # Получаем список семейств, которые добавились (обычно одно)
+        families = QFontDatabase.applicationFontFamilies(font_id)
         if families:
             FONT_FAMILY = families[0]
             print(f"Шрифт '{FONT_FAMILY}' успешно загружен")
     else:
-        FONT_FAMILY = QFont("Arial", 14)
-        print("Ошибка загрузки шрифта")
-        print(f"Стандартный шрифт загружен")
+        FONT_FAMILY = "Arial"                      # ← строка, а не объект QFont!
+        print("Ошибка загрузки шрифта, используем Arial")
 
-def calc_color(color:str,percent:int):
-    print(color)
+def calc_color(color: str, percent: int):
     color = color.lstrip('#')
-    rgb = [int(color[i:i + 2], 16) for i in (0, 2, 4)]
-
-    # Рассчитываем шаг (10% от 255 — это примерно 25.5 единиц)
+    rgb = [int(color[i:i+2], 16) for i in (0, 2, 4)]
     amount = round(255 * (percent / 100))
-
-    # Прибавляем и ограничиваем диапазон от 0 до 255
-    new_rgb = []
-    for channel in rgb:
-        new_channel = min(255, max(0, channel + amount))
-        new_rgb.append(new_channel)
-
-    # Форматируем обратно в HEX
+    new_rgb = [min(255, max(0, ch + amount)) for ch in rgb]
     return "#{:02x}{:02x}{:02x}".format(*new_rgb)
 
-STYLE = {
-    "global":{
-        "hover": 10,
-        "pressed": 15,
-        "checked": 15,
+HOVER = 10
+PRESSED = 15
+CHECKED = 15
 
+STYLE = {
+    "global": {
         "style_margin": "5px",
         "style_border_radius": "10px",
-        ## тулбары
         "toolbar_icon_size_toolbar": "32px",
-        ## кнопка  верхнее меню дока
         "button_icon_size_dock": "25px",
-        ## кнопка стиль 1
         "button_font_size_st1": "17px",
         "button_padding_x_st1": "5px",
         "button_padding_y_st1": "10px",
@@ -59,160 +43,150 @@ STYLE = {
         "button_layout_st1": "RightToLeft",
         "button_icon_size_st1": "25px",
     },
-    "dark":{
-        ## оформление окна
+    "dark": {
+        "hover": HOVER,
+        "pressed": PRESSED,
+        "checked": CHECKED,
         "main_window_color": "#06141B",
         "dock_color": "#11212D",
         "text_color": "#CCD0CF",
-        ##Кнопка темная
         "button_background_color_st1": "#253745",
     },
     "light": {
-
-        ## оформление окна
+        "hover": HOVER*-1,
+        "pressed": PRESSED*-1,
+        "checked": CHECKED*-1,
         "main_window_color": "#C9B59C",
         "dock_color": "#D9CFC7",
         "text_color": "#06141B",
-
-        ##Кнопка темная
         "button_background_color_st1": "#EFE9E3",
-
     }
-    #Кнопка при наведении
 }
 
-current_color = "light"
-#current_color = "dark"
-# Глобальные параметры стиля
+#current_color = "light"  # или "dark"
+current_color = "dark"  # или "dark"
+# Глобальная таблица стилей
 STYLESHEET = f"""
-*{{
+* {{
     font-family: "{FONT_FAMILY}";
+    color: {STYLE[current_color]["text_color"]};
 }}
 
-
-QPushButton[button="st1"] {{ /* Кнопки для редактора  */
+QPushButton[button="st1"] {{
     background-color: {STYLE[current_color]["button_background_color_st1"]};
-    color: {STYLE[current_color]["text_color"]};
-    
-    font-size: {STYLE["global"]["button_font_size_st1"]};               
-    border-radius: {STYLE["global"]["style_border_radius"]};  
-    padding: {STYLE["global"]["button_padding_x_st1"]} {STYLE["global"]["button_padding_y_st1"]};  
+    font-size: {STYLE["global"]["button_font_size_st1"]};
+    border-radius: {STYLE["global"]["style_border_radius"]};
+    padding: {STYLE["global"]["button_padding_x_st1"]} {STYLE["global"]["button_padding_y_st1"]};
     text-align: {STYLE["global"]["button_text_align_st1"]};
     qproperty-layoutDirection: {STYLE["global"]["button_layout_st1"]};
     qproperty-iconSize: {STYLE["global"]["button_icon_size_st1"]} {STYLE["global"]["button_icon_size_st1"]};
-
 }}
 QPushButton:hover[button="st1"] {{
-    background-color: {calc_color(STYLE[current_color]["button_background_color_st1"], STYLE["global"]["hover"])};
+    background-color: {calc_color(STYLE[current_color]["button_background_color_st1"], STYLE[current_color]["hover"])};
 }}
 QPushButton:pressed[button="st1"] {{
-    background-color: {calc_color(STYLE[current_color]["button_background_color_st1"], STYLE["global"]["pressed"])}; 
+    background-color: {calc_color(STYLE[current_color]["button_background_color_st1"], STYLE[current_color]["pressed"])};
 }}
 QPushButton:checked[button="st1"] {{
-    background-color: {calc_color(STYLE[current_color]["button_background_color_st1"], STYLE["global"]["checked"])}; 
+    background-color: {calc_color(STYLE[current_color]["button_background_color_st1"], STYLE[current_color]["checked"])};
 }}
 
-
-QPushButton[button="dock"] {{ 
+QPushButton[button="dock"] {{
     background-color: transparent;
-    border: none;              
-    border-radius: {STYLE["global"]["style_border_radius"]};  
+    border: none;
+    border-radius: {STYLE["global"]["style_border_radius"]};
     qproperty-iconSize: {STYLE["global"]["button_icon_size_dock"]} {STYLE["global"]["button_icon_size_dock"]};
-
-    
 }}
 QPushButton:hover[button="dock"] {{
-    background-color: {calc_color(STYLE[current_color]["dock_color"], STYLE["global"]["hover"])};
+    background-color: {calc_color(STYLE[current_color]["dock_color"], STYLE[current_color]["hover"])};
 }}
 QPushButton:pressed[button="dock"] {{
-    background-color: {calc_color(STYLE[current_color]["dock_color"], STYLE["global"]["pressed"])}; 
+    background-color: {calc_color(STYLE[current_color]["dock_color"], STYLE[current_color]["pressed"])};
 }}
 
-
-
-
 /* === Стилизация Окна (QMainWindow) === */
-
 QMainWindow {{
     background-color: {STYLE[current_color]["main_window_color"]};
     color: {STYLE[current_color]["text_color"]};
 }}
 
-
-
 /* === Стилизация док-окон (QDockWidget) === */
-QDockWidget {{
-    background-color: {STYLE[current_color]["dock_color"]};
+QDockWidget{{
+    background-color: transparent;   /* убираем фон самого дока, чтобы margin работали */
 }}
 
-QDockWidget[dock="main"] {{
-    min-width: 250;
-    max-width: 500;
- 
+QDockWidget[dock="help"]{{
+    min-width: 300px;
+    max-width: 350px;
 }}
 
-QDockWidget[dock="help"] {{
-    min-width: 300;
-    max-width: 350;
-
+QDockWidget[dock="editor"]{{
+    min-width: 270px;
 }}
 
-
-QLabel,QVBoxLayout ,QScrollArea, QGroupBox, QWidget#dockMainContent {{
-    background-color: red;
-}}
-
-
-
-#dockTitleBar {{
+/* Заголовок дока (виджет со свойством dock="title") */
+QWidget[dock="title"] {{
+    border-top-left-radius: {STYLE["global"]["style_border_radius"]};
+    border-top-right-radius: {STYLE["global"]["style_border_radius"]};
     background-color: {STYLE[current_color]["dock_color"]};
     margin-right: 5px;
     margin-left: 5px;
-    border-top-left-radius: {STYLE["global"]["style_border_radius"]};
-    border-top-right-radius: {STYLE["global"]["style_border_radius"]};
-    qproperty-iconSize: {STYLE["global"]["toolbar_icon_size_toolbar"]} {STYLE["global"]["toolbar_icon_size_toolbar"]};
 }}
 
-#dock_main_scroll_widget {{/*####################################################################*/
+/* Содержимое дока (виджет со свойством dock="main") */
+QWidget[dock="main"] {{
     background-color: {STYLE[current_color]["dock_color"]};
-
+    border-bottom-left-radius: {STYLE["global"]["style_border_radius"]};
+    border-bottom-right-radius: {STYLE["global"]["style_border_radius"]};
+    margin-right: 5px;
+    margin-left: 5px;
 }}
+QWidget[dock="main"] QGroupBox QWidget {{
+    border: none;
+    background-color: {calc_color(STYLE[current_color]["dock_color"], STYLE[current_color]["hover"]) } ;
+    border-radius: 2px;
+}}
+
+
+QGroupBox::title {{
+    margin-top: 0;   
+    subcontrol-position: top center;
+    background-color: transparent;
+    color: transparent;
+    height: 0;
+}}
+
 
 /* Toolbar */
-
 QToolBar[toolbar="toolbar"] {{
     background-color: {STYLE[current_color]["dock_color"]};
     border-radius: {STYLE["global"]["style_border_radius"]};
     qproperty-iconSize: {STYLE["global"]["toolbar_icon_size_toolbar"]} {STYLE["global"]["toolbar_icon_size_toolbar"]};
     margin: {STYLE["global"]["style_margin"]};
+    min-height: 50px;
 }}
-
 QToolBar[toolbar="toolbar"] QToolButton {{
     background-color: transparent;
-    color: {STYLE[current_color]["text_color"]};  /* для иконок с currentColor */
     border: none;
     border-radius: 4px;
     padding: 4px;
 }}
-
 QToolBar[toolbar="toolbar"] QToolButton:hover {{
-    background-color: {calc_color(STYLE[current_color]["dock_color"], STYLE["global"]["hover"])};
+    background-color: {calc_color(STYLE[current_color]["dock_color"], int(STYLE[current_color]["hover"]))};
 }}
-
 QToolBar[toolbar="toolbar"] QToolButton:pressed {{
-    background-color: {calc_color(STYLE[current_color]["dock_color"], STYLE["global"]["pressed"])};
+    background-color: {calc_color(STYLE[current_color]["dock_color"], int(STYLE[current_color]["pressed"]))};
 }}
 
-
-
-QStatusBar[statusbar="statusbar"]{{
+/* StatusBar */
+QStatusBar[statusbar="statusbar"] {{
     background-color: {STYLE[current_color]["dock_color"]};
     border-radius: {STYLE["global"]["style_border_radius"]};
     margin: {STYLE["global"]["style_margin"]};
     min-height: 25px;
 }}
 
-QAction[button="st1"]{{
+QAction[button="st1"] {{
     color: {STYLE[current_color]["text_color"]};
 }}
 
