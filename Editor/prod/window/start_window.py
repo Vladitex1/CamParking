@@ -4,7 +4,7 @@ from PySide6.QtCore import Qt, QPoint, QRect
 from PySide6.QtGui import QPixmap, QPainter, QPen, QBrush, QColor, QAction, QImage
 import numpy as np
 
-class TextPageWidget(QWidget):
+class StartWindow(QWidget):
     """Первая страница с текстом и кнопкой"""
 
     def __init__(self):

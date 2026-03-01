@@ -6,6 +6,7 @@ from PySide6.QtGui import QPalette, QColor
 from ..data import style  # путь к твоему style.py (возможно, надо скорректировать)
 
 
+
 class DockTitleBar(QWidget):
     """
     Кастомный заголовок для QDockWidget.
@@ -23,7 +24,7 @@ class DockTitleBar(QWidget):
 
         # Главный layout для всего заголовка (без отступов)
         main_layout = QHBoxLayout(self)
-        main_layout.setContentsMargins(0, 0, 0, 0)
+        main_layout.setContentsMargins(0, int(style.STYLE["global"]["style_margin"].replace("px","")), 0, 0)
         main_layout.setSpacing(0)
 
         # Виджет, который будет фоном и содержать кнопки
@@ -33,11 +34,13 @@ class DockTitleBar(QWidget):
 
         # Layout для содержимого texture
         layout = QHBoxLayout(texture)
-        layout.setContentsMargins(20, 0, 8, 0)  # отступы: слева 20, справа 8
+        layout.setContentsMargins(20, 4, 8, 4)  # отступы: слева 20, справа 8
         layout.setSpacing(4)
 
         # Заголовок слева
         label = QLabel(title)
+        label.setProperty("dock", "title")
+        label.setStyleSheet("font-weight: bold;font-size: 15px;")
         label.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
         layout.addWidget(label)
 
@@ -46,18 +49,20 @@ class DockTitleBar(QWidget):
 
         # Кнопки
         self.buttons = [
-            ("dock_float_button", self.toggle_float, "mdi.chevron-down"),
-            ("dock_close_button", self.dock.close, "mdi.close"),
+            ("Открепить окно", self.toggle_float, "mdi.chevron-down"),
+            ("Закрыть окно", self.dock.close, "mdi.close"),
         ]
         self.button_icons = []
         for name, action, icon in self.buttons:
             button = QPushButton()
             button.clicked.connect(action)
+            button.setToolTip(name)
             button.setProperty("button", "dock")  # свойство для стилизации кнопок
             layout.addWidget(button)
             self.button_icons.append([button, icon])
 
         # Устанавливаем иконки
+        style.theme_signals.changed.connect(self.update_theme)
         self.update_theme()
 
     def toggle_float(self):
@@ -68,8 +73,10 @@ class DockTitleBar(QWidget):
         match self.toggle_float_bool:
             case True:
                 x.setIcon(qta.icon("mdi.chevron-down", color=color_hex))
+                x.setToolTip("Открепить окно")
             case False:
                 x.setIcon(qta.icon("mdi.chevron-up", color=color_hex))
+                x.setToolTip("Закрепить окно")
 
         self.toggle_float_bool = not self.toggle_float_bool
 
@@ -78,4 +85,3 @@ class DockTitleBar(QWidget):
         for i in range(len(self.button_icons)):
             x = self.button_icons[i]
             x[0].setIcon(qta.icon(x[1], color=color_hex))
-            x[0].setIconSize(QSize(5, 5))

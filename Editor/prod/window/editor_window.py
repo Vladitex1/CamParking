@@ -3,6 +3,8 @@ from PySide6.QtWidgets import *
 from PySide6.QtCore import Qt, QPoint, QRect, QSize, QLine
 from PySide6.QtGui import QPixmap, QPainter, QPen, QBrush, QColor, QAction, QImage, QIcon, QPolygon, QPolygonF
 import numpy as np
+from dearpygui.dearpygui import add_separator
+
 import logic.file as file
 import os
 from PySide6 import QtGui
@@ -15,7 +17,7 @@ import Editor.prod.data.style as style
 from Editor.prod.data.properties import DockTitleBar     # если в data
 
 
-class ImageDockWidget(QMainWindow):
+class EditorWindow(QMainWindow):
     """Виджет для отображения изображения и расстановки точек"""
 
     def __init__(self):
@@ -32,7 +34,7 @@ class ImageDockWidget(QMainWindow):
         self.text_size = 25
         self.new_color = 4
         self.alpha = 80
-
+        self.button_icon=[]
         self.debugbool = False
         self.checked_widgets = []
 
@@ -58,8 +60,8 @@ class ImageDockWidget(QMainWindow):
         # Создаем метку для отображения изображения
         self.image_label = QLabel()
         self.image_label.setAlignment(Qt.AlignCenter)
-        self.image_label.setMinimumSize(400, 300)
-        self.image_label.setStyleSheet("border: 1px solid gray;")  # оставляем локально (можно перенести в общий стиль при желании)
+        self.image_label.setMinimumSize(100, 100)
+        self.image_label.setProperty("window", "main")
         main_layout.addWidget(self.image_label)
 
         # Создаем кнопки
@@ -78,8 +80,12 @@ class ImageDockWidget(QMainWindow):
         self.image_label.mouseMoveEvent = self.image_mouse_move
         self.image_label.mouseReleaseEvent = self.image_mouse_release
 
-        # ========== ПРИМЕНЯЕМ ЕДИНЫЙ СТИЛЬ КО ВСЕМУ ОКНУ ==========
-        #self.setStyleSheet(style.STYLESHEET_GREEN)
+
+
+
+        style.theme_signals.changed.connect(self.update_theme_buttons)
+        self.update_theme_buttons()
+
 
     # Обработчик кнопки – показывает временное сообщение и меняет цвет индикатора
 
@@ -103,51 +109,63 @@ class ImageDockWidget(QMainWindow):
         toolbar = QToolBar("Панель инструментов")
         self.addToolBar(toolbar)
         toolbar.setProperty("toolbar", "toolbar")
+        desired_size = style.STYLE["global"]["toolbar_icon_size_toolbar"]  # 16 * 1.5
+        toolbar.setIconSize(QSize(desired_size, desired_size))
+
 
         actions_data = [
-            ("load_mask", "mdi6.vector-polygon", self.load_mask),
-            ("load_image", "mdi6.image", self.load_image),
-            ("save_mask", "mdi6.content-save-edit", self.new_save_mask),
-            ("fast_save", "mdi6.content-save", self.fast_save_mask),
-            ("clear", "mdi6.eraser", self.clear_display),
-            ("manual", "mdi.flask", lambda: (
-                self.manual_load_image(self.absolute_path("img/camphoto/camera_photo_2026-01-28.jpg")),)),
+            ("Загрузить файл маски", "mdi6.folder-download", self.load_mask,"Alt+1"),
+            ("Загрузить только полигоны маски", "mdi6.vector-polygon", lambda: (self.load_mask(only_poly = True)),"Alt+4"),
+            ("Загрузить только изображение", "mdi6.image", self.load_image,"Alt+2"),
+            ("Сохранить маску", "mdi6.content-save-edit", self.new_save_mask,"Alt+S"),
+            ("Быстрое сохранение", "mdi6.content-save", self.fast_save_mask,"Alt+E"),
+            ("Очистить рабочую область", "mdi6.eraser", self.clear_display,"Alt+Del"),
+            ("Загрузить тестовое изображение", "mdi.flask", lambda: (
+                self.manual_load_image(self.absolute_path("img/camphoto/camera_photo_2026-01-28.jpg")),),"Alt+3"),
         ]
-
-        for name, icon_path, slot in actions_data:
+        for name, icon_path, slot,shortcut in actions_data:
             action = QAction(self)
-            action.setIcon(qta.icon(icon_path, color=style.STYLE[style.current_color]["text_color"]))
+            action.setToolTip(name+" / "+shortcut)
+            action.setShortcut(shortcut)
             action.triggered.connect(slot)
             toolbar.addAction(action)
+            self.button_icon.append([action,icon_path,1.35])
+
+    def update_theme_buttons(self):
+        for button,icon_path,scale in self.button_icon:
+            icon = qta.icon(icon_path, color=style.STYLE[style.current_color]["text_color"],
+                            options=[{'scale_factor': scale, }])
+            button.setIcon(icon)
 
 
     def create_statusbar(self):
         self.status_bar = QStatusBar(self)
         self.status_bar.setProperty("statusbar", "statusbar")
+        self.status_bar.setSizeGripEnabled(False)
         self.setStatusBar(self.status_bar)
 
-    def statusbar_show_temp_message(self, msg_type: str, success: bool, data=None):
+    def statusbar_show_temp_message(self, msg_type: str, success: bool, data=""):
         # Словарь с шаблонами сообщений
         templates = {
             "new_save": {
                 True: f"Новое сохранение {data} создано успешно",
-                False: "Ошибка создания сохранения"
+                False: f"Ошибка создания сохранения: {data}"
             },
             "fast_save": {
                 True: f"Быстрое сохранение {data} выполнено успешно",
-                False: "Ошибка выполнения быстрого сохранения"
+                False: f"Ошибка выполнения быстрого сохранения: {data}"
             },
             "load_image": {
                 True: f"Изображение {data} создано успешно",
-                False: "Ошибка создания изображения"
+                False: f"Ошибка создания изображения: {data}"
             },
             "load_mask": {
                 True: f"Маска {data} загружена",
-                False: "Ошибка загрузки маски"
+                False: f"Ошибка загрузки маски: {data}"
             },
             "test_image": {
                 True: f"Тестовое изображение {data} загружено",
-                False: "Ошибка загрузки тестового изображения"
+                False: f"Ошибка загрузки тестового изображения: {data}"
             }
         }
 
@@ -159,18 +177,50 @@ class ImageDockWidget(QMainWindow):
         full_text = f"{emoji} - {text}"
         self.status_bar.showMessage(full_text, 5000)
 
+    def on_dock_state_changed(self, *args):
+        """Вызывается при изменении состояния дока (открепление/прикрепление/перемещение)"""
+        # Откладываем обновление в конец очереди событий
+        QTimer.singleShot(0, self.delayed_display)
+
+    def delayed_display(self):
+        """Отложенное обновление изображения"""
+        if self.image:
+            self.display_image()
+
+    def create_dock(self,name:str="",position:str="left",content=None,
+                    min_width:int = 100,max_width: int = 1000,
+                    min_height:int = 100,max_height: int = 1000):
+        dock = QDockWidget(name, self)
+        dock.setTitleBarWidget(DockTitleBar(name, dock))
+        dock.setAllowedAreas(Qt.LeftDockWidgetArea | Qt.RightDockWidgetArea)
+        dock.setProperty("dock", "main")  # свойство для самого дока (опционально)
+
+        # Содержимое док-окна
+
+        dock.setWidget(content)
+        dock.setStyleSheet(f"""
+        QDockWidget{{
+            min-width: {min_width}px;
+            max-width: {max_width}px;
+            min-height: {min_height}px;
+            max-height: {max_height}px;
+        }}
+        """)
+        dock.topLevelChanged.connect(self.on_dock_state_changed)
+        dock.dockLocationChanged.connect(self.on_dock_state_changed)
+        match position:
+            case "left":
+                self.addDockWidget(Qt.LeftDockWidgetArea, dock)
+            case "right":
+                self.addDockWidget(Qt.RightDockWidgetArea, dock)
+            case _:
+                self.addDockWidget(Qt.LeftDockWidgetArea, dock)
 
     def dock_help(self):
-        dock = QDockWidget("Помощь", self)
-        dock.setTitleBarWidget(DockTitleBar("Помощь", dock))
-        dock.setAllowedAreas(Qt.LeftDockWidgetArea | Qt.RightDockWidgetArea)
-        dock.setProperty("dock", "help")
-
         # Содержимое докинг окна
         dock_content = QWidget()
         dock_content.setProperty("dock", "main")
         dock_content.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True)
-        #dock_content.setObjectName("dockMainContent")
         layout = QVBoxLayout()
         layout.setContentsMargins(30, 20, 15, 0)
 
@@ -187,79 +237,71 @@ class ImageDockWidget(QMainWindow):
             <p><i>Создано с использованием PySide6</i></p>
             """
         )
+        info_label.setProperty("dock", "main")
         info_label.setWordWrap(True)
         #info_label.setObjectName("dockMainContent")
         layout.addWidget(info_label)
         layout.addStretch()
 
         # Добавляем переключатель видимости докинга
-        self.dock_visibility = QCheckBox("Показывать панель информации")
-        self.dock_visibility.setChecked(True)
-        self.dock_visibility.toggled.connect(dock.setVisible)
-        layout.addWidget(self.dock_visibility)
 
         dock_content.setLayout(layout)
-        dock.setWidget(dock_content)
 
-        self.addDockWidget(Qt.RightDockWidgetArea, dock)
+        self.create_dock(name ="Помощь",
+                    position ="right",
+                    content = dock_content,
+                    min_width = 300,
+                    max_width = 350,
+        )
 
     def dock_editor(self):
-        dock = QDockWidget("Полигоны", self)
-        dock.setTitleBarWidget(DockTitleBar("Полигоны", dock))
-        dock.setAllowedAreas(Qt.LeftDockWidgetArea | Qt.RightDockWidgetArea)
-        dock.setProperty("dock", "main")  # свойство для самого дока (опционально)
-
         # Содержимое док-окна
         dock_content = QWidget()
-        dock_content.setProperty("dock", "main")  # ключевое свойство для стиля содержимого
+        dock_content.setProperty("dock", "main")  # ключевое свойство для стиля
         dock_content.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True)
 
         layout = QVBoxLayout(dock_content)
         layout.setContentsMargins(30, 20, 15, 0)
 
-        # === ГРУППА ПОЛИГОНОВ ===
-        polygon_group = QGroupBox()
-        polygon_group.setMinimumHeight(300)
-        polygon_group.setFlat(False)  # убирает рамку (опционально)
-
+        # Заголовок "Полигоны"
         title_label = QLabel("Полигоны:")
+        title_label.setProperty("dock", "main")
         title_label.setStyleSheet("font-size: 18px; font-weight: bold;")
         title_label.setAlignment(Qt.AlignCenter)
         layout.addWidget(title_label)
 
-        scroll_content = QWidget()
-        scroll_content.setProperty("dock", "scroll")
-        scroll_layout = QVBoxLayout(scroll_content)
-        scroll_layout.setContentsMargins(2, 2, 2, 2)
-        scroll_layout.setSpacing(2)
-        scroll_layout.setAlignment(Qt.AlignTop)
-        self.scroll_layout = scroll_layout
+        # Виджет для прокручиваемого списка полигонов
+        scroll_content = QWidget(dock_content)
+        scroll_content.setProperty("dock", "scroll")  # для стилизации самого списка
 
+        scroll_layout = QVBoxLayout(scroll_content)
+        scroll_layout.setContentsMargins(12, 12, 12, 12)
+        scroll_layout.setSpacing(5)
+        scroll_layout.setAlignment(Qt.AlignTop)
+        self.scroll_layout = scroll_layout  # сохраняем для добавления элементов позже
+
+        # Область прокрутки
         scroll_area = QScrollArea()
         scroll_area.setWidget(scroll_content)
         scroll_area.setWidgetResizable(True)
         scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         scroll_area.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
 
-        self.text_edits = []
+        # Растяжка в конце списка (чтобы элементы не прижимались к низу)
         scroll_layout.addStretch()
 
-        group_layout = QVBoxLayout(polygon_group)
-        group_layout.setContentsMargins(0, 0, 0, 0)
-        group_layout.addWidget(scroll_area)
-
-        layout.addWidget(polygon_group)
+        layout.addWidget(scroll_area)  # добавляем прокрутку прямо в основной layout
 
         # Кнопки действий
         actions_data = [
             ("Удалить выбранные", "mdi6.delete", lambda: (self.del_polygon(), self.display_image(), self.debug())),
-            ("Скрыть всё", "mdi6.eye", None),
-            ("Показать все", "mdi6.eye-off", None),
-            ("Дебаг", "mdi.access-point", lambda: self.debug()),
+            #("Скрыть всё", "mdi6.eye", None),
+            #("Показать все", "mdi6.eye-off", None),
+            #("Дебаг", "mdi.access-point", lambda: self.debug()),
         ]
         for name, icon_path, slot in actions_data:
             button = QPushButton(name)
-            button.setIcon(qta.icon(icon_path, color=style.STYLE[style.current_color]["text_color"]))
+            self.button_icon.append([button,icon_path,1.0])
             if slot:
                 button.clicked.connect(slot)
             button.setProperty("button", "st1")
@@ -267,8 +309,13 @@ class ImageDockWidget(QMainWindow):
 
         layout.addStretch()
 
-        dock.setWidget(dock_content)
-        self.addDockWidget(Qt.LeftDockWidgetArea, dock)
+        self.create_dock(
+            name="Редактор",
+            position="left",
+            content=dock_content,
+            min_width=300,
+            max_width=650,
+        )
 
     def relative_path(self, input_filepath: str) -> str:
         result = os.path.relpath(input_filepath, self.project_root)
@@ -281,11 +328,13 @@ class ImageDockWidget(QMainWindow):
 
     def load_image(self):
         """Загрузка изображения"""
+        self.clear_display()
         filename, _ = QFileDialog.getOpenFileName(
             self, "Выберите изображение", "../../img",
             "Изображения (*.png *.jpg *.jpeg *.bmp *.gif)"
         )
         print(filename)
+
         self.manual_load_image(filename)
 
 
@@ -330,7 +379,7 @@ class ImageDockWidget(QMainWindow):
         for num,i in enumerate(self.polygons):
             if len(self.polygons[num]['points']) <= 1:
                 self.polygons.pop(num)
-        self.update_polygons_list_widget()
+                self.update_polygons_list_widget()
 
 
     def display_image(self):
@@ -444,36 +493,66 @@ class ImageDockWidget(QMainWindow):
                     if not clicked:
                         self.current_points.append((x, y))
                         self.coords_label.setText(f"Точки: {len(self.current_points)}")
+                        if len(self.current_points) > 9:
+                            self.add_polygon_meta()
+                            self.update_polygons_list_widget()
                 case Qt.MiddleButton:
+                    # Перебираем все полигоны
                     for polygon_num, polygon in enumerate(self.polygons):
-                        points = polygon['points']
+                        points = polygon['points']  # список точек текущего полигона
+
+                        # Перебираем все рёбра полигона (каждая точка соединяется со следующей)
                         for i in range(len(points)):
+                            # Определяем конец ребра: если i последняя точка, то конец - первая точка (замыкаем полигон)
                             if i + 1 < len(points):
-                                end_point = points[i + 1]
+                                end_point = points[i + 1]  # следующая точка
                             else:
-                                end_point = points[0]
-                            start_point = points[i]
+                                end_point = points[0]  # для последней точки конец - первая точка
 
-                            x1, y1 = start_point
-                            x2, y2 = end_point
+                            start_point = points[i]  # начало ребра - текущая точка
 
+                            x1, y1 = start_point  # координаты начала ребра
+                            x2, y2 = end_point  # координаты конца ребра
+
+                            # Вычисляем расстояние от точки (x,y) до прямой, проходящей через ребро
+                            # cross - это площадь параллелограмма, образованного векторами ребра и вектором от начала до точки
                             cross = abs((y - y1) * (x2 - x1) - (y2 - y1) * (x - x1))
-                            line_length = np.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)
+                            line_length = np.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)  # длина ребра
 
-                            if line_length > 0:
+                            if line_length > 0:  # защита от деления на ноль (ребро не нулевой длины)
+                                # расстояние от точки до прямой = площадь / длину основания
                                 distance_to_line = cross / line_length
+
+                                # Скалярное произведение вектора (от начала до точки) и вектора ребра
                                 dot_product = (x - x1) * (x2 - x1) + (y - y1) * (y2 - y1)
-                                squared_length = line_length ** 2
+                                squared_length = line_length ** 2  # квадрат длины ребра
 
                                 if squared_length > 0:
+                                    # параметр t показывает, где проекция точки падает на ребро:
+                                    # t=0 - проекция на начало, t=1 - на конец, 0<t<1 - между ними
                                     t = dot_product / squared_length
+
+                                    # Проверяем, что проекция точки попадает на ребро (с небольшим запасом -0.1..1.1)
                                     if -0.1 <= t <= 1.1:
+                                        # Проверяем, что расстояние до прямой меньше порога (точка достаточно близка к ребру)
                                         if distance_to_line < self.point_radius * 2:
-                                            print(f"точка x,y лежит между {self.polygons[polygon_num]['name']}")
-                                            for num in range(len(self.polygons[polygon_num]['points'])):
-                                                if self.polygons[polygon_num]['points'][num] == start_point:
-                                                    self.polygons[polygon_num]['points'].insert(num + 1, (x, y))
+                                            # Проверяем, не совпадает ли точка с существующей вершиной полигона
+                                            vertex_found = False
+                                            for point in polygon['points']:  # перебираем все вершины
+                                                # если координаты совпадают с точностью до 1 пикселя
+                                                if abs(x - point[0]) < 1 and abs(y - point[1]) < 1:
+                                                    vertex_found = True  # нашли совпадение
                                                     break
+
+                                            if not vertex_found:  # если точка не совпадает ни с одной вершиной
+                                                print(f"точка x,y лежит между {self.polygons[polygon_num]['name']}")
+                                                # Ищем позицию, куда вставить новую точку
+                                                for num in range(len(self.polygons[polygon_num]['points'])):
+                                                    # Вставляем после start_point
+                                                    if self.polygons[polygon_num]['points'][num] == start_point:
+                                                        self.polygons[polygon_num]['points'].insert(num + 1, (x, y))
+                                                        break
+                                            break  # выходим из цикла по рёбрам, если нашли подходящее
                 case Qt.RightButton:
                     for polygon_num, polygon in enumerate(self.polygons):
                         for point_num, point in enumerate(polygon['points']):
@@ -483,8 +562,9 @@ class ImageDockWidget(QMainWindow):
                                 break
                     if len(self.current_points) > 3:
                         self.add_polygon_meta()
+                        self.update_polygons_list_widget()
 
-            self.update_polygons_list_widget()
+
             self.display_image()
 
 
@@ -522,6 +602,8 @@ class ImageDockWidget(QMainWindow):
         if self.image:
             self.display_image()
 
+    def dockEvent(self, event):
+        self.display_image()
 
     def remap_id(self):
         data = self.polygons
@@ -542,19 +624,29 @@ class ImageDockWidget(QMainWindow):
         return self.checked_widgets
 
 
-    def load_mask(self):
+    def load_mask(self,only_poly:bool=False):
         file_path, _ = QFileDialog.getOpenFileName(
             self, "Выберите маску", "../../save",
             "Маски (*.mask)"
         )
-        saved_data, parent_file = file.load_data(file_path)
-        for id,i in enumerate(saved_data):
-            self.add_polygon_meta(name=i['name'], points=i['points'])
-            self.add_polygon_widget(name=i['name'], id=id)
-        self.manual_load_image(path=self.absolute_path(parent_file))
-        self.loaded_mask = file_path
-        print("_____")
-        print(parent_file)
+        if file_path != '':
+            saved_data, parent_file = file.load_data(file_path)
+            if only_poly == False:
+                self.clear_display()
+                for id, i in enumerate(saved_data):
+                    self.add_polygon_meta(name=i['name'], points=i['points'])
+                    self.add_polygon_widget(name=i['name'], id=id)
+                self.manual_load_image(path=self.absolute_path(parent_file))
+            else:
+                for id, i in enumerate(saved_data):
+                    self.add_polygon_meta(name=i['name'], points=i['points'])
+                    self.add_polygon_widget(name=i['name'], id=id)
+                self.display_image()
+
+
+            self.loaded_mask = file_path
+            print("_____")
+            print(parent_file)
 
 
     def new_save_mask(self):
@@ -586,9 +678,18 @@ class ImageDockWidget(QMainWindow):
                 "name": polygon['name'],
                 "points": polygon['points']
             })
-        correct: bool = False
-        file.save_data(saved_data, self.loaded_mask, self.relative_path(self.image_path))
-        print(f"Быстрое сохранение: {self.loaded_mask}")
+        try:
+            path = self.relative_path(self.image_path)
+            correct,error = file.save_data(saved_data, self.loaded_mask, path)
+            if correct:
+                self.statusbar_show_temp_message("fast_save", True, path)
+            else:
+                self.statusbar_show_temp_message("fast_save", False, error)
+
+            print(f"Быстрое сохранение: {self.loaded_mask}")
+        except Exception as error:
+            e = str(error)
+            self.statusbar_show_temp_message("fast_save", False, e)
 
 
     def add_polygon_meta(self, name: str = 'noname', points=None):
@@ -680,11 +781,9 @@ class ImageDockWidget(QMainWindow):
         # !!! Удалён локальный stylesheet для meta
 
         meta.setAlignment(Qt.AlignCenter)
+
         btn = QCheckBox()
-        btn.setCheckable(True)
-        btn.setIcon(QIcon("../icons/edit"))
-        btn.setIconSize(QSize(24, 24))
-        btn.setFixedSize(30, 30)
+
         # !!! Удалён локальный stylesheet для btn
 
         text_edit = QLineEdit()
@@ -695,9 +794,15 @@ class ImageDockWidget(QMainWindow):
 
         text_edit.textChanged.connect(lambda text, idx=int(meta.text()): self.rename_polygon(text, idx))
         text_edit.setMinimumWidth(100)
-        self.text_edits.append(text_edit)
+
+
 
         row_layout.addWidget(meta)
+        spacer = QLabel(" ")
+        #spacer.setStyleSheet(f"pading: 8px; background-color: {style.STYLE["global"]["accent_color"]};")
+        row_layout.addWidget(spacer)
+        #row_layout.setStyleSheet(f"border-radius: 8px;")
+
         row_layout.addWidget(btn)
         row_layout.addWidget(text_edit)
 
@@ -710,3 +815,4 @@ class ImageDockWidget(QMainWindow):
             print(f"{i['id']} | {i['name']} | {i['points']}")
         print(self.polygons)
         print(self.loaded_mask)
+        self.display_image()

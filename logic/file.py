@@ -5,13 +5,17 @@ SAVEDIR = "../save/"
 
 
 def save_data(polygons_list, filename="saved_data.txt", parentfile=None):
-
-    save_structure = {
-        "polygons": polygons_list,
-        "parent_file": parentfile
-    }
-    with open(filename, "w", encoding='utf-8') as file:
-        json.dump(save_structure, file, ensure_ascii=False, indent=2)
+    error = None
+    try:
+        save_structure = {
+            "polygons": polygons_list,
+            "parent_file": parentfile
+        }
+        with open(filename, "w", encoding='utf-8') as file:
+            json.dump(save_structure, file, ensure_ascii=False, indent=2)
+        return True,error
+    except Exception as error:
+        return False, error
 
 
 def load_data(file_path: str = None):

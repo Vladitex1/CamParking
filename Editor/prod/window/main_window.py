@@ -1,15 +1,16 @@
 from PySide6.QtWidgets import *
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QAction
-from Editor.prod.window import start_window as text_page_w, editor_window as img_dock_w
+from Editor.prod.window import start_window , editor_window
 from Editor.prod.data import config as config
 from Editor.prod.data import names as names
+from Editor.prod.data.style import change_theme
 
 
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.name= names.NAMES[config.language]
+        self.name = names.NAMES[config.language]
         self.setWindowTitle(self.name["title"])
         self.setGeometry(100, 100, 900, 700)
 
@@ -18,19 +19,18 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(self.central_widget)
 
         # Создаем страницы
-        self.text_page = text_page_w.TextPageWidget()
-        self.image_page = img_dock_w.ImageDockWidget()
+        self.start_window = start_window.StartWindow()
+        self.editor_window = editor_window.EditorWindow()
 
         # Добавляем страницы в StackedWidget
-        self.central_widget.addWidget(self.text_page)
-        self.central_widget.addWidget(self.image_page)
+        self.central_widget.addWidget(self.start_window )
+        self.central_widget.addWidget(self.editor_window)
 
         # Создаем меню
         self.create_menu()
 
         # Создаем панель инструментов
         self.create_nav_toolbar()
-#       self.create_toolbar()
 
         # Создаем статус бар
         self.status_bar = QStatusBar()
@@ -43,57 +43,51 @@ class MainWindow(QMainWindow):
         menubar = self.menuBar()
 
         # Меню "Страницы" для переключения
-        pages_menu = menubar.addMenu(self.name["menu.navigate"])
+        navigation_menu = menubar.addMenu(self.name["menu.navigate"])
 
-        text_page_action = QAction(self.name["menu.navigate.start"], self)
-        text_page_action.setShortcut("F1")
-        text_page_action.triggered.connect(lambda: self.switch_page(0))
-        pages_menu.addAction(text_page_action)
+        nav_start = QAction(self.name["menu.navigate.start"], self)
+        nav_start.setShortcut("F1")
+        nav_start.triggered.connect(lambda: self.switch_page(0))
+        navigation_menu.addAction(nav_start)
 
-        image_page_action = QAction(self.name["menu.navigate.editor"], self)
-        image_page_action.setShortcut("F2")
-        image_page_action.triggered.connect(lambda: self.switch_page(1))
-        pages_menu.addAction(image_page_action)
+        nav_editor = QAction(self.name["menu.navigate.editor"], self)
+        nav_editor.setShortcut("F2")
+        nav_editor.triggered.connect(lambda: self.switch_page(1))
+        navigation_menu.addAction(nav_editor)
 
 
-        # Меню "Файл"
-        file_menu = menubar.addMenu(self.name["menu.file"])
+        settings_menu = menubar.addMenu("Параметры")
 
-        new_action = QAction(self.name["menu.file.new"], self)
-        new_action.setShortcut("Ctrl+N")
-        file_menu.addAction(new_action)
+        settings_action = QAction("Настройки", self)
+        settings_action.setShortcut("F3")
+        #settings_action.triggered.connect(lambda: pass)
+        settings_menu.addAction(settings_action)
 
-        open_action = QAction(self.name["menu.file.open"], self)
-        open_action.setShortcut("Ctrl+O")
-        file_menu.addAction(open_action)
 
-        save_action = QAction(self.name["menu.file.save"], self)
-        save_action.setShortcut("Ctrl+S")
-        file_menu.addAction(save_action)
+        change_theme_action = QAction("Переключить тему", self)
+        change_theme_action.triggered.connect(lambda: change_theme())
+        change_theme_action.setShortcut("F4")
 
-        file_menu.addSeparator()
+        settings_menu.addAction(change_theme_action)
 
-        exit_action = QAction(self.name["menu.file.exit"], self)
-        exit_action.setShortcut("Ctrl+Q")
-        exit_action.triggered.connect(self.close)
-        file_menu.addAction(exit_action)
 
         # Меню "Справка"
         help_menu = menubar.addMenu(self.name["menu.help"])
 
         about_action = QAction(self.name["menu.help.about"], self)
         about_action.triggered.connect(self.show_about)
+        about_action.setShortcut("F5")
         help_menu.addAction(about_action)
 ##
     def create_nav_toolbar(self):
         toolbar = QToolBar("Панель инструментов")
         self.addToolBar(toolbar)
 
-        text_page_btn = QAction("📝 Текст", self)
+        text_page_btn = QAction("📝 Начало", self)
         text_page_btn.triggered.connect(lambda: self.switch_page(0))
         toolbar.addAction(text_page_btn)
 
-        image_page_btn = QAction("🖼️ Изображение", self)
+        image_page_btn = QAction("🖼️ Редактор", self)
         image_page_btn.triggered.connect(lambda: self.switch_page(1))
         toolbar.addAction(image_page_btn)
 
@@ -107,15 +101,10 @@ class MainWindow(QMainWindow):
         # Обновляем статус бар
         if index == 0:
             self.status_bar.showMessage("Текущая страница: Текстовая")
-            #Editor
-            #self.EditorDock.setVisible(False)
-            #self.editor_load_image_action.setVisible(False)
 
         else:
             self.status_bar.showMessage("Текущая страница: Работа с изображением")
-            #Editor
-            #self.EditorDock.setVisible(True)
-            #self.editor_load_image_action.setVisible(True)
+
 
     def show_about(self):
         """Показать окно 'О программе'"""
