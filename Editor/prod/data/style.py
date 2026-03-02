@@ -2,12 +2,11 @@ from PySide6.QtCore import QObject, Signal
 from PySide6.QtGui import QFontDatabase
 import os
 from Editor.prod.data.prefers_manager import save_config
-import qtawesome as qta
 
 #### иконки: qta-browser в shell
 app = None
 FONT_FAMILY = ""
-current_color = "dark"  # или "dark"
+current_color = "dark"
 #======================= сигнал, который будет передавать новое имя темы ================================
 
 class ThemeSignals(QObject):
@@ -31,7 +30,7 @@ def change_theme():
     save_config(theme = current_color)
     theme_signals.changed.emit(current_color)   # <-- добавить
 
-
+# ============================ Служебные функции" ====================
 def load_font():
     global FONT_FAMILY
     # Загружаем шрифт (возвращает ID или -1 при ошибке)
@@ -55,7 +54,6 @@ def calc_color(color: str, percent: int):
 
 
 
-
 STYLE = {
     "global": {
         "hovered": 10,
@@ -74,7 +72,7 @@ STYLE = {
         "button_layout_st1": "RightToLeft",
         "button_icon_size_st1": "25px",
 
-        "accent_color": "red",
+        "accent_color": "#c3c3c3",
         "secondary_text_color": "#5a5a5a",
 
     },
@@ -104,7 +102,8 @@ def get_stylesheet():
 }}
 
 QLabel[window="main"] {{
-    border: 6px double {STYLE["global"]["secondary_text_color"]};
+    border: 2px solid {STYLE["global"]["secondary_text_color"]};
+    border-radius: {STYLE["global"]["style_border_radius"]};
     background-color: {STYLE[current_color]["dock_color"]};
 }}
 
@@ -117,9 +116,11 @@ QPushButton[button="st1"] {{
     text-align: {STYLE["global"]["button_text_align_st1"]};
     qproperty-layoutDirection: {STYLE["global"]["button_layout_st1"]};
     qproperty-iconSize: {STYLE["global"]["button_icon_size_st1"]} {STYLE["global"]["button_icon_size_st1"]};
+    border: 2px solid {STYLE[current_color]["button_background_color_st1"]};
 }}
 QPushButton:hover[button="st1"] {{
     background-color: {calc_color(STYLE[current_color]["button_background_color_st1"], STYLE["global"]["hovered"])};
+    border: 2px solid transparent;
     border-bottom: 2px solid {STYLE["global"]["accent_color"]};
 }}
 QPushButton:pressed[button="st1"] {{
@@ -159,18 +160,17 @@ QWidget[dock="title"]{{
     border-top-left-radius: {STYLE["global"]["style_border_radius"]};
     border-top-right-radius: {STYLE["global"]["style_border_radius"]};
     background-color: {calc_color(STYLE[current_color]["dock_color"],3) };
-    margin-right: {STYLE["global"]["style_margin"]};
-    margin-left: {STYLE["global"]["style_margin"]};
+    padding-right: {STYLE["global"]["style_margin"]};
+    padding-left: {STYLE["global"]["style_margin"]};
+
 }}
 
 /* Содержимое дока (виджет со свойством dock="main") */
 QWidget[dock="main"] {{
     background-color: {STYLE[current_color]["dock_color"]};
-    border-bottom-left-radius: {STYLE["global"]["style_border_radius"]};
-    border-bottom-right-radius: {STYLE["global"]["style_border_radius"]};
-    margin-right: {STYLE["global"]["style_margin"]};
-    margin-left: {STYLE["global"]["style_margin"]};
-    margin-bottom: {STYLE["global"]["style_margin"]};
+    padding-right: {STYLE["global"]["style_margin"]};
+    padding-left: {STYLE["global"]["style_margin"]};
+    border-bottom: 1px solid {STYLE[current_color]["dock_color"]};
 }}
 QLabel[dock="title"] {{
     background-color: {calc_color(STYLE[current_color]["dock_color"],3) };
@@ -184,27 +184,33 @@ QLabel[dock="main"] {{
 
 /*====================== Настройка скрол бара ======================*/
 QWidget[dock="scroll"] {{
-    background-color: {STYLE[current_color]["dock_color"]};
-    border: 2px solid {STYLE[current_color]["main_window_color"]}; ###################################################
+    background-color: transparent;
+    border: none;
 }}
 
 QScrollBar:vertical {{
     background-color: {STYLE[current_color]["dock_color"]};
     width: 20px;
-
 }}
 QScrollBar::handle:vertical {{
-    background-color: {calc_color(STYLE[current_color]["dock_color"],STYLE["global"]["hovered"]) } ;
+    background-color: {calc_color(STYLE[current_color]["dock_color"], STYLE["global"]["hovered"])};
     min-height: 25px;
-    border-radius: 3px;
-    margin: 5px;
+    border-radius: 9px;
+    margin: 15px;
 }}
 QScrollBar::sub-line:vertical,
 QScrollBar::add-line:vertical {{
     height: 0px;
     background: none;
 }}
+
 /*======================= Настройка мелких элементов ===================================*/
+QScrollArea {{
+    background-color: {STYLE[current_color]["dock_color"]};
+    border: 2px solid {STYLE["global"]["secondary_text_color"]};
+    border-radius: {STYLE["global"]["style_border_radius"]};
+}}
+
 QCheckBox {{
     padding-left: 4px;
     border-radius: 9px;
@@ -215,19 +221,31 @@ QCheckBox::indicator {{
     height: 20px;
 }}
 
-
-
 QTextEdit{{
 background-color: {calc_color(STYLE[current_color]["dock_color"],STYLE["global"]["hovered"]) };
 }}
 
 QLineEdit {{
-margin-left:10px;
-padding-left: 10px;
 margin-right: 20px;
 border-radius: {STYLE["global"]["style_border_radius"]};
 background-color: {calc_color(STYLE[current_color]["dock_color"],STYLE["global"]["hovered"]) };
 }}
+
+QWidget[dock="polygon_slot"]{{
+background-color: {calc_color(STYLE[current_color]["dock_color"], STYLE["global"]["hovered"])};
+border-radius: {STYLE["global"]["style_border_radius"]};
+}}
+QWidget[dock="polygon_slot"] QCheckBox{{
+background-color: {calc_color(STYLE[current_color]["dock_color"], STYLE["global"]["hovered"])};
+    
+}}
+QWidget[dock="polygon_slot"] QCheckBox::indicator {{
+    width: 20px;
+    height: 20px;
+}}
+
+
+
 
 
 QGroupBox::title {{

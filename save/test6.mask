@@ -198,5 +198,5 @@
       ]
     }
   ],
-  "parent_file": "img\\camphoto\\camera_photo_2026-02-01.jpg"
+  "parent_file": "img/camphoto/camera_photo_2026-02-01.jpg"
 }

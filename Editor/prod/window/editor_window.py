@@ -1,18 +1,11 @@
-import sys
-from PySide6.QtWidgets import *
-from PySide6.QtCore import Qt, QPoint, QRect, QSize, QLine
-from PySide6.QtGui import QPixmap, QPainter, QPen, QBrush, QColor, QAction, QImage, QIcon, QPolygon, QPolygonF
-import numpy as np
-from dearpygui.dearpygui import add_separator
-
-import logic.file as file
 import os
-from PySide6 import QtGui
-import qtawesome as qta
 from pathlib import Path
-from PySide6.QtWidgets import QStatusBar, QLabel, QProgressBar, QPushButton
-from PySide6.QtCore import QTimer, QDateTime
-from PySide6.QtGui import QFont
+import numpy as np
+from PySide6.QtWidgets import *
+from PySide6.QtCore import Qt, QPoint, QSize,QTimer
+from PySide6.QtGui import QPixmap, QPainter, QPen, QBrush, QColor, QAction,QPolygon
+import qtawesome as qta
+import logic.file as file
 import Editor.prod.data.style as style
 from Editor.prod.data.properties import DockTitleBar     # если в data
 
@@ -59,8 +52,7 @@ class EditorWindow(QMainWindow):
 
         # Создаем метку для отображения изображения
         self.image_label = QLabel()
-        self.image_label.setAlignment(Qt.AlignCenter)
-        self.image_label.setMinimumSize(100, 100)
+        self.image_label.setMinimumSize(100, 400)
         self.image_label.setProperty("window", "main")
         main_layout.addWidget(self.image_label)
 
@@ -252,56 +244,62 @@ class EditorWindow(QMainWindow):
                     content = dock_content,
                     min_width = 300,
                     max_width = 350,
+                    min_height= 400,
+                    max_height=1000,
         )
 
     def dock_editor(self):
+
         # Содержимое док-окна
         dock_content = QWidget()
-        dock_content.setProperty("dock", "main")  # ключевое свойство для стиля
+        dock_content.setProperty("dock", "main")
         dock_content.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True)
 
         layout = QVBoxLayout(dock_content)
         layout.setContentsMargins(30, 20, 15, 0)
 
-        # Заголовок "Полигоны"
+        # Заголовок
         title_label = QLabel("Полигоны:")
         title_label.setProperty("dock", "main")
         title_label.setStyleSheet("font-size: 18px; font-weight: bold;")
         title_label.setAlignment(Qt.AlignCenter)
         layout.addWidget(title_label)
 
-        # Виджет для прокручиваемого списка полигонов
-        scroll_content = QWidget(dock_content)
-        scroll_content.setProperty("dock", "scroll")  # для стилизации самого списка
+        # Виджет для прокручиваемого списка (внутренний)
+        scroll_QWidget = QWidget()
+        scroll_QWidget.setProperty("dock", "scroll")
+        # Локально убираем фон и рамку у внутреннего виджета
 
-        scroll_layout = QVBoxLayout(scroll_content)
-        scroll_layout.setContentsMargins(12, 12, 12, 12)
-        scroll_layout.setSpacing(5)
-        scroll_layout.setAlignment(Qt.AlignTop)
-        self.scroll_layout = scroll_layout  # сохраняем для добавления элементов позже
+
+        # Лейаут для списка полигонов
+        scroll_QVBox = QVBoxLayout(scroll_QWidget)
+        scroll_QVBox.setContentsMargins(5, 5, 5, 5)
+        scroll_QVBox.setSpacing(5)
+        scroll_QVBox.setAlignment(Qt.AlignTop)
+        self.scroll_QVBox = scroll_QVBox
+
+        # Растяжка в конце списка
+        scroll_QVBox.addStretch()
 
         # Область прокрутки
         scroll_area = QScrollArea()
-        scroll_area.setWidget(scroll_content)
+        scroll_area.setWidget(scroll_QWidget)
         scroll_area.setWidgetResizable(True)
         scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        scroll_area.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
+        scroll_area.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        # Задаём фон, рамку и скругление для всей области
+        scroll_QWidget.setProperty("dock", "scroll")
+        scroll_area.setWidget(scroll_QWidget)
 
-        # Растяжка в конце списка (чтобы элементы не прижимались к низу)
-        scroll_layout.addStretch()
-
-        layout.addWidget(scroll_area)  # добавляем прокрутку прямо в основной layout
+        layout.addWidget(scroll_area)
 
         # Кнопки действий
         actions_data = [
             ("Удалить выбранные", "mdi6.delete", lambda: (self.del_polygon(), self.display_image(), self.debug())),
-            #("Скрыть всё", "mdi6.eye", None),
-            #("Показать все", "mdi6.eye-off", None),
-            #("Дебаг", "mdi.access-point", lambda: self.debug()),
         ]
         for name, icon_path, slot in actions_data:
             button = QPushButton(name)
-            self.button_icon.append([button,icon_path,1.0])
+            self.button_icon.append([button, icon_path, 1.0])
             if slot:
                 button.clicked.connect(slot)
             button.setProperty("button", "st1")
@@ -315,8 +313,9 @@ class EditorWindow(QMainWindow):
             content=dock_content,
             min_width=300,
             max_width=650,
+            min_height=400,
+            max_height=1000,
         )
-
     def relative_path(self, input_filepath: str) -> str:
         result = os.path.relpath(input_filepath, self.project_root)
         return str(result)
@@ -614,8 +613,8 @@ class EditorWindow(QMainWindow):
 
     def get_ids_from_widget(self):
         self.checked_widgets = []
-        for i in range(self.scroll_layout.count()):
-            item = self.scroll_layout.itemAt(i)
+        for i in range(self.scroll_QVBox.count()):
+            item = self.scroll_QVBox.itemAt(i)
             if item and item.widget():
                 checkbox = item.widget().findChild(QCheckBox)
                 a = item.widget().findChild(QLabel)
@@ -738,26 +737,26 @@ class EditorWindow(QMainWindow):
     def del_polygon_from_widget(self, id = None, del_all: bool = False):
         """Удаление полигона из виджета по имени"""
         if del_all:
-            while self.scroll_layout.count() > 1:
-                item = self.scroll_layout.takeAt(0)
+            while self.scroll_QVBox.count() > 1:
+                item = self.scroll_QVBox.takeAt(0)
                 if item.widget():
                     item.widget().deleteLater()
         if isinstance(id, list):
-            for i in range(self.scroll_layout.count() - 1, -1, -1):
-                item = self.scroll_layout.itemAt(i)
+            for i in range(self.scroll_QVBox.count() - 1, -1, -1):
+                item = self.scroll_QVBox.itemAt(i)
                 if item and item.widget():
                     label = item.widget().findChild(QLabel)
                     if label and label.text() in str(id):
                         item.widget().deleteLater()
-                        self.scroll_layout.removeItem(item)
+                        self.scroll_QVBox.removeItem(item)
         else:
-            for i in range(self.scroll_layout.count()):
-                item = self.scroll_layout.itemAt(i)
+            for i in range(self.scroll_QVBox.count()):
+                item = self.scroll_QVBox.itemAt(i)
                 if item and item.widget():
                     label = item.widget().findChild(QLabel)
                     if label and label.text() == str(id):
                         item.widget().deleteLater()
-                        self.scroll_layout.removeItem(item)
+                        self.scroll_QVBox.removeItem(item)
                         break
 
 
@@ -770,13 +769,17 @@ class EditorWindow(QMainWindow):
     def add_polygon_widget(self, name: str = 'error', id:int = -1):
         polygon_num = id
         row_widget = QWidget()
+        row_widget.setProperty("dock", "polygon_slot")
         row_layout = QHBoxLayout(row_widget)
         row_layout.setContentsMargins(1, 1, 1, 1)
-        row_layout.setSpacing(5)
+        row_layout.setSpacing(2)
 
-        meta = QLabel()
-        meta.setText(str(id))
-        meta.setFixedSize(30, 30)
+        meta = QLabel(f"{id}")
+        meta.setStyleSheet(f"""
+        min-height: 20px;
+        min-width: 20px;
+        border-radius: {style.STYLE["global"]["style_border_radius"]};
+        """)
         meta.setVisible(self.debugbool)
         # !!! Удалён локальный stylesheet для meta
 
@@ -798,15 +801,14 @@ class EditorWindow(QMainWindow):
 
 
         row_layout.addWidget(meta)
-        spacer = QLabel(" ")
         #spacer.setStyleSheet(f"pading: 8px; background-color: {style.STYLE["global"]["accent_color"]};")
-        row_layout.addWidget(spacer)
+        #row_layout.addWidget(spacer)
         #row_layout.setStyleSheet(f"border-radius: 8px;")
 
         row_layout.addWidget(btn)
         row_layout.addWidget(text_edit)
 
-        self.scroll_layout.insertWidget(self.scroll_layout.count() - 1, row_widget)
+        self.scroll_QVBox.insertWidget(self.scroll_QVBox.count() - 1, row_widget)
 
 
     def debug(self):
