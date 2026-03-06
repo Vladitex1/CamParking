@@ -6956,3 +6956,46 @@ client_session: <aiohttp.client.ClientSession object at 0x000001F0F73B8980>
 2026-02-14 13:22:05,996 - handlers.user_handler - DEBUG - Обработка user:menu:get для user_id=413700636
 2026-02-14 13:22:05,997 - handlers.user_handler - INFO - Показано меню пользователя для user_id=413700636
 2026-02-14 13:22:06,428 - aiogram.event - INFO - Update id=216129971 is handled. Duration 434 ms by bot id=8034081320
+2026-03-04 12:42:33,809 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-03-04 12:42:34,642 - aiogram.dispatcher - INFO - Start polling
+2026-03-04 12:42:34,688 - aiogram.dispatcher - INFO - Run polling for bot @camparkingbot id=8034081320 - 'ParkingBot'
+2026-03-04 12:42:38,354 - handlers.user_handler - INFO - Показ ID для user_id=413700636
+2026-03-04 12:42:38,906 - aiogram.event - INFO - Update id=216129975 is handled. Duration 558 ms by bot id=8034081320
+2026-03-04 12:42:40,762 - handlers.user_handler - DEBUG - Обработка user:menu:get для user_id=413700636
+2026-03-04 12:42:40,762 - handlers.user_handler - INFO - Показано меню пользователя для user_id=413700636
+2026-03-04 12:42:41,272 - aiogram.event - INFO - Update id=216129976 is handled. Duration 517 ms by bot id=8034081320
+2026-03-04 12:42:43,137 - handlers.user_handler - INFO - запрос парковочных мест user_id=413700636
+2026-03-04 12:42:43,186 - handlers.user_handler - ERROR - ❌ Критическая ошибка в get_parking: Telegram server says - Bad Request: message can't be deleted for everyone
+2026-03-04 12:42:43,608 - aiogram.event - INFO - Update id=216129977 is handled. Duration 473 ms by bot id=8034081320
+2026-03-04 12:42:46,430 - aiogram.event - INFO - Update id=216129978 is handled. Duration 1220 ms by bot id=8034081320
+2026-03-04 12:42:50,183 - handlers.user_handler - INFO - запрос парковочных мест user_id=413700636
+2026-03-04 12:44:03,474 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-03-04 12:44:03,706 - aiogram.dispatcher - INFO - Start polling
+2026-03-04 12:44:03,757 - aiogram.dispatcher - INFO - Run polling for bot @camparkingbot id=8034081320 - 'ParkingBot'
+2026-03-04 12:44:13,507 - handlers.commands - INFO - Вызов команды /start от пользователя 413700636
+2026-03-04 12:44:13,507 - aiogram.event - INFO - Update id=216129980 is handled. Duration 532 ms by bot id=8034081320
+2026-03-04 12:44:15,058 - handlers.user_handler - DEBUG - Обработка user:menu:get для user_id=413700636
+2026-03-04 12:44:15,060 - handlers.user_handler - INFO - Показано меню пользователя для user_id=413700636
+2026-03-04 12:44:15,250 - aiogram.event - INFO - Update id=216129981 is handled. Duration 198 ms by bot id=8034081320
+2026-03-04 12:44:19,987 - handlers.user_handler - INFO - запрос парковочных мест user_id=413700636
+2026-03-04 12:44:25,271 - handlers.user_handler - ERROR - ❌ Критическая ошибка в get_parking: module 'logic.file' has no attribute 'read_data'
+2026-03-04 12:44:25,798 - aiogram.event - INFO - Update id=216129982 is handled. Duration 5813 ms by bot id=8034081320
+2026-03-04 12:45:35,933 - aiogram.event - INFO - Update id=216129983 is handled. Duration 2242 ms by bot id=8034081320
+2026-03-04 12:45:36,128 - handlers.user_handler - INFO - запрос парковочных мест user_id=413700636
+2026-03-04 12:45:39,420 - handlers.user_handler - ERROR - ❌ Критическая ошибка в get_parking: module 'logic.file' has no attribute 'read_data'
+2026-03-04 12:45:40,538 - aiogram.event - INFO - Update id=216129984 is handled. Duration 4420 ms by bot id=8034081320
+2026-03-04 12:47:11,254 - aiogram.dispatcher - INFO - Polling stopped
+2026-03-04 12:47:11,255 - aiogram.dispatcher - ERROR - Failed to fetch updates - TelegramNetworkError: HTTP Client says - ServerDisconnectedError: Server disconnected
+2026-03-04 12:47:11,255 - aiogram.dispatcher - WARNING - Sleep for 1.000000 seconds and try again... (tryings = 0, bot id = 8034081320)
+2026-03-04 12:47:17,820 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-03-04 12:47:18,351 - aiogram.dispatcher - INFO - Start polling
+2026-03-04 12:47:18,399 - aiogram.dispatcher - INFO - Run polling for bot @camparkingbot id=8034081320 - 'ParkingBot'
+2026-03-04 12:47:21,471 - aiogram.event - INFO - Update id=216129986 is handled. Duration 1422 ms by bot id=8034081320
+2026-03-04 12:47:22,359 - aiogram.event - INFO - Update id=216129988 is handled. Duration 1038 ms by bot id=8034081320
+2026-03-04 12:47:22,443 - aiogram.event - INFO - Update id=216129987 is handled. Duration 1450 ms by bot id=8034081320
+2026-03-04 12:47:24,356 - handlers.user_handler - INFO - запрос парковочных мест user_id=413700636
+2026-03-04 12:47:29,064 - handlers.user_handler - ERROR - ❌ Критическая ошибка в get_parking: 'list' object has no attribute 'items'
+2026-03-04 12:47:29,497 - aiogram.event - INFO - Update id=216129989 is handled. Duration 5150 ms by bot id=8034081320
+2026-03-04 12:47:37,433 - aiogram.dispatcher - INFO - Polling stopped
+2026-03-04 12:47:37,435 - aiogram.dispatcher - ERROR - Failed to fetch updates - TelegramNetworkError: HTTP Client says - ServerDisconnectedError: Server disconnected
+2026-03-04 12:47:37,435 - aiogram.dispatcher - WARNING - Sleep for 1.000000 seconds and try again... (tryings = 0, bot id = 8034081320)

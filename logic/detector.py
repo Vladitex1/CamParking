@@ -13,7 +13,7 @@ def check_auto(mask: str = None, processed_image = None,img = None, config_name:
         return [], []
     MASKPATH = "../save/"
     MASK_ENDING = ".mask"
-    saved_data, path = file.read_data(MASKPATH+mask+MASK_ENDING)# [1]
+    saved_data, path = file.load_data(MASKPATH+mask+MASK_ENDING)# [1]
     print(f"sd{saved_data}")
     print(f"path{path}")
     if img is not None: # Если передано изображение (img), используем его

@@ -175,7 +175,7 @@ def enhance_frame(frame, debug=False):
 
 async def get_img_PyAV():
     try:
-        camera_path = "rtsp://admin:@192.168.0.19:554/h264?tcp"
+        camera_path = "rtsp://admin:@192.168.0.29:554/h264?tcp"
         # Опции для стабильности
         options = {
         # Пропуск кадров

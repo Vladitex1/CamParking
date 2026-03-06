@@ -8,7 +8,7 @@ import qtawesome as qta
 import logic.file as file
 import Editor.prod.data.style as style
 from Editor.prod.data.properties import DockTitleBar     # если в data
-
+import Editor.prod.data.names as names
 
 class EditorWindow(QMainWindow):
     """Виджет для отображения изображения и расстановки точек"""
@@ -22,6 +22,7 @@ class EditorWindow(QMainWindow):
             new_color = цвет, при новом полигоне
             alpha = прозрачность заполнения 0 - 255
         '''
+        self.name = names.NAMES[names.get_language()]
         self.line_size = 3
         self.point_size = 7
         self.text_size = 25
@@ -38,7 +39,23 @@ class EditorWindow(QMainWindow):
 
         self.dragging_point = -1
         self.dragging_polygon = -1  # 👈 НОВОЕ: индекс полигона, точку которого тащим
+        self.dragging_polygon_whole = -1  # 👈 НОВОЕ: индекс полигона, который тащим целиком
+        self.drag_offset_x = 0  # 👈 НОВОЕ: смещение по X при захвате
+        self.drag_offset_y = 0  # 👈 НОВОЕ: смещение по Y при захвате
+
+
+
         self.current_color = 0
+        self.colors = [
+            "#FF0000",  # красный
+            "#FFA500",  # оранжевый
+            "#FFFF00",  # жёлтый
+            "#00FF00",  # зелёный
+            "#00BFFF",  # голубой
+            "#0000FF",  # синий
+            "#EE82EE",  # фиолетовый
+        ]
+
 
         self.image_path = ""
         self.project_root = str(Path(__file__).parent.parent.parent.parent.resolve())
@@ -57,7 +74,6 @@ class EditorWindow(QMainWindow):
         main_layout.addWidget(self.image_label)
 
         # Создаем кнопки
-        self.coords_label = QLabel("Точки: 0")
         self.create_statusbar()
         self.create_toolbar()
         self.dock_editor()
@@ -98,7 +114,7 @@ class EditorWindow(QMainWindow):
         self.image = None
 
     def create_toolbar(self):
-        toolbar = QToolBar("Панель инструментов")
+        toolbar = QToolBar(self.name["editor.toolbar.title"])
         self.addToolBar(toolbar)
         toolbar.setProperty("toolbar", "toolbar")
         desired_size = style.STYLE["global"]["toolbar_icon_size_toolbar"]  # 16 * 1.5
@@ -106,13 +122,13 @@ class EditorWindow(QMainWindow):
 
 
         actions_data = [
-            ("Загрузить файл маски", "mdi6.folder-download", self.load_mask,"Alt+1"),
-            ("Загрузить только полигоны маски", "mdi6.vector-polygon", lambda: (self.load_mask(only_poly = True)),"Alt+4"),
-            ("Загрузить только изображение", "mdi6.image", self.load_image,"Alt+2"),
-            ("Сохранить маску", "mdi6.content-save-edit", self.new_save_mask,"Alt+S"),
-            ("Быстрое сохранение", "mdi6.content-save", self.fast_save_mask,"Alt+E"),
-            ("Очистить рабочую область", "mdi6.eraser", self.clear_display,"Alt+Del"),
-            ("Загрузить тестовое изображение", "mdi.flask", lambda: (
+            (self.name["editor.toolbar.load.file"], "mdi6.folder-download", self.load_mask,"Alt+1"),
+            (self.name["editor.toolbar.load.mask"], "mdi6.vector-polygon", lambda: (self.load_mask(only_poly = True)),"Alt+4"),
+            (self.name["editor.toolbar.load.image"], "mdi6.image", self.load_image,"Alt+2"),
+            (self.name["editor.toolbar.save.as"], "mdi6.content-save-edit", self.new_save_mask,"Alt+S"),
+            (self.name["editor.toolbar.save.fast"], "mdi6.content-save", self.fast_save_mask,"Alt+E"),
+            (self.name["editor.toolbar.clear"], "mdi6.eraser", self.clear_display,"Alt+Del"),
+            (self.name["editor.toolbar.test.image"], "mdi.flask", lambda: (
                 self.manual_load_image(self.absolute_path("img/camphoto/camera_photo_2026-01-28.jpg")),),"Alt+3"),
         ]
         for name, icon_path, slot,shortcut in actions_data:
@@ -139,26 +155,27 @@ class EditorWindow(QMainWindow):
     def statusbar_show_temp_message(self, msg_type: str, success: bool, data=""):
         # Словарь с шаблонами сообщений
         templates = {
-            "new_save": {
-                True: f"Новое сохранение {data} создано успешно",
-                False: f"Ошибка создания сохранения: {data}"
-            },
-            "fast_save": {
-                True: f"Быстрое сохранение {data} выполнено успешно",
-                False: f"Ошибка выполнения быстрого сохранения: {data}"
+            "load_mask": {
+                True: self.name["editor.statusbar.load.mask"],
+                False: self.name["editor.statusbar.error"],
             },
             "load_image": {
-                True: f"Изображение {data} создано успешно",
-                False: f"Ошибка создания изображения: {data}"
+                True: self.name["editor.statusbar.load.image"],
+                False: self.name["editor.statusbar.error"],
             },
-            "load_mask": {
-                True: f"Маска {data} загружена",
-                False: f"Ошибка загрузки маски: {data}"
+            "new_save": {
+                True: self.name["editor.statusbar.save.as"],
+                False: self.name["editor.statusbar.error"],
+            },
+            "fast_save": {
+                True: self.name["editor.statusbar.save.fast"],
+                False: self.name["editor.statusbar.error"],
             },
             "test_image": {
-                True: f"Тестовое изображение {data} загружено",
-                False: f"Ошибка загрузки тестового изображения: {data}"
-            }
+                True: self.name["editor.statusbar.test.image"],
+                False: self.name["editor.statusbar.error"],
+            },
+
         }
 
         if msg_type not in templates:
@@ -167,7 +184,7 @@ class EditorWindow(QMainWindow):
         text = templates[msg_type][success]
         emoji = "🟢" if success else "🔴"
         full_text = f"{emoji} - {text}"
-        self.status_bar.showMessage(full_text, 5000)
+        self.status_bar.showMessage(full_text+data, 5000)
 
     def on_dock_state_changed(self, *args):
         """Вызывается при изменении состояния дока (открепление/прикрепление/перемещение)"""
@@ -216,19 +233,7 @@ class EditorWindow(QMainWindow):
         layout = QVBoxLayout()
         layout.setContentsMargins(30, 20, 15, 0)
 
-        info_label = QLabel(
-            """
-            <h2>🤿 Редактор масок</h2>
-
-            <h3>Управление:</h3>
-            <ul>
-                <li>ЛКМ - Создание новой точки</li>
-                <li>СКМ - Добавление точки в маску</li>
-                <li>ПКМ - Завершить полигон</li>
-            </ul>
-            <p><i>Создано с использованием PySide6</i></p>
-            """
-        )
+        info_label = QLabel(self.name["editor.help.dock.name"])
         info_label.setProperty("dock", "main")
         info_label.setWordWrap(True)
         #info_label.setObjectName("dockMainContent")
@@ -239,7 +244,7 @@ class EditorWindow(QMainWindow):
 
         dock_content.setLayout(layout)
 
-        self.create_dock(name ="Помощь",
+        self.create_dock(name =self.name["editor.help.dock.title"],
                     position ="right",
                     content = dock_content,
                     min_width = 300,
@@ -259,7 +264,7 @@ class EditorWindow(QMainWindow):
         layout.setContentsMargins(30, 20, 15, 0)
 
         # Заголовок
-        title_label = QLabel("Полигоны:")
+        title_label = QLabel(self.name["editor.editor.dock.name"])
         title_label.setProperty("dock", "main")
         title_label.setStyleSheet("font-size: 18px; font-weight: bold;")
         title_label.setAlignment(Qt.AlignCenter)
@@ -295,7 +300,7 @@ class EditorWindow(QMainWindow):
 
         # Кнопки действий
         actions_data = [
-            ("Удалить выбранные", "mdi6.delete", lambda: (self.del_polygon(), self.display_image(), self.debug())),
+            (self.name["editor.editor.dock.button.delete.all"], "mdi6.delete", lambda: (self.del_polygon(), self.display_image(), self.debug())),
         ]
         for name, icon_path, slot in actions_data:
             button = QPushButton(name)
@@ -308,7 +313,7 @@ class EditorWindow(QMainWindow):
         layout.addStretch()
 
         self.create_dock(
-            name="Редактор",
+            name=self.name["editor.editor.dock.title"],
             position="left",
             content=dock_content,
             min_width=300,
@@ -317,11 +322,11 @@ class EditorWindow(QMainWindow):
             max_height=1000,
         )
     def relative_path(self, input_filepath: str) -> str:
-        result = os.path.relpath(input_filepath, self.project_root)
+        result = os.path.relpath(input_filepath, self.project_root).replace("\\","/")
         return str(result)
 
     def absolute_path(self, input_filepath: str) -> str:
-        result = os.path.join(self.project_root, input_filepath)
+        result = os.path.join(self.project_root, input_filepath).replace("\\","/")
         return str(result)
 
 
@@ -329,8 +334,8 @@ class EditorWindow(QMainWindow):
         """Загрузка изображения"""
         self.clear_display()
         filename, _ = QFileDialog.getOpenFileName(
-            self, "Выберите изображение", "../../img",
-            "Изображения (*.png *.jpg *.jpeg *.bmp *.gif)"
+            self, self.name["editor.toolbar.load.image.title"], "../../img",
+            "(*.png *.jpg *.jpeg *.bmp *.gif)"
         )
         print(filename)
 
@@ -397,23 +402,14 @@ class EditorWindow(QMainWindow):
             pixmap = self.image.copy()
             painter = QPainter(pixmap)
             painter.setRenderHint(QPainter.Antialiasing)
-            colors = [
-                QColor(255, 0, 0),  # красный
-                QColor(255, 165, 0),  # оранжевый
-                QColor(255, 255, 0),  # жёлтый
-                QColor(0, 255, 0),  # зелёный
-                QColor(0, 191, 255),  # голубой (deep sky blue)
-                QColor(0, 0, 255),  # синий
-                QColor(238, 130, 238)  # фиолетовый (violet)
-            ]
             text_font = painter.font()
             text_font.setPointSize(text_size)
             painter.setFont(text_font)
 
             if self.current_points:
                 for num, point in enumerate(self.current_points):
-                    painter.setPen(QPen(colors[new_color], line_size))
-                    painter.setBrush(QBrush(colors[new_color]))
+                    painter.setPen(QPen(QColor(self.colors[new_color]), line_size))
+                    painter.setBrush(QBrush(QColor(self.colors[new_color])))
                     pos_x = int(point[0])
                     pos_y = int(point[1])
                     painter.drawEllipse(QPoint(pos_x, pos_y), point_size, point_size)
@@ -421,7 +417,7 @@ class EditorWindow(QMainWindow):
 
                     points = self.current_points
                     if len(points) > 1:
-                        painter.setPen(QPen(colors[new_color], line_size))
+                        painter.setPen(QPen(QColor(self.colors[new_color]), line_size))
                         for point_num in range(len(points) - 1):
                             point_start = QPoint(int(points[point_num][0]), int(points[point_num][1]))
                             point_end = QPoint(int(points[point_num + 1][0]), int(points[point_num + 1][1]))
@@ -429,11 +425,11 @@ class EditorWindow(QMainWindow):
 
             if self.polygons:
                 for i, data in enumerate(self.polygons):
-                    num = i % len(colors)
+                    num = i % len(self.colors)
                     points = data['points']
                     for point_num, point in enumerate(points):
-                        painter.setPen(QPen(colors[num], line_size))
-                        painter.setBrush(QBrush(colors[num]))
+                        painter.setPen(QPen(QColor(self.colors[num]), line_size))
+                        painter.setBrush(QBrush(QColor(self.colors[num])))
                         pos_x = int(point[0])
                         pos_y = int(point[1])
                         painter.drawEllipse(QPoint(pos_x, pos_y), point_size, point_size)
@@ -444,7 +440,7 @@ class EditorWindow(QMainWindow):
                         for pt in points:
                             polygon.append(QPoint(pt[0], pt[1]))
 
-                        fill_color = QColor(colors[num])
+                        fill_color = QColor(self.colors[num])
                         fill_color.setAlpha(alpha)
                         painter.setBrush(QBrush(fill_color))
                         painter.drawPolygon(polygon)
@@ -489,9 +485,20 @@ class EditorWindow(QMainWindow):
                                     self.dragging_point = point_num
                                     clicked = True
                                     break
+
+                    if not clicked:
+                        # 👈 НОВОЕ: Проверяем, кликнули ли внутрь существующего полигона
+                        for polygon_num, polygon in enumerate(self.polygons):
+                            if self.image_is_point_inside_polygon(x, y, polygon['points']):
+                                self.dragging_polygon_whole = polygon_num
+                                # Запоминаем смещение между кликом и первым пунктом полигона
+                                first_point = polygon['points'][0]
+                                self.drag_offset_x = x - first_point[0]
+                                self.drag_offset_y = y - first_point[1]
+                                clicked = True
+                                break
                     if not clicked:
                         self.current_points.append((x, y))
-                        self.coords_label.setText(f"Точки: {len(self.current_points)}")
                         if len(self.current_points) > 9:
                             self.add_polygon_meta()
                             self.update_polygons_list_widget()
@@ -568,8 +575,26 @@ class EditorWindow(QMainWindow):
 
 
     def image_mouse_move(self, event):
-        """Обработка перемещения мыши"""
-        if self.dragging_point >= 0 and self.image:
+        if not self.image:
+            return
+
+        x, y = self.get_image_coordinates(event)
+        x = int(x)
+        y = int(y)
+
+        # 👈 НОВОЕ: Перетаскивание всего полигона
+        if self.dragging_polygon_whole >= 0:
+            polygon = self.polygons[self.dragging_polygon_whole]
+            new_points = []
+            for px, py in polygon['points']:
+                new_x = x - self.drag_offset_x + (px - polygon['points'][0][0])
+                new_y = y - self.drag_offset_y + (py - polygon['points'][0][1])
+                new_points.append((new_x, new_y))
+            polygon['points'] = new_points
+            self.display_image()
+
+        #"""Обработка перемещения мыши"""
+        elif self.dragging_point >= 0 and self.image:
             x, y = self.get_image_coordinates(event)
             x = int(x)
             y = int(y)
@@ -585,12 +610,36 @@ class EditorWindow(QMainWindow):
         """Обработка отпускания кнопки мыши"""
         self.dragging_point = -1
         self.dragging_polygon = -1
+        self.dragging_polygon_whole = -1
+        self.drag_offset_x = 0
+        self.drag_offset_y = 0
 
+    # В editor_window.py, новый метод
+    def image_is_point_inside_polygon(self, x, y, polygon_points):
+        """
+        Алгоритм Ray Casting - проверяет, находится ли точка внутри полигона
+        """
+        if len(polygon_points) < 3:
+            return False
+
+        inside = False
+        n = len(polygon_points)
+
+        j = n - 1
+        for i in range(n):
+            xi, yi = polygon_points[i]
+            xj, yj = polygon_points[j]
+
+            if ((yi > y) != (yj > y)) and (x < (xj - xi) * (y - yi) / (yj - yi) + xi):
+                inside = not inside
+
+            j = i
+
+        return inside
 
     def clear_points(self):
         """Очистка всех точек"""
         self.current_points = []
-        self.coords_label.setText("Точки: 0")
         if self.image:
             self.display_image()
 
@@ -625,8 +674,8 @@ class EditorWindow(QMainWindow):
 
     def load_mask(self,only_poly:bool=False):
         file_path, _ = QFileDialog.getOpenFileName(
-            self, "Выберите маску", "../../save",
-            "Маски (*.mask)"
+            self, self.name["editor.toolbar.load.file.title"], "../../save",
+            "(*.mask)"
         )
         if file_path != '':
             saved_data, parent_file = file.load_data(file_path)
@@ -650,9 +699,9 @@ class EditorWindow(QMainWindow):
 
     def new_save_mask(self):
         self.loaded_mask, _ = QFileDialog.getSaveFileName(
-            caption="Сохранить маску",
+            caption=self.name["editor.editor.dock.button.delete.all"],
             dir="../../save",
-            filter="Маски (*.mask)"
+            filter="(*.mask)"
         )
 
         if self.loaded_mask:
@@ -665,7 +714,6 @@ class EditorWindow(QMainWindow):
                     "name": polygon['name'],
                     "points": polygon['points']
                 })
-            print(self.relative_path(self.image_path),"хуй",self.image_path)
             file.save_data(saved_data, self.loaded_mask,  self.relative_path(self.image_path))
             print(f"Маска сохранена: {self.loaded_mask}")
 
@@ -768,18 +816,21 @@ class EditorWindow(QMainWindow):
 
     def add_polygon_widget(self, name: str = 'error', id:int = -1):
         polygon_num = id
+        num = id % len(self.colors)
         row_widget = QWidget()
         row_widget.setProperty("dock", "polygon_slot")
+
         row_layout = QHBoxLayout(row_widget)
         row_layout.setContentsMargins(1, 1, 1, 1)
         row_layout.setSpacing(2)
-
+        print("цвет", self.colors[num])
         meta = QLabel(f"{id}")
         meta.setStyleSheet(f"""
         min-height: 20px;
         min-width: 20px;
         border-radius: {style.STYLE["global"]["style_border_radius"]};
-        """)
+        background-color: {self.colors[num]};
+        """)    ########################################################################################################
         meta.setVisible(self.debugbool)
         # !!! Удалён локальный stylesheet для meta
 
@@ -798,16 +849,21 @@ class EditorWindow(QMainWindow):
         text_edit.textChanged.connect(lambda text, idx=int(meta.text()): self.rename_polygon(text, idx))
         text_edit.setMinimumWidth(100)
 
+        color_indicator = QLabel()
+        color_indicator.setFixedSize(22,22)
 
+        color_indicator.setProperty("element", "circle")
+        color_indicator.setStyleSheet(f"""
+        background-color: {self.colors[num]}
+        """)
 
         row_layout.addWidget(meta)
-        #spacer.setStyleSheet(f"pading: 8px; background-color: {style.STYLE["global"]["accent_color"]};")
-        #row_layout.addWidget(spacer)
+
         #row_layout.setStyleSheet(f"border-radius: 8px;")
 
         row_layout.addWidget(btn)
         row_layout.addWidget(text_edit)
-
+        row_layout.addWidget(color_indicator)
         self.scroll_QVBox.insertWidget(self.scroll_QVBox.count() - 1, row_widget)
 
 

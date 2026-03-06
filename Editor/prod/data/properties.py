@@ -85,3 +85,5 @@ class DockTitleBar(QWidget):
         for i in range(len(self.button_icons)):
             x = self.button_icons[i]
             x[0].setIcon(qta.icon(x[1], color=color_hex))
+
+

@@ -231,6 +231,13 @@ border-radius: {STYLE["global"]["style_border_radius"]};
 background-color: {calc_color(STYLE[current_color]["dock_color"],STYLE["global"]["hovered"]) };
 }}
 
+QLabel[element="circle"]{{
+    border-radius: 11px;
+    border:2px solid  {calc_color(STYLE[current_color]["dock_color"],STYLE["global"]["hovered"]) };
+}}
+
+
+
 QWidget[dock="polygon_slot"]{{
 background-color: {calc_color(STYLE[current_color]["dock_color"], STYLE["global"]["hovered"])};
 border-radius: {STYLE["global"]["style_border_radius"]};
