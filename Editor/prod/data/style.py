@@ -102,9 +102,9 @@ def get_stylesheet():
 }}
 
 QLabel[window="main"] {{
-    border: 2px solid {STYLE["global"]["secondary_text_color"]};
     border-radius: {STYLE["global"]["style_border_radius"]};
-    background-color: {STYLE[current_color]["dock_color"]};
+    background-color: {STYLE[current_color]["main_window_color"]};
+    
 }}
 
 
@@ -160,17 +160,21 @@ QWidget[dock="title"]{{
     border-top-left-radius: {STYLE["global"]["style_border_radius"]};
     border-top-right-radius: {STYLE["global"]["style_border_radius"]};
     background-color: {calc_color(STYLE[current_color]["dock_color"],3) };
-    padding-right: {STYLE["global"]["style_margin"]};
-    padding-left: {STYLE["global"]["style_margin"]};
+    margin-right: {STYLE["global"]["style_margin"]};
+    margin-left: {STYLE["global"]["style_margin"]};
 
 }}
 
 /* Содержимое дока (виджет со свойством dock="main") */
 QWidget[dock="main"] {{
     background-color: {STYLE[current_color]["dock_color"]};
-    padding-right: {STYLE["global"]["style_margin"]};
-    padding-left: {STYLE["global"]["style_margin"]};
+    margin-right: {STYLE["global"]["style_margin"]};
+    margin-left: {STYLE["global"]["style_margin"]};
+    margin-bottom: {STYLE["global"]["style_margin"]};
     border-bottom: 1px solid {STYLE[current_color]["dock_color"]};
+    border-bottom-left-radius: {STYLE["global"]["style_border_radius"]};
+    border-bottom-right-radius: {STYLE["global"]["style_border_radius"]};
+    
 }}
 QLabel[dock="title"] {{
     background-color: {calc_color(STYLE[current_color]["dock_color"],3) };
@@ -206,8 +210,8 @@ QScrollBar::add-line:vertical {{
 
 /*======================= Настройка мелких элементов ===================================*/
 QScrollArea {{
-    background-color: {STYLE[current_color]["dock_color"]};
-    border: 2px solid {STYLE["global"]["secondary_text_color"]};
+    background-color: {STYLE[current_color]["button_background_color_st1"]};
+    /*border: 2px solid {STYLE["global"]["secondary_text_color"]};*/
     border-radius: {STYLE["global"]["style_border_radius"]};
 }}
 
@@ -222,33 +226,38 @@ QCheckBox::indicator {{
 }}
 
 QTextEdit{{
-background-color: {calc_color(STYLE[current_color]["dock_color"],STYLE["global"]["hovered"]) };
+background-color: {calc_color(STYLE[current_color]["dock_color"],STYLE["global"]["pressed"]) };
 }}
 
 QLineEdit {{
 margin-right: 20px;
 border-radius: {STYLE["global"]["style_border_radius"]};
-background-color: {calc_color(STYLE[current_color]["dock_color"],STYLE["global"]["hovered"]) };
+background-color: {STYLE[current_color]["dock_color"]};
 }}
 
 QLabel[element="circle"]{{
     border-radius: 11px;
-    border:2px solid  {calc_color(STYLE[current_color]["dock_color"],STYLE["global"]["hovered"]) };
+    border:2px solid  {STYLE[current_color]["dock_color"]};
 }}
 
 
 
 QWidget[dock="polygon_slot"]{{
-background-color: {calc_color(STYLE[current_color]["dock_color"], STYLE["global"]["hovered"])};
+color: red;
+background-color: {STYLE[current_color]["dock_color"]};
 border-radius: {STYLE["global"]["style_border_radius"]};
+
 }}
 QWidget[dock="polygon_slot"] QCheckBox{{
-background-color: {calc_color(STYLE[current_color]["dock_color"], STYLE["global"]["hovered"])};
+background-color: {STYLE[current_color]["dock_color"]};
+
     
 }}
 QWidget[dock="polygon_slot"] QCheckBox::indicator {{
     width: 20px;
     height: 20px;
+
+    color: black;
 }}
 
 

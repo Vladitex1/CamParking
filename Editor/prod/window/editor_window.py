@@ -3,7 +3,7 @@ from pathlib import Path
 import numpy as np
 from PySide6.QtWidgets import *
 from PySide6.QtCore import Qt, QPoint, QSize,QTimer
-from PySide6.QtGui import QPixmap, QPainter, QPen, QBrush, QColor, QAction,QPolygon
+from PySide6.QtGui import QPixmap, QPainter, QPen, QBrush, QColor, QAction, QPolygon, QPainterPath
 import qtawesome as qta
 import logic.file as file
 import Editor.prod.data.style as style
@@ -452,7 +452,25 @@ class EditorWindow(QMainWindow):
                 Qt.KeepAspectRatio,
                 Qt.SmoothTransformation
             )
-            self.image_label.setPixmap(scaled_pixmap)
+            #self.image_label.setPixmap(scaled_pixmap)
+            radius = int(style.STYLE["global"]["style_border_radius"].replace("px",""))  # Радиус скругления в пикселях
+            rounded_pixmap = QPixmap(scaled_pixmap.size())
+            rounded_pixmap.fill(Qt.transparent)
+
+            painter = QPainter(rounded_pixmap)
+            painter.setRenderHint(QPainter.Antialiasing)
+            painter.setRenderHint(QPainter.SmoothPixmapTransform)
+
+            # Создаём скруглённый путь
+            path = QPainterPath()
+            path.addRoundedRect(0, 0, scaled_pixmap.width(), scaled_pixmap.height(), radius, radius)
+            painter.setClipPath(path)
+
+            # Рисуем изображение внутри скруглённой области
+            painter.drawPixmap(0, 0, scaled_pixmap)
+            painter.end()
+
+            self.image_label.setPixmap(rounded_pixmap)
 
 
     def image_mouse_press(self, event):
