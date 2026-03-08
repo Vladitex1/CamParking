@@ -19,10 +19,14 @@ def save_data(polygons_list, filename="saved_data.txt", parentfile=None):
 
 
 def load_data(file_path: str = None):
-    with open(file_path, 'r', encoding='utf-8') as file:
-        data = json.load(file)
+    try:
+        with open(file_path, 'r', encoding='utf-8') as file:
+            data = json.load(file)
 
-    polygons_list = data.get("polygons", [])
-    parent_file = data.get("parent_file", "")
+        polygons_list = data.get("polygons", [])
+        parent_file = data.get("parent_file", "")
 
-    return polygons_list, parent_file
+        return True,polygons_list, parent_file
+
+    except Exception as error:
+        return False, error

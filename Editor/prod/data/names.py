@@ -56,6 +56,7 @@ NAMES = {
         "editor.editor.dock.title": "Редактор",
         "editor.editor.dock.name": "Полигоны",
         "editor.editor.dock.button.delete.all": "Удалить выбранные",
+        "editor.editor.dock.button.select.all": "Выбрать всё",
 
         #================= Editor.help.dock =================
 
@@ -78,7 +79,14 @@ NAMES = {
         "editor.statusbar.save.as": f"Новое сохранение создано успешно: ",
         "editor.statusbar.save.fast": f"Быстрое сохранение выполнено успешно: ",
         "editor.statusbar.test.image": f"Тестовое изображение загружено: ",
-        "editor.statusbar.error": f"Ошибка: "
+        "editor.statusbar.error": f"Ошибка: ",
+
+        # ================= Editor.statusbar.dots =================
+        "editor.statusbar.point.true": f"Точки: ",
+        "editor.statusbar.point.false": f"Нет точек",
+        # ================= Editor.statusbar.masks =================
+        "editor.statusbar.mask.true": f"Текущая маска: ",
+        "editor.statusbar.mask.false": f"Нет маски",
 
 
     },
@@ -137,6 +145,7 @@ NAMES = {
         "editor.editor.dock.title": "Editor",
         "editor.editor.dock.name": "Parking slots:",
         "editor.editor.dock.button.delete.all": "Delete selected",
+        "editor.editor.dock.button.select.all": "Select all",
 
         #================= Editor.help.dock =================
 
@@ -160,6 +169,13 @@ NAMES = {
         "editor.statusbar.save.fast": f"Fast save successful: ",
         "editor.statusbar.test.image": f"Test image loaded successful: ",
         "editor.statusbar.error": f"Error: ",
+
+        #================= Editor.statusbar.dots =================
+        "editor.statusbar.point.true": f"Points: ",
+        "editor.statusbar.point.false": f"No points",
+        #================= Editor.statusbar.masks =================
+        "editor.statusbar.mask.true": f"Current mask: ",
+        "editor.statusbar.mask.false": f"No mask",
 
     },
 

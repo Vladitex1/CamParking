@@ -1,9 +1,11 @@
 
 import qtawesome as qta
 from PySide6.QtWidgets import QWidget, QHBoxLayout, QPushButton, QLabel
-from PySide6.QtCore import Qt, QSize
+from PySide6.QtCore import Qt, QSize, QTimer
 from PySide6.QtGui import QPalette, QColor
 from ..data import style  # путь к твоему style.py (возможно, надо скорректировать)
+from Editor.prod.data.signal_bus import signal
+
 
 
 
@@ -40,7 +42,7 @@ class DockTitleBar(QWidget):
         # Заголовок слева
         label = QLabel(title)
         label.setProperty("dock", "title")
-        label.setStyleSheet("font-weight: bold;font-size: 15px;")
+        label.setStyleSheet(f"font-size: {style.STYLE["global"]["font_size_h2"]}; font-weight: bold;")
         label.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
         layout.addWidget(label)
 
@@ -49,8 +51,8 @@ class DockTitleBar(QWidget):
 
         # Кнопки
         self.buttons = [
-            ("Открепить окно", self.toggle_float, "mdi.chevron-down"),
-            ("Закрыть окно", self.dock.close, "mdi.close"),
+            ("Открепить окно", self.on_toggle_clicked, "mdi6.dock-window"),
+            ("Закрыть окно", self.on_close_clicked, "mdi6.window-close"),
         ]
         self.button_icons = []
         for name, action, icon in self.buttons:
@@ -62,23 +64,32 @@ class DockTitleBar(QWidget):
             self.button_icons.append([button, icon])
 
         # Устанавливаем иконки
-        style.theme_signals.changed.connect(self.update_theme)
+        signal.changed.connect(self.update_theme)
         self.update_theme()
+
+    def on_toggle_clicked(self):
+        print("🟡 on_toggle_clicked вызван")
+        self.toggle_float()
+        QTimer.singleShot(50, lambda: (
+            print("⏰ Тест эмиссии через 1 секунду"),
+            signal.update_display.emit()
+        ))
+        print("🟡 signal.update_display.emit() выполнен")
+
+    def on_close_clicked(self):
+        self.dock.close()
+        print("🟡 on_close_clicked вызван")
+        QTimer.singleShot(50, lambda: (
+            print("⏰ Тест эмиссии через 1 секунду"),
+            signal.update_display.emit()
+        ))
+        #signal.update_display.emit()
+        print("🟡 signal.update_display.emit() выполнен")
+
 
     def toggle_float(self):
         """Переключает плавающий/закреплённый режим."""
         self.dock.setFloating(not self.dock.isFloating())
-        color_hex = style.STYLE[style.current_color]["text_color"]
-        x = self.button_icons[0][0]
-        match self.toggle_float_bool:
-            case True:
-                x.setIcon(qta.icon("mdi.chevron-down", color=color_hex))
-                x.setToolTip("Открепить окно")
-            case False:
-                x.setIcon(qta.icon("mdi.chevron-up", color=color_hex))
-                x.setToolTip("Закрепить окно")
-
-        self.toggle_float_bool = not self.toggle_float_bool
 
     def update_theme(self):
         color_hex = style.STYLE[style.current_color]["text_color"]
