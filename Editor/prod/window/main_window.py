@@ -1,7 +1,7 @@
 from PySide6.QtWidgets import *
 from PySide6.QtGui import QAction
 from PySide6.QtCore import Qt, QProcess
-from Editor.prod.window import start_window , editor_window
+from Editor.prod.window import start_window , editor_window, connect_window
 from Editor.prod.data import names as names
 from Editor.prod.data.style import change_theme
 from Editor.prod.data.names import change_language
@@ -19,13 +19,8 @@ class MainWindow(QMainWindow):
         self.central_widget = QStackedWidget()
         self.setCentralWidget(self.central_widget)
 
-        # Создаем страницы
-        self.start_window = start_window.StartWindow()
-        self.editor_window = editor_window.EditorWindow()
-
         # Добавляем страницы в StackedWidget
-        self.central_widget.addWidget(self.start_window )
-        self.central_widget.addWidget(self.editor_window)
+        self.create_windows()
 
         # Создаем меню
         self.create_menu()
@@ -34,6 +29,15 @@ class MainWindow(QMainWindow):
         self.create_nav_toolbar()
 
 
+    def create_windows(self):
+        self.menus = [[f"📝{self.name["menu.navigate.start"]}", start_window.StartWindow()],
+                 [f"🖼️{self.name["menu.navigate.editor"]}", editor_window.EditorWindow()],
+                 [f"📹{self.name["menu.navigate.connect"]}", connect_window.ConnectWindow()],
+                 ]
+
+        for name, window in self.menus:
+            self.central_widget.addWidget(window)
+
     def create_menu(self):
         """Создание меню"""
         menubar = self.menuBar()
@@ -41,33 +45,33 @@ class MainWindow(QMainWindow):
         # Меню "Страницы" для переключения
         navigation_menu = menubar.addMenu(self.name["menu.navigate"])
 
-        nav_start = QAction(self.name["menu.navigate.start"], self)
-        nav_start.setShortcut("F1")
-        nav_start.triggered.connect(lambda: self.switch_page(0))
-        navigation_menu.addAction(nav_start)
-
-        nav_editor = QAction(self.name["menu.navigate.editor"], self)
-        nav_editor.setShortcut("F2")
-        nav_editor.triggered.connect(lambda: self.switch_page(1))
-        navigation_menu.addAction(nav_editor)
+        for num,(name,menu) in enumerate(self.menus):
+            page = QAction(str(name), self)
+            page.setShortcut(f"F{num+1}")
+            page.triggered.connect(lambda checked, page=num: self.switch_page(page))
+            navigation_menu.addAction(page)
 
 
         settings_menu = menubar.addMenu(self.name["menu.parameters"])
 
         settings_action = QAction(self.name["menu.parameters.settings"], self)
-        settings_action.setShortcut("F3")
+        settings_action.setShortcut("Ctrl+F3")
         #settings_action.triggered.connect(lambda: pass)
         settings_menu.addAction(settings_action)
-
+        #self.name["menu.parameters.switch_theme"]
+        turn_on_navigation = QAction("включить меню навигации", self)
+        turn_on_navigation.triggered.connect(lambda: self.navigation_toolbar.show())
+        turn_on_navigation.setShortcut("Ctrl+F4")
+        settings_menu.addAction(turn_on_navigation)
 
         change_theme_action = QAction(self.name["menu.parameters.switch_theme"], self)
         change_theme_action.triggered.connect(lambda: change_theme())
-        change_theme_action.setShortcut("F4")
+        change_theme_action.setShortcut("Ctrl+F5")
         settings_menu.addAction(change_theme_action)
 
         change_language_action = QAction(self.name["menu.parameters.switch_language"], self)
         change_language_action.triggered.connect(lambda: (change_language(),self.switch_language_warning()))
-        change_language_action.setShortcut("F5")
+        change_language_action.setShortcut("Ctrl+F6")
         settings_menu.addAction(change_language_action)
 
 
@@ -76,23 +80,19 @@ class MainWindow(QMainWindow):
 
         about_action = QAction(self.name["menu.help.about"], self)
         about_action.triggered.connect(self.show_about)
-        about_action.setShortcut("F9")
+        about_action.setShortcut("Alt+F9")
         help_menu.addAction(about_action)
 ##
-    def create_nav_toolbar(self):
+    def create_nav_toolbar(self,):
         toolbar = QToolBar(self.name["menu.menu_switcher.title"])
         self.addToolBar(toolbar)
 
-        text_page_btn = QAction("📝"+self.name["menu.menu_switcher.start"], self)
-        text_page_btn.triggered.connect(lambda: self.switch_page(0))
-        toolbar.addAction(text_page_btn)
+        for num,(name,menu) in enumerate(self.menus):
+            page = QAction(str(name), self)
+            page.triggered.connect(lambda checked, page=num: self.switch_page(page))
+            toolbar.addAction(page)
 
-        image_page_btn = QAction("🖼️"+self.name["menu.menu_switcher.editor"], self)
-        image_page_btn.triggered.connect(lambda: self.switch_page(1))
-        toolbar.addAction(image_page_btn)
-
-
-
+        self.navigation_toolbar = toolbar
 
     def switch_page(self, index):
         """Переключение между страницами"""

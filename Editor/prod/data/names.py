@@ -15,6 +15,7 @@ NAMES = {
         "menu.navigate": "CamParking",
         "menu.navigate.start": "Начало",
         "menu.navigate.editor": "Редактор",
+        "menu.navigate.connect": "Подключение",
 
         "menu.parameters": "Параметры",
         "menu.parameters.settings": "Настройки",
@@ -27,8 +28,6 @@ NAMES = {
         # =============== Menu.menu_switcher ====================
 
         "menu.menu_switcher.title": "Меню быстрой навигации",
-        "menu.menu_switcher.start": "Начало",
-        "menu.menu_switcher.editor": "Редактор",
 
 
         #================= Editor.toolbar =================
@@ -105,6 +104,7 @@ NAMES = {
         "menu.navigate": "CamParking",
         "menu.navigate.start": "Start page",
         "menu.navigate.editor": "Editor page",
+        "menu.navigate.connect": "Connect page",
 
         "menu.parameters": "Parameters",
         "menu.parameters.settings": "Settings",
@@ -117,8 +117,6 @@ NAMES = {
         # =============== Menu.menu_switcher ====================
 
         "menu.menu_switcher.title": "Fast navigation menu",
-        "menu.menu_switcher.start": "Start page",
-        "menu.menu_switcher.editor": "Editor page",
 
 
         #================= Editor.toolbar =================
