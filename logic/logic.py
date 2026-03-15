@@ -8,45 +8,38 @@ import cv2
 import time
 
 
-#MODELPATH = "../../backup/yolov8x.pt"
-#MODELPATH = "model/yolo11m.pt"
-MODELPATH = "../model/"
-CONFIG_DIR = "../model/config/"
-INPUT_DIR = "../img/results/"
-OUTPUT_DIR = "../img/results/"
-# ============ ДОБАВЬ ЭТО ============
-# Глобальная переменная для кэширования модели
-
-
-def process_image(image= None,img=None,debug:bool = False,config_name:str = "conf_1"):
+def process_image(image= None,img=None,save_img:bool=False,save_with_date:bool = False,config_name:str = "confwn"):
     # ================ Блок подготовки имени файла для результата ================
     try:
-        os.makedirs(INPUT_DIR, exist_ok=True)
-        os.makedirs(OUTPUT_DIR, exist_ok=True)
-        if debug == False:
-            filecount = 0
-            for file in os.listdir(OUTPUT_DIR):
-                if f"result_{date.today()}" in file:
-                    filecount += 1
-            if filecount == 0:
-                result_image_name = f"{OUTPUT_DIR}result_{date.today()}.jpg"
+        if save_img:
+            INPUT_DIR: str = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "img"))
+            OUTPUT_DIR: str = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "img"))
+            os.makedirs(INPUT_DIR, exist_ok=True)
+            os.makedirs(OUTPUT_DIR, exist_ok=True)
+            if save_with_date == False:
+                filecount = 0
+                for file in os.listdir(OUTPUT_DIR):
+                    if f"result_{date.today()}" in file:
+                        filecount += 1
+                if filecount == 0:
+                    result_image_name = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "img", f"{OUTPUT_DIR}result_{date.today()}.jpg"))
+                else:
+                    result_image_name = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "img", f"result_{date.today()}_{filecount}.jpg"))
             else:
-                result_image_name = f"{OUTPUT_DIR}result_{date.today()}_{filecount}.jpg"
-        else:
-            result_image_name = f"{OUTPUT_DIR}last_result.jpg"
+                result_image_name = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "img",  f"last_result.jpg"))
 
 
         # ================ Начало обработки фото ================
         #сюда передается название файла на ввод и название файла, которое будет при сохранении
-
-        with open(CONFIG_DIR+config_name+".toml", 'rb') as f:
+        CONFIG_DIR: str = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "model", "config",config_name+".toml"))
+        with open(CONFIG_DIR, 'rb') as f:
             config = tomli.load(f)
-            print(f"залупа{config}")
+            #print(f"залупа{config}")
             if img is None:
                 cars_count, vehicles, detection_results = detect_on_raw_image(image, config)
             else:
                 cars_count, vehicles, detection_results = detect_on_raw_image(img, config)
-            print(f"вехиклес1231231231231{vehicles}{cars_count}{detection_results}")
+            #print(f"вехиклес1231231231231{vehicles}{cars_count}{detection_results}")
             annotated_frame = detection_results[0].plot(    # Отрисовка квадратов (результатов)
                 line_width=config["line_width"],  # Толщина рамки
                 font_size=config["font_size"],  # Размер текста
@@ -55,13 +48,14 @@ def process_image(image= None,img=None,debug:bool = False,config_name:str = "con
 
             )
         # ================ Сохранение результата ================
-        print("✅ Обработка изображения успешна")
-        if cars_count > 0:  # Если автомобилей не найдено, то сохранения не будет.
-            try:
-                cv2.imwrite(result_image_name, annotated_frame)  # сохранение данных в картинку results
-                print(f"✅ Результат сохранен в: {result_image_name}")
-            except Exception as e:
-                print("Ошибка детекции - ", str(e))
+        if save_img:
+            print("✅ Обработка изображения успешна")
+            if cars_count > 0:  # Если автомобилей не найдено, то сохранения не будет.
+                try:
+                    cv2.imwrite(result_image_name, annotated_frame)  # сохранение данных в картинку results
+                    print(f"✅ Результат сохранен в: {result_image_name}")
+                except Exception as e:
+                    print("Ошибка детекции - ", str(e))
 
         # ================ Запись результатов детекции в нужном нам формате ================
         vehicles_data = []
@@ -80,8 +74,8 @@ def process_image(image= None,img=None,debug:bool = False,config_name:str = "con
 
 def detect_on_raw_image(input_image,config):
     """Детекция на одном изображении"""
-    print(os.listdir(MODELPATH))
-    MODEL = YOLO(MODELPATH+config["model_name"])
+    MODEL_PATH: str = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "model", str(config["model_name"])))
+    MODEL = YOLO(MODEL_PATH)
     try:
         print("Запуск системы детекции...")
         # Детекция с настройками
@@ -156,15 +150,16 @@ def comparison(saved_data = None,detected_car_data = None):
     print(f"хуисосработайблять{detect_center_list}")
 
     ###фильтр данных, сопоставление
-    for name, position in saved_data.items():
+    print("ХУЙЙЙЙЙЙЙЙ      ",saved_data)
+    for i in saved_data:
         found_car = False
         for current_center in range(len(detect_center_list)):
-            if is_inside_polygon(detect_center_list[current_center],position):
-                occupied.append(name)
+            if is_inside_polygon(detect_center_list[current_center],i["points"]):
+                occupied.append(i["name"])
                 found_car = True
                 break
         if not found_car:
-            free.append(name)
+            free.append(i["name"])
 
     #debug_print(occupied, free,saved_data) ##вывод информации в консоль
     return occupied, free

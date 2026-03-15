@@ -17,9 +17,9 @@ def check_auto(mask: str = None, processed_image = None,img = None, config_name:
     print(f"sd{saved_data}")
     print(f"path{path}")
     if img is not None: # Если передано изображение (img), используем его
-        detected_car_data = logic.process_image(img=img, debug=True, config_name=config_name) #[2.1]
+        detected_car_data = logic.process_image(img=img, save_with_date=True, config_name=config_name) #[2.1]
     elif processed_image is not None: # Иначе используем имя файла
-        detected_car_data = logic.process_image(image=processed_image, debug=True, config_name=config_name) #[2.2]
+        detected_car_data = logic.process_image(image=processed_image, save_with_date=True, config_name=config_name) #[2.2]
     else:
         print("Ошибка: не передано ни изображение, ни имя файла")
         return [], []
