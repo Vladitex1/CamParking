@@ -2,14 +2,33 @@ import os
 from pathlib import Path
 import numpy as np
 from PySide6.QtWidgets import *
-from PySide6.QtCore import Qt, QPoint, QSize, QTimer, QEvent
+from PySide6.QtCore import Qt, QPoint, QSize, QTimer, QEvent,QThread, Signal
 from PySide6.QtGui import QPixmap, QPainter, QPen, QBrush, QColor, QAction, QPolygon, QPainterPath
 import qtawesome as qta
 import logic.file as file
+import logic.camera_control as camera_control
 import Editor.prod.data.style as style
 from Editor.prod.data.properties import DockTitleBar     # если в data
 import Editor.prod.data.names as names
 from Editor.prod.data.signal_bus import signal
+import asyncio
+
+class CaptureImageThread(QThread):
+    image_ready = Signal(str)
+    def __init__(self, capture_func):
+        super().__init__()
+        self.capture_func = capture_func   # функция, которая возвращает путь к файлу
+
+    def run(self):
+        try:
+            # Вызываем синхронную функцию получения изображения
+            # Если функция асинхронная, нужно запускать свой event loop
+            path = self.capture_func()
+            self.image_ready.emit(path)
+        except Exception as e:
+            print(f"Ошибка захвата: {e}")
+            self.image_ready.emit(None)
+
 
 class EditorWindow(QMainWindow):
     """Виджет для отображения изображения и расстановки точек"""
@@ -67,7 +86,7 @@ class EditorWindow(QMainWindow):
         # ===== ВАЖНО: СОЗДАЕМ ЦЕНТРАЛЬНЫЙ ВИДЖЕТ =====
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
-
+        self.capture_thread = None
         # Главный layout для центрального виджета
         main_layout = QVBoxLayout(central_widget)
         main_layout.setAlignment(Qt.AlignCenter)
@@ -116,20 +135,32 @@ class EditorWindow(QMainWindow):
             self.image = QPixmap(800, 600)
             self.image.fill(Qt.transparent)
             self.image_path: str = ""
-            self.image = None
         self.update_display()
+        if is_img_del:
+            self.image = None
         self.loaded_mask:str = ""
         self.remap_id()
         self.update_polygons_list_widget()
 
         self.StatusBarLabelUpdate(coords=None,mask=None)
 
+    def capture_image(self):
+        if self.capture_thread and self.capture_thread.isRunning():
+            return
+        self.capture_thread = CaptureImageThread(camera_control.get_img_sync)
+        self.capture_thread.image_ready.connect(self.on_image_captured)
+        self.capture_thread.start()
+
+    def on_image_captured(self, image_path):
+        if image_path and os.path.exists(image_path):
+            self.manual_load_image(image_path, True)
+        else:
+            print("Не удалось получить фото с камеры")
+
     def create_toolbar(self):
         toolbar = QToolBar(self.name["editor.toolbar.title"])
         self.addToolBar(toolbar)
         toolbar.setProperty("toolbar", "toolbar")
-
-
 
         actions_data = [
             (self.name["editor.toolbar.load.file"], "mdi6.folder-download", self.load_mask,"Alt+1"),
@@ -138,8 +169,8 @@ class EditorWindow(QMainWindow):
             (self.name["editor.toolbar.save.as"], "mdi6.content-save-edit", self.new_save_mask,"Alt+S"),
             (self.name["editor.toolbar.save.fast"], "mdi6.content-save", self.fast_save_mask,"Alt+E"),
             (self.name["editor.toolbar.clear"], "mdi6.delete", lambda: (self.clear_display(True)),"Alt+Del"),
-            (self.name["editor.toolbar.test.image"], "mdi.flask", lambda: (
-                self.manual_load_image(self.absolute_path("img/camphoto/camera_photo_2026-01-28.jpg"),True),),"Alt+3"),
+            (self.name["editor.toolbar.test.image"], "mdi6.flask", lambda: (self.manual_load_image(self.absolute_path("img/camphoto/camera_photo_2026-01-28.jpg"),True)),"Alt+3"),
+            (self.name["editor.toolbar.capture.image"], "mdi6.camera-image", self.capture_image, "Ctrl+Alt+4"),
         ]
         for name, icon_path, slot,shortcut in actions_data:
             action = QAction(self)
@@ -552,7 +583,7 @@ class EditorWindow(QMainWindow):
 
     def image_mouse_press(self, event):
         """Обработка клика по изображению"""
-        if not self.image:
+        if self.image == None:
             return
 
         x, y = self.get_image_coordinates(event)
@@ -783,17 +814,13 @@ class EditorWindow(QMainWindow):
             if correct:
                 self.loaded_mask = file_path
                 self.statusbar_show_temp_message("load_mask", True, self.relative_path(self.loaded_mask))
+                self.clear_display(not only_poly)
+                for id, i in enumerate(saved_data):
+                    self.add_polygon_meta(name=i['name'], points=i['points'])
+                    self.add_polygon_widget(name=i['name'], id=id)
                 if only_poly == False: ## Загрузка полной маски
-                    self.clear_display(not only_poly)
-                    for id, i in enumerate(saved_data):
-                        self.add_polygon_meta(name=i['name'], points=i['points'])
-                        self.add_polygon_widget(name=i['name'], id=id)
                     self.manual_load_image(path=self.absolute_path(parent_file))
                 else: ## Загрузка только полигонов
-                    self.clear_display(not only_poly)
-                    for id, i in enumerate(saved_data):
-                        self.add_polygon_meta(name=i['name'], points=i['points'])
-                        self.add_polygon_widget(name=i['name'], id=id)
                     self.update_display()
                 self.loaded_mask = file_path
                 self.update_polygons_list_widget()
@@ -991,3 +1018,9 @@ class EditorWindow(QMainWindow):
         print(self.polygons)
         print(self.loaded_mask)
         self.update_display()
+
+    def closeEvent(self, event):
+        if self.capture_thread and self.capture_thread.isRunning():
+            self.capture_thread.quit()
+            self.capture_thread.wait(2000)
+        event.accept()

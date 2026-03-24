@@ -7,6 +7,13 @@ import tomli
 import cv2
 import time
 
+_MODEL_CACHE = {}
+
+def get_model(model_path: str):
+    """Возвращает модель YOLO, загружая её один раз."""
+    if model_path not in _MODEL_CACHE:
+        _MODEL_CACHE[model_path] = YOLO(model_path)
+    return _MODEL_CACHE[model_path]
 
 def process_image(image= None,img=None,save_img:bool=False,save_with_date:bool = False,config_name:str = "confwn"):
     # ================ Блок подготовки имени файла для результата ================
@@ -71,11 +78,12 @@ def process_image(image= None,img=None,save_img:bool=False,save_with_date:bool =
         return vehicles_data
     except Exception as e:
         print("Ошибка работы функции - ",str(e))
+        return []  # вместо None
 
 def detect_on_raw_image(input_image,config):
     """Детекция на одном изображении"""
     MODEL_PATH: str = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "model", str(config["model_name"])))
-    MODEL = YOLO(MODEL_PATH)
+    MODEL = get_model(MODEL_PATH)
     try:
         print("Запуск системы детекции...")
         # Детекция с настройками
@@ -132,7 +140,8 @@ def comparison(saved_data = None,detected_car_data = None):
     ###поиск позиции по точке внутри полигона из приложения
     ###1 - делаем центральную точку внутри позиции найденного авто
     ###2 - ищем точку внутри
-
+    if not detected_car_data:
+        return [], []
     detect_center_list = []
     ### нахождение центральной точки в найденных машинах
     #print(len(detected_car_data))
@@ -147,10 +156,10 @@ def comparison(saved_data = None,detected_car_data = None):
 
     occupied = []
     free = []
-    print(f"хуисосработайблять{detect_center_list}")
+    print(f"Найденные машины: {detect_center_list}")
 
     ###фильтр данных, сопоставление
-    print("ХУЙЙЙЙЙЙЙЙ      ",saved_data)
+    print("Список сохраненных парковочных мест: ",saved_data)
     for i in saved_data:
         found_car = False
         for current_center in range(len(detect_center_list)):

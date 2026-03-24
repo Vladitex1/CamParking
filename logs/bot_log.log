@@ -7004,3 +7004,15 @@ client_session: <aiohttp.client.ClientSession object at 0x000001F0F73B8980>
 2026-03-15 22:00:27,390 - asyncio - DEBUG - Using proactor: IocpProactor
 2026-03-15 22:01:27,653 - asyncio - ERROR - Unclosed client session
 client_session: <aiohttp.client.ClientSession object at 0x000002B2F1C78980>
+2026-03-21 13:42:49,750 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-03-21 13:43:11,834 - asyncio - ERROR - Unclosed client session
+client_session: <aiohttp.client.ClientSession object at 0x00000153C3578830>
+2026-03-21 13:43:32,423 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-03-21 13:43:51,942 - asyncio - ERROR - Unclosed client session
+client_session: <aiohttp.client.ClientSession object at 0x000001F5AB8B8830>
+2026-03-21 13:44:29,499 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-03-21 13:44:48,999 - asyncio - ERROR - Unclosed client session
+client_session: <aiohttp.client.ClientSession object at 0x0000017676244830>
+2026-03-21 13:45:00,049 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-03-21 13:45:19,569 - asyncio - ERROR - Unclosed client session
+client_session: <aiohttp.client.ClientSession object at 0x000001A57A778830>

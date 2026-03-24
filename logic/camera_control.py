@@ -5,7 +5,7 @@ import numpy as np
 import av
 import os
 
-PHOTO_DIR = "../img/camphoto/"
+PHOTO_DIR: str = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "img", "camphoto"))+"/"
 FILE_NAME = "camera_photo_"
 FILE_EXTENSION = "jpg"
 

@@ -16,14 +16,18 @@ def load_theme(color:str="light"):
         current_color = color
         app.setStyleSheet(get_stylesheet())
 
-def change_theme():
+def change_theme(color:str=None):
     global current_color
-    if current_color == "dark":
-        current_color = "light"
+    if color!= None:
+        if color in STYLE.keys():
+            current_color = color
     else:
-        current_color = "dark"
+
+        if current_color == "dark":
+            current_color = "light"
+        else:
+            current_color = "dark"
     load_theme(current_color)
-    save_config(theme = current_color)
     signal.changed.emit(current_color)   # <-- добавить
 
 # ============================ Служебные функции" ====================

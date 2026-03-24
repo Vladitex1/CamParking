@@ -1,6 +1,12 @@
 from Editor.prod.data.prefers_manager import save_config
 NAMES = {
     "RU":{
+
+        # =============== Global ====================
+
+        "language.emoji": "🇷🇺",
+        "language.fullname": "Русский",
+
         # =============== Program ====================
 
         "title": "CamParking",
@@ -41,6 +47,7 @@ NAMES = {
         "editor.toolbar.save.fast":"Быстрое сохранение",
         "editor.toolbar.clear":"Очистить рабочую область",
         "editor.toolbar.test.image":"Загрузить тестовое изображение",
+        "editor.toolbar.capture.image":"Сделать скриншот с камеры",
 
         #================= Editor.toolbar.dialog =================
 
@@ -81,15 +88,42 @@ NAMES = {
         "editor.statusbar.error": f"Ошибка: ",
 
         # ================= Editor.statusbar.dots =================
+
         "editor.statusbar.point.true": f"Точки: ",
         "editor.statusbar.point.false": f"Нет точек",
+
         # ================= Editor.statusbar.masks =================
+
         "editor.statusbar.mask.true": f"Текущая маска: ",
         "editor.statusbar.mask.false": f"Нет маски",
 
 
+        # ================= settings =================
+
+        "settings.title": f"⚙️ Настройки:",
+
+        # ================= settings.theme =================
+
+        "settings.theme.title": f"🌓 Тема программы:",
+
+        # ================= settings.language =================
+
+        "settings.language.title": f"🌐 Язык программы:",
+        "settings.language.about": f"Для смены языка программы необходим перезапуск",
+
+        # ================= settings.save =================
+
+        "settings.save.title": f"Сохранение...",
+        "settings.save.true": f"Сохранение успешно",
+        "settings.save.false": f"Сохранение не выполнено.",
+
     },
     "EN":{
+
+        # =============== Global ====================
+        "language.emoji": "🇬🇧",
+        "language.fullname": "English",
+
         # =============== Program ====================
 
         "title": "CamParking",
@@ -129,6 +163,7 @@ NAMES = {
         "editor.toolbar.save.fast": "Fast save",
         "editor.toolbar.clear": "Clear workspace",
         "editor.toolbar.test.image": "Load test image",
+        "editor.toolbar.capture.image":"Take screenshot from camera",
 
         #================= Editor.toolbar.dialog =================
 
@@ -175,11 +210,30 @@ NAMES = {
         "editor.statusbar.mask.true": f"Current mask: ",
         "editor.statusbar.mask.false": f"No mask",
 
+        # ================= settings =================
+
+        "settings.title": f"⚙️ Settings:",
+
+        # ================= settings.theme =================
+
+        "settings.theme.title": f"🌓 Program theme:",
+
+        # ================= settings.language =================
+
+        "settings.language.title": f"🌐 Program language:",
+        "settings.language.about": f"Restart required to change language",
+
+
+        # ================= settings.save =================
+
+        "settings.save.title": f"Saving...",
+        "settings.save.true": f"Saving complete",
+        "settings.save.false": f"Save not done",
     },
 
 }
 
-current_language: str = ""
+current_language: str = "RU"
 def set_language(language: str):
     global current_language
     current_language = language
@@ -188,13 +242,16 @@ def get_language():
     global current_language
     return current_language
 
-def change_language():
+def change_language(lang_name:str=None):
     global current_language
-    if current_language == "RU":
-        current_language = "EN"
+    if lang_name != None:
+        if lang_name in NAMES.keys():
+            current_language = lang_name
     else:
-        current_language = "RU"
-    save_config(language = current_language)
+        if current_language == "RU":
+            current_language = "EN"
+        else:
+            current_language = "RU"
 
 
 def test(dict1, dict2):
@@ -229,4 +286,4 @@ def test(dict1, dict2):
 
 # Пример использования:
 if __name__ == "__main__":
-    test(NAMES["ru"], NAMES["en"])
+    test(NAMES["RU"], NAMES["EN"])

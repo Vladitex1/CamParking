@@ -1,10 +1,11 @@
 from PySide6.QtWidgets import *
 from PySide6.QtGui import QAction
 from PySide6.QtCore import Qt, QProcess
-from Editor.prod.window import start_window , editor_window, connect_window
+from Editor.prod.window import start_window , editor_window, connect_window, settings_window
 from Editor.prod.data import names as names
 from Editor.prod.data.style import change_theme
 from Editor.prod.data.names import change_language
+from Editor.prod.data.signal_bus import signal
 import sys
 import os
 
@@ -21,7 +22,7 @@ class MainWindow(QMainWindow):
 
         # Добавляем страницы в StackedWidget
         self.create_windows()
-
+        self.create_addon_windows()
         # Создаем меню
         self.create_menu()
 
@@ -29,8 +30,17 @@ class MainWindow(QMainWindow):
         self.create_nav_toolbar()
 
 
+    def create_addon_windows(self):
+        menus = [
+                [f"⚙️ Настройки", settings_window.SettingsWindow()],
+                ]
+
+        for name, window in menus:
+            self.central_widget.addWidget(window)
+
     def create_windows(self):
-        self.menus = [[f"📝{self.name["menu.navigate.start"]}", start_window.StartWindow()],
+        self.menus = [
+            [f"📝{self.name["menu.navigate.start"]}", start_window.StartWindow()],
                  [f"🖼️{self.name["menu.navigate.editor"]}", editor_window.EditorWindow()],
                  [f"📹{self.name["menu.navigate.connect"]}", connect_window.ConnectWindow()],
                  ]
@@ -56,7 +66,7 @@ class MainWindow(QMainWindow):
 
         settings_action = QAction(self.name["menu.parameters.settings"], self)
         settings_action.setShortcut("Ctrl+F3")
-        #settings_action.triggered.connect(lambda: pass)
+        settings_action.triggered.connect(lambda: self.switch_page(3))
         settings_menu.addAction(settings_action)
         #self.name["menu.parameters.switch_theme"]
         turn_on_navigation = QAction("включить меню навигации", self)
@@ -93,6 +103,8 @@ class MainWindow(QMainWindow):
             toolbar.addAction(page)
 
         self.navigation_toolbar = toolbar
+        signal.fast_nav_changed.connect(self.navigation_toolbar.setVisible)
+
 
     def switch_page(self, index):
         """Переключение между страницами"""
