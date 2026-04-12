@@ -6,17 +6,23 @@ import numpy as np
 from dearpygui.dearpygui import theme
 from Editor.prod.data.prefers_manager import *
 from Editor.prod.data.style import STYLE,change_theme,current_color
-import Editor.prod.data.names as names
+import Editor.prod.data.style as style
+from Editor.prod.data.names import NAMES,get_language,change_language
 from Editor.prod.data.signal_bus import signal
+import qtawesome as qta
+'''
+ВСТАВИТЬ ИКОНКИ QTA В настройки в текст (нужно сделать менеджер для переключения иконок)
+'''
 
 class SettingsWindow(QWidget):
     """Первая страница с текстом и кнопкой"""
 
     def __init__(self):
-        self.name = names.NAMES[names.get_language()]
+        self.name = NAMES[get_language()]
         super().__init__()
         self.settings_layouts = []
         self.options = []
+        self.icons = []
 
         self.theme_element()
         self.language_element()
@@ -25,21 +31,39 @@ class SettingsWindow(QWidget):
         self.debug_button()
         self.display_elements()
 
+        signal.theme_changed.connect(self.update_theme_buttons)
+        self.update_theme_buttons()
+
         self.load_settings()
+
+    def update_theme_buttons(self):
+        for button,icon_path,scale in self.icons:
+            icon = qta.icon(icon_path, color=style.STYLE[style.current_color]["text_color"],
+                            options=[{'scale_factor': scale, 'color_disabled': style.STYLE[style.current_color]["text_color"]}])
+            button.setIcon(icon)
 
 
     def theme_element(self):
         theme_group = QGroupBox("theme")
         theme_layout = QVBoxLayout()
 
-        theme_label = QLabel(self.name["settings.theme.title"])
-        theme_label.setStyleSheet(f"font-size: {STYLE["global"]["font_size_h2"]}; font-weight: bold;")
+        theme_label = QPushButton(f"  {self.name["settings.theme.title"]}")
+        theme_label.setStyleSheet(f"font-size: {STYLE["global"]["font_size_h2"]};"
+                                  f" font-weight: bold;"
+                                  f" text-align: left;"
+                                  f"qproperty-iconSize: 35px 35px;"
+                                  f"padding: 5px;")
+        theme_label.setDisabled(True)
+        theme_label.setFlat(True)
+        self.icons.append([theme_label,"mdi6.theme-light-dark",1.2])
+
         theme_layout.addWidget(theme_label)
 
         self.theme_buttons:dict = {}
         for i in STYLE.keys():
             if i != "global":
                 button = QRadioButton(i)
+                #button.setStyleSheet(f"color: {STYLE[style.current_color]["text_color"]};")
                 button.toggled.connect(lambda checked, theme=i: change_theme(theme))
                 self.theme_buttons[i] = button
                 theme_layout.addWidget(button)
@@ -60,14 +84,20 @@ class SettingsWindow(QWidget):
                     if self.theme_buttons[name].isChecked() == True:
                         return name
 
-
-
     def language_element(self):
         language_group = QGroupBox("theme")
         language_layout = QVBoxLayout()
 
-        language_label = QLabel(self.name["settings.language.title"])
-        language_label.setStyleSheet(f"font-size: {STYLE["global"]["font_size_h2"]}; font-weight: bold;")
+        language_label = QPushButton(f"  {self.name["settings.language.title"]}")
+        language_label.setStyleSheet(f"font-size: {STYLE["global"]["font_size_h2"]};"
+                                  f" font-weight: bold;"
+                                  f" text-align: left;"
+                                  f"qproperty-iconSize: 35px 35px;"
+                                  f"padding: 5px;")
+        language_label.setDisabled(True)
+        language_label.setFlat(True)
+        self.icons.append([language_label,"mdi6.translate-variant",1.2])
+
         language_label_about = QLabel(self.name["settings.language.about"])
         language_label_about.setStyleSheet(f"font-size: {STYLE["global"]["font_size_h3"]}; color: {STYLE["global"]["secondary_text_color"]};")
 
@@ -75,9 +105,9 @@ class SettingsWindow(QWidget):
         language_layout.addWidget(language_label_about)
 
         self.language_buttons:dict = {}
-        for i in names.NAMES:
-            button = QRadioButton(f"{names.NAMES[i]["language.emoji"]} | {names.NAMES[i]["language.fullname"]}")
-            button.toggled.connect(lambda checked, language=i: names.change_language(language))
+        for i in NAMES.keys():
+            button = QRadioButton(f"{NAMES[i]["language.emoji"]} | {NAMES[i]["language.fullname"]}")
+            button.toggled.connect(lambda checked, language=i: change_language(language))
             self.language_buttons[i] = button
             language_layout.addWidget(button)
 
@@ -139,7 +169,8 @@ class SettingsWindow(QWidget):
         data = load_config()
         self.theme_element_change(True, data["client_theme"])
         self.language_element_change(True, data["client_language"])
-        #signal.fast_nav_changed.emit(True if data["client_fast_navigation"] == "1" else False) ##########################################
+        self.options_toggle_fast_navigation.setChecked(data["client_fast_navigation"])
+        signal.fast_nav_changed.emit(data["client_fast_navigation"])
 
     def save_button_element(self):
         save_btn = QPushButton(self.name["settings.save.title"])
@@ -151,8 +182,17 @@ class SettingsWindow(QWidget):
         #save_config(theme=current_color)
 
     def display_elements(self):
-        title_label = QLabel(self.name["settings.title"])
-        title_label.setStyleSheet(f"font-size: {STYLE["global"]["font_size_h1"]}; font-weight: bold;")
+        title_label = QPushButton(f" {self.name["settings.title"]}")
+        title_label.setStyleSheet(f"font-size: {STYLE["global"]["font_size_h1"]};"
+                                  f" font-weight: bold;"
+                                  f" text-align: left;"
+                                  f"qproperty-iconSize: 55px 55px;"
+                                  f"padding-left: 5px;")
+        title_label.setDisabled(True)
+        title_label.setFlat(True)
+        self.icons.append([title_label,"mdi6.cogs",1.1])
+
+
         main_layout = QVBoxLayout()
         main_layout.addWidget(title_label)
         main_layout.addSpacing(20)
@@ -169,7 +209,7 @@ class SettingsWindow(QWidget):
         correct,error = save_config(
             client_theme=self.theme_element_change(False),
             client_language=self.language_element_change(False),
-            client_fast_nav_menu=self.language_element_change(False)
+            client_fast_navigation=self.options_toggle_fast_navigation.isChecked(),
                     )
         if correct:
             QMessageBox.information(self, self.name["settings.save.title"], self.name["settings.save.true"])

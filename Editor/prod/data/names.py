@@ -100,15 +100,15 @@ NAMES = {
 
         # ================= settings =================
 
-        "settings.title": f"⚙️ Настройки:",
+        "settings.title": f"Настройки:",
 
         # ================= settings.theme =================
 
-        "settings.theme.title": f"🌓 Тема программы:",
+        "settings.theme.title": f"Тема программы:",
 
         # ================= settings.language =================
 
-        "settings.language.title": f"🌐 Язык программы:",
+        "settings.language.title": f"Язык программы:",
         "settings.language.about": f"Для смены языка программы необходим перезапуск",
 
         # ================= settings.save =================
@@ -116,6 +116,15 @@ NAMES = {
         "settings.save.title": f"Сохранение...",
         "settings.save.true": f"Сохранение успешно",
         "settings.save.false": f"Сохранение не выполнено.",
+
+        # ================= Connect.dock =================
+        "connect.dock.title": "Подключение",
+        "connect.dock.name": "ЗАГОЛОВОК",
+        "connect.dock.button.connect": "Подключиться",
+        "connect.dock.button.connect.config": "Конфигурация камеры",
+        "connect.dock.button.detection.toggle": "Распознавание Live",
+        "connect.dock.button.connect.disconnect": "Отключиться",
+
 
     },
     "EN":{
@@ -212,15 +221,15 @@ NAMES = {
 
         # ================= settings =================
 
-        "settings.title": f"⚙️ Settings:",
+        "settings.title": f"Settings:",
 
         # ================= settings.theme =================
 
-        "settings.theme.title": f"🌓 Program theme:",
+        "settings.theme.title": f"Program theme:",
 
         # ================= settings.language =================
 
-        "settings.language.title": f"🌐 Program language:",
+        "settings.language.title": f"Program language:",
         "settings.language.about": f"Restart required to change language",
 
 
@@ -229,6 +238,14 @@ NAMES = {
         "settings.save.title": f"Saving...",
         "settings.save.true": f"Saving complete",
         "settings.save.false": f"Save not done",
+
+        # ================= Connect.dock =================
+        "connect.dock.title": "Connect",
+        "connect.dock.name": "ZAGOLOVOK",
+        "connect.dock.button.connect": "Go live",
+        "connect.dock.button.connect.config": "Connection config",
+        "connect.dock.button.detection.toggle": "Toggle detection",
+        "connect.dock.button.connect.disconnect": "Disconnect",
     },
 
 }

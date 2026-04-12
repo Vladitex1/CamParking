@@ -1,22 +1,113 @@
 import cv2
 from datetime import date
 import asyncio
-import numpy as np
 import av
 import os
-
+from PySide6.QtCore import *
+from PySide6.QtGui import QImage
 PHOTO_DIR: str = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "img", "camphoto"))+"/"
 FILE_NAME = "camera_photo_"
 FILE_EXTENSION = "jpg"
 
+class CameraThread(QThread):
+    change_pixmap_signal = Signal(QImage)
 
-def get_img_sync(debug: bool = False):
+    def __init__(self, url, target_size):
+        super().__init__()
+        self.url = url
+        self.target_size = target_size  # кортеж (width, height)
+        self._run_flag = True
+
+    def run(self):
+        import concurrent.futures
+        from urllib.parse import urlparse
+        import socket
+        container = None
+        options = {
+            'rtsp_transport': 'udp',
+            'fflags': 'nobuffer',
+            'flags': 'low_delay',
+            'probesize': '32',
+            'analyzeduration': '0',
+            'max_delay': '0'
+        }
+        print("старт подключения.")
+        while self._run_flag:
+
+            try:
+                # -------- ПРЕДВАРИТЕЛЬНАЯ ПРОВЕРКА ПОРТА ----------
+                try:
+                    parsed = urlparse(self.url)
+                    host = parsed.hostname
+                    port = parsed.port
+                    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                    sock.settimeout(2)  # ждём ответа 2 секунды
+                except Exception as e:
+                    print(f"ошибка парса строки {e}")
+                try:
+                    sock.connect((host, port))
+                    sock.close()
+                except:
+                    print("ошибка введенный данных")
+                    break
+                # ------------------------------------------------
+
+
+                with concurrent.futures.ThreadPoolExecutor() as executor:
+                    future = executor.submit(lambda: av.open(self.url, options=options))
+                    container = future.result(timeout=5)  # ждём открытия до 5 секунд
+
+                stream = container.streams.video[0]
+                stream.thread_type = 'AUTO'
+
+                for packet in container.demux(stream):
+                    for frame in packet.decode():
+                        if not self._run_flag:
+                            print("камера не найдена.")
+                            break
+                        img = frame.to_ndarray(format='rgb24')
+                        if (img.shape[1], img.shape[0]) != self.target_size:
+                            img = cv2.resize(img, self.target_size, interpolation=cv2.INTER_LINEAR)
+                        h, w, ch = img.shape
+                        bytes_per_line = ch * w
+                        qt_image = QImage(img.data, w, h, bytes_per_line, QImage.Format_RGB888)
+                        self.change_pixmap_signal.emit(qt_image)
+                    if not self._run_flag:
+                        print("камера не найдена.")
+                        break
+            except TimeoutError:
+                print("время вышло")
+                break
+            except av.error.InvalidDataError:
+                print("неверно указаны данные")
+                break
+            except av.error.HTTPUnauthorizedError:
+                print("неверно указан логин или пароль")
+                break
+            else:
+                print("ошибка ввода")
+                break
+            finally:
+                if container is not None:
+                    print("Поток заверешен корректно")
+                    container.close()
+
+        print("✅ Поток PyAV завершён")
+
+    def stop(self):
+        self._run_flag = False
+        self.wait()
+
+
+def get_img_sync(camera_path: str = None):
     """Синхронная версия для RTSP камеры"""
     try:
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
-        #result = loop.run_until_complete(get_img(debug))
-        result = loop.run_until_complete(get_img_PyAV())
+        if camera_path:
+            result = loop.run_until_complete(get_img_PyAV(camera_path))
+        else:
+            result = loop.run_until_complete(get_img_PyAV())
         loop.close()
         return result
     except Exception as e:
@@ -24,158 +115,8 @@ def get_img_sync(debug: bool = False):
         return None
 
 
-async def get_img2(debug: bool = False):
-    """Получение изображения с RTSP камеры"""
-    print("📡 Подключаюсь к IP-камере по RTSP...")
-
-    # URL вашей камеры (уберите лишний @ если нет пароля)
-    #url = "rtsp://admin:@192.168.0.25:554/h264?tcp"
-    url = "rtsp://admin:@192.168.0.23:554/h264?tcp&buffer_size=102400"
-    alt_urls = [
-        "rtsp://admin:@192.168.0.23:554/stream1",  # Основной поток
-        "rtsp://admin:@192.168.0.23:554/stream2",  # Субпоток (низкое разрешение)
-    ]
-
-    cap = None
-    last_frame = None
-
-    for attempt, test_url in enumerate([url] + alt_urls):
-        try:
-            if debug:
-                print(f"  Попытка {attempt + 1}: {test_url}")
-
-            # ⭐ ВАЖНО: Для RTSP нужно использовать параметры
-            cap = cv2.VideoCapture(test_url, cv2.CAP_FFMPEG)
-
-            # ⭐ НАСТРОЙКИ ДЛЯ RTSP (важные!)
-            cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)  # Минимальный буфер
-            cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'))
-            cap.set(cv2.CAP_PROP_FPS, 15)  # Ограничиваем FPS
-
-            # Даем камере время на подключение
-            await asyncio.sleep(2)
-
-            if not cap.isOpened():
-                print(f"  ❌ Не удалось открыть {test_url}")
-                continue
-
-            print(f"  ✅ Подключено к {test_url}")
-
-            # Читаем несколько кадров для прогрева потока
-            warmup_frames = []
-            for i in range(5):
-                ret, frame = cap.read()
-                if ret:
-                    warmup_frames.append(frame)
-                await asyncio.sleep(0.1)
-
-            if not warmup_frames:
-                print("  ⚠️ Нет кадров в потоке")
-                continue
-
-            # Берем последний кадр
-            last_frame = warmup_frames[-1]
-
-            # Проверяем качество кадра
-            if is_valid_frame(last_frame):
-                print(f"  ✅ Получен валидный кадр {last_frame.shape}")
-                break
-            else:
-                print("  ⚠️ Кадр поврежден, пробую другой URL...")
-
-        except Exception as e:
-            print(f"  ❌ Ошибка: {str(e)[:100]}...")
-            continue
-
-        finally:
-            # Всегда освобождаем ресурсы
-            if cap is not None:
-                cap.release()
-                cap = None
-
-    if last_frame is not None:
-        # Улучшаем изображение если нужно
-        enhanced = enhance_frame(last_frame, debug)
-        return enhanced
-
-    print("❌ Не удалось подключиться к камере")
-    return None
-
-
-def is_valid_frame(frame):
-    """Проверяет, что кадр валиден"""
-    if frame is None:
-        return False
-
-    height, width = frame.shape[:2]
-
-    # Минимальные размеры
-    if height < 100 or width < 100:
-        return False
-
-    # Проверяем на серый экран (все пиксели одинаковые)
-    if np.std(frame) < 5:
-        return False
-
-    # Проверяем на цветные полосы
-    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-
-    # Проверяем вертикальные градиенты
-    col_grad = np.mean(np.abs(np.diff(gray, axis=1)))
-
-    # Проверяем горизонтальные градиенты
-    row_grad = np.mean(np.abs(np.diff(gray, axis=0)))
-
-    # Если оба градиента почти нулевые - вероятно полосы/мусор
-    if col_grad < 1.0 and row_grad < 1.0:
-        return False
-
-    return True
-
-
-def enhance_frame(frame, debug=False):
-    """Улучшает изображение с IP-камеры"""
-    if frame is None:
-        return None
-
-    height, width = frame.shape[:2]
-
-    # 1. Автоматическая яркость/контраст
-    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-
-    # Вычисляем текущую яркость
-    mean_brightness = np.mean(gray)
-
-    if debug:
-        print(f"  📊 Средняя яркость: {mean_brightness:.1f}")
-
-    # Корректируем если нужно
-    if mean_brightness < 50:  # Слишком темно
-        alpha = 2.0  # Контраст
-        beta = 30  # Яркость
-        enhanced = cv2.convertScaleAbs(frame, alpha=alpha, beta=beta)
-    elif mean_brightness > 200:  # Слишком ярко
-        alpha = 0.8  # Уменьшаем контраст
-        beta = -20  # Уменьшаем яркость
-        enhanced = cv2.convertScaleAbs(frame, alpha=alpha, beta=beta)
-    else:
-        enhanced = frame.copy()
-
-    # 2. Уменьшение шума (особенно для ночной съемки)
-    enhanced = cv2.fastNlMeansDenoisingColored(enhanced, None, 10, 10, 7, 21)
-
-    # 3. Легкое увеличение резкости
-    kernel = np.array([[0, -1, 0],
-                       [-1, 5, -1],
-                       [0, -1, 0]])
-    enhanced = cv2.filter2D(enhanced, -1, kernel)
-
-    return enhanced
-
-
-async def get_img_PyAV():
+async def get_img_PyAV(camera_path:str = "rtsp://admin:@192.168.0.27:554/h264?tcp"):
     try:
-        camera_path = "rtsp://admin:@192.168.0.27:554/h264?tcp"
         # Опции для стабильности
         options = {
         # Пропуск кадров
@@ -213,22 +154,11 @@ async def get_img_PyAV():
             img = result
             print("✅ Фото получено")
 
-        filecount = 0
-        for file in os.listdir(PHOTO_DIR):
-            if f"{FILE_NAME}{date.today()}" in file:
-                filecount += 1
-        if filecount == 0:
-            result_image_name = f"{PHOTO_DIR + FILE_NAME}{date.today()}.{FILE_EXTENSION}"
-        else:
-            result_image_name = f"{PHOTO_DIR + FILE_NAME}{date.today()}_{filecount}.{FILE_EXTENSION}"
-
-        result.to_image().save(result_image_name)
-        print(f"кадр сохранен, {result_image_name} ")
+        result_image_name = save_image(img)
         return result_image_name
 
-async def camera_test(ip:str = "192.168.0.23:554"):
+async def camera_test(camera_path: str = "rtsp://admin:@192.168.0.27:554/h264?tcp"):
     try:
-        camera_path = f"rtsp://admin:@{ip}/h264?tcp"
         # Опции для стабильности
         print("📡 Попытка подключения к IP-камере...")
         av.open(camera_path)
@@ -237,7 +167,20 @@ async def camera_test(ip:str = "192.168.0.23:554"):
         print(f"❌ Не удалось подключиться к камере, Ошибка: {e}")
         return False
 
+def save_image(captured_image):
+    filecount = 0
+    for file in os.listdir(PHOTO_DIR):
+        if f"{FILE_NAME}{date.today()}" in file:
+            filecount += 1
+    if filecount == 0:
+        result_image_name = f"{PHOTO_DIR + FILE_NAME}{date.today()}.{FILE_EXTENSION}"
+    else:
+        result_image_name = f"{PHOTO_DIR + FILE_NAME}{date.today()}_{filecount}.{FILE_EXTENSION}"
+
+    captured_image.to_image().save(result_image_name)
+    print(f"кадр сохранен, {result_image_name} ")
+    return result_image_name
+
 
 if __name__ == '__main__':
     asyncio.run(get_img_PyAV())
-    #asyncio.run(get_img2())

@@ -2,7 +2,7 @@ from PySide6.QtCore import QObject, Signal
 
 
 class SignalBus(QObject):
-    changed = Signal(str)
+    theme_changed = Signal(str)
     update_display = Signal()
     fast_nav_changed = Signal(bool)
 

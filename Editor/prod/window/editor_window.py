@@ -7,9 +7,10 @@ from PySide6.QtGui import QPixmap, QPainter, QPen, QBrush, QColor, QAction, QPol
 import qtawesome as qta
 import logic.file as file
 import logic.camera_control as camera_control
+import Editor.prod.data.prefers_manager as pm
 import Editor.prod.data.style as style
 from Editor.prod.data.properties import DockTitleBar     # если в data
-import Editor.prod.data.names as names
+from Editor.prod.data.names import NAMES,get_language
 from Editor.prod.data.signal_bus import signal
 import asyncio
 
@@ -30,6 +31,7 @@ class CaptureImageThread(QThread):
             self.image_ready.emit(None)
 
 
+
 class EditorWindow(QMainWindow):
     """Виджет для отображения изображения и расстановки точек"""
 
@@ -42,7 +44,7 @@ class EditorWindow(QMainWindow):
             new_color = цвет, при новом полигоне
             alpha = прозрачность заполнения 0 - 255
         '''
-        self.name = names.NAMES[names.get_language()]
+        self.name = NAMES[get_language()]
         self.line_size = 3
         self.point_size = 7
         self.text_size = 25
@@ -118,7 +120,7 @@ class EditorWindow(QMainWindow):
 
         # ✅ Подключение сигнала
         signal.update_display.connect(self.update_display)
-        signal.changed.connect(self.update_theme_buttons)
+        signal.theme_changed.connect(self.update_theme_buttons)
         self.update_theme_buttons()
 
 
@@ -147,15 +149,24 @@ class EditorWindow(QMainWindow):
     def capture_image(self):
         if self.capture_thread and self.capture_thread.isRunning():
             return
-        self.capture_thread = CaptureImageThread(camera_control.get_img_sync)
+
+        userdata = pm.load_config()
+
+        camera_path = f"rtsp://{userdata["camera_login"]}:{userdata["camera_pass"]}@{userdata["camera_ip"]}:{userdata["camera_port"]}/{userdata["camera_stream_path"]}"
+
+        self.capture_thread = CaptureImageThread(lambda: camera_control.get_img_sync(camera_path=camera_path))
         self.capture_thread.image_ready.connect(self.on_image_captured)
         self.capture_thread.start()
 
-    def on_image_captured(self, image_path):
-        if image_path and os.path.exists(image_path):
-            self.manual_load_image(image_path, True)
-        else:
-            print("Не удалось получить фото с камеры")
+
+    def on_image_captured(self, image_path:str):
+        try:
+            #if image_path and os.path.exists(image_path):
+            #print(image_path)
+            self.manual_load_image(path=image_path,statusbar=True)
+        except Exception as e:
+            print("Не удалось получить фото с камеры: ",e)
+
 
     def create_toolbar(self):
         toolbar = QToolBar(self.name["editor.toolbar.title"])
@@ -463,6 +474,8 @@ class EditorWindow(QMainWindow):
                 self.image_path = path
                 self.image = QPixmap(path)
                 self.update_display()
+        else:
+            print("Проблема c путем. Загрузка не выполнена.")
 
 
     def get_image_coordinates(self, event):

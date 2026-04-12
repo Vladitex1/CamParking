@@ -2,7 +2,7 @@ from PySide6.QtWidgets import *
 from PySide6.QtGui import QAction
 from PySide6.QtCore import Qt, QProcess
 from Editor.prod.window import start_window , editor_window, connect_window, settings_window
-from Editor.prod.data import names as names
+from Editor.prod.data.names import NAMES,get_language
 from Editor.prod.data.style import change_theme
 from Editor.prod.data.names import change_language
 from Editor.prod.data.signal_bus import signal
@@ -12,7 +12,7 @@ import os
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.name = names.NAMES[names.get_language()]
+        self.name = NAMES[get_language()]
         self.setWindowTitle(self.name["title"])
         self.setGeometry(100, 100, 900, 700)
 
@@ -94,6 +94,7 @@ class MainWindow(QMainWindow):
         help_menu.addAction(about_action)
 ##
     def create_nav_toolbar(self,):
+        from Editor.prod.data.prefers_manager import load_config
         toolbar = QToolBar(self.name["menu.menu_switcher.title"])
         self.addToolBar(toolbar)
 
@@ -102,9 +103,11 @@ class MainWindow(QMainWindow):
             page.triggered.connect(lambda checked, page=num: self.switch_page(page))
             toolbar.addAction(page)
 
+        data = load_config()
+
         self.navigation_toolbar = toolbar
         signal.fast_nav_changed.connect(self.navigation_toolbar.setVisible)
-
+        self.navigation_toolbar.setVisible(data["client_fast_navigation"])
 
     def switch_page(self, index):
         """Переключение между страницами"""

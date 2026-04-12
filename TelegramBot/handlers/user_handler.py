@@ -258,8 +258,8 @@ async def parking_settings(callback: types.CallbackQuery):
                ["Назад","user:menu:get"]]
 
     cameratest: str="🔴"
-    if await camera.camera_test(whitelist.get_settings('ip',user_id)):
-        cameratest = "🟢"
+    #if await camera.camera_test(whitelist.get_settings('ip',user_id)):
+        #cameratest = "🟢"
 
     text = (f"🔧 Настройки 🔧\n\n"
             f"📷 ip камеры: {whitelist.get_settings('ip',user_id)} статус: {cameratest}\n"

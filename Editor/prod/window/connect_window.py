@@ -1,119 +1,26 @@
-import sys
 import os
 from pathlib import Path
-import cv2
 import numpy as np
-import logic.detector as detector
+import logic.camera_control as camera_control
 import Editor.prod.data.prefers_manager as pm
-import av
 from PySide6.QtWidgets import *
-from PySide6.QtCore import Qt, QPoint, QSize, QTimer, QEvent, QUrl, QRectF, QPointF, QThread, Signal, QMutex, \
-    QWaitCondition, QTimer
+from PySide6.QtCore import *
 from PySide6.QtGui import (
-    QPixmap, QPainter, QPen, QBrush, QColor, QAction,
-    QPolygon, QPainterPath, QImage, QWheelEvent,QPolygonF
+    QPixmap, QPen, QBrush, QColor, QAction,QPolygonF
 )
-import asyncio
+
 import qtawesome as qta
 import logic.file as file
 import logic.logic as logic
 import Editor.prod.data.style as style
 from Editor.prod.data.properties import DockTitleBar
-import Editor.prod.data.names as names
+from Editor.prod.data.names import NAMES,get_language
 from Editor.prod.data.signal_bus import signal
 
 
 # ----------------------------------------------------------------------
 # Поток для захвата видео с RTSP камеры через OpenCV
 # ----------------------------------------------------------------------
-class CameraThread(QThread):
-    change_pixmap_signal = Signal(QImage)
-
-    def __init__(self, url, target_size):
-        super().__init__()
-        self.url = url
-        self.target_size = target_size  # кортеж (width, height)
-        self._run_flag = True
-
-    def run(self):
-        import concurrent.futures
-        from urllib.parse import urlparse
-        import socket
-        container = None
-        options = {
-            'rtsp_transport': 'udp',
-            'fflags': 'nobuffer',
-            'flags': 'low_delay',
-            'probesize': '32',
-            'analyzeduration': '0',
-            'max_delay': '0'
-        }
-        print("старт подключения.")
-        while self._run_flag:
-
-            try:
-                # -------- ПРЕДВАРИТЕЛЬНАЯ ПРОВЕРКА ПОРТА ----------
-                try:
-                    parsed = urlparse(self.url)
-                    host = parsed.hostname
-                    port = parsed.port
-                    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                    sock.settimeout(2)  # ждём ответа 2 секунды
-                except Exception as e:
-                    print(f"ошибка парса строки {e}")
-                try:
-                    sock.connect((host, port))
-                    sock.close()
-                except:
-                    print("ошибка введенный данных")
-                    break
-                # ------------------------------------------------
-
-
-                with concurrent.futures.ThreadPoolExecutor() as executor:
-                    future = executor.submit(lambda: av.open(self.url, options=options))
-                    container = future.result(timeout=5)  # ждём открытия до 5 секунд
-
-                stream = container.streams.video[0]
-                stream.thread_type = 'AUTO'
-
-                for packet in container.demux(stream):
-                    for frame in packet.decode():
-                        if not self._run_flag:
-                            print("камера не найдена.")
-                            break
-                        img = frame.to_ndarray(format='rgb24')
-                        if (img.shape[1], img.shape[0]) != self.target_size:
-                            img = cv2.resize(img, self.target_size, interpolation=cv2.INTER_LINEAR)
-                        h, w, ch = img.shape
-                        bytes_per_line = ch * w
-                        qt_image = QImage(img.data, w, h, bytes_per_line, QImage.Format_RGB888)
-                        self.change_pixmap_signal.emit(qt_image)
-                    if not self._run_flag:
-                        print("камера не найдена.")
-                        break
-            except TimeoutError:
-                print("время вышло")
-                break
-            except av.error.InvalidDataError:
-                print("неверно указаны данные")
-                break
-            except av.error.HTTPUnauthorizedError:
-                print("неверно указан логин или пароль")
-                break
-            else:
-                print("ошибка ввода")
-                break
-            finally:
-                if container is not None:
-                    print("Поток заверешен корректно")
-                    container.close()
-
-        print("✅ Поток PyAV завершён")
-
-    def stop(self):
-        self._run_flag = False
-        self.wait()
 
 class ProcessingThread(QThread):
     # Сигнал для передачи результата обратно в главный поток
@@ -223,7 +130,7 @@ class GraphicsView(QGraphicsView):
 class ConnectWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.name = names.NAMES[names.get_language()]
+        self.name = NAMES[get_language()]
         self.line_size = 3
         self.point_size = 7
         self.text_size = 25
@@ -255,7 +162,7 @@ class ConnectWindow(QMainWindow):
         self.create_statusbar()
         # Статус бар
         self.update_theme_buttons()
-        signal.changed.connect(self.update_theme_buttons)
+        signal.theme_changed.connect(self.update_theme_buttons)
         # Поток камеры (будет создан при подключении)
         self.camera_thread = None
         self.processing_thread = ProcessingThread()
@@ -545,7 +452,7 @@ class ConnectWindow(QMainWindow):
             self.camera_thread.stop()
 
         # Создаём и запускаем новый поток
-        self.camera_thread = CameraThread(url, (self.target_size.width(), self.target_size.height()))
+        self.camera_thread = camera_control.CameraThread(url, (self.target_size.width(), self.target_size.height()))
         self.camera_thread.change_pixmap_signal.connect(self.update_frame)
         self.camera_thread.start()
 
@@ -616,7 +523,7 @@ class ConnectWindow(QMainWindow):
         layout.setContentsMargins(mrg, mrg, mrg, mrg)
 
         # Заголовок
-        title_label = QLabel(self.name["editor.editor.dock.name"])
+        title_label = QLabel(self.name["connect.dock.name"])
         title_label.setProperty("dock", "main")
         title_label.setStyleSheet(f"font-size: {style.STYLE["global"]["font_size_h2"]}; font-weight: bold;")
         title_label.setAlignment(Qt.AlignCenter)
@@ -647,11 +554,10 @@ class ConnectWindow(QMainWindow):
 
         # Кнопки действий
         actions_data = [
-            ("Подключиться", "mdi6.connection", self.connect_rtsp),
-            ("Форма настройки", "mdi6.camera-plus", lambda: self.connect_modal_window(self,"Окно подключения","Форма для подключения")),
-            ("Переключить авто-детекцию", "mdi6.car-connected", lambda: (self.toggle_auto_detect(),self.update_display())),
-            ("Отключиться", "mdi6.camera-off", lambda: (self.stop_rtsp(),self.clear_display(),self.toggle_auto_detect(True))),
-            #(self.name["editor.editor.dock.button.select.all"], "mdi6.check-all", self.stop_rtsp),
+            (self.name["connect.dock.button.connect"], "mdi6.connection", self.connect_rtsp),
+            (self.name["connect.dock.button.connect.config"], "mdi6.camera-plus", lambda: self.connect_modal_window(self,"Окно подключения","Форма для подключения")),
+            (self.name["connect.dock.button.detection.toggle"], "mdi6.car-connected", lambda: (self.toggle_auto_detect(),self.update_display())),
+            (self.name["connect.dock.button.connect.disconnect"], "mdi6.camera-off", lambda: (self.stop_rtsp(),self.clear_display(),self.toggle_auto_detect(True))),
         ]
         for name, icon_path, slot in actions_data:
             button = QPushButton(name)
@@ -663,13 +569,13 @@ class ConnectWindow(QMainWindow):
             #button.setVisible(False)
             layout.addWidget(button)
 
-        # layout.addStretch()
+        #layout.addStretch()
 
         self.create_dock(
-            name=self.name["editor.editor.dock.title"],
+            name=self.name["connect.dock.title"],
             position="left",
             content=dock_content,
-            min_width=300,
+            min_width=335,
             max_width=650,
             max_height=1000,
         )
@@ -703,6 +609,7 @@ class ConnectWindow(QMainWindow):
         stream_path = QComboBox()
         stream_path_label = QLabel("Путь подключения:")
         stream_path.addItems(["stream1", "stream2", "live1", "live2"])
+        stream_path.setCurrentIndex(stream_path.findText(userdata["camera_stream_path"]))
         #self.combo.currentTextChanged.connect(self.on_changed)
 
         login = QHBoxLayout()

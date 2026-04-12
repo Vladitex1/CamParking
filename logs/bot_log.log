@@ -7016,3 +7016,137 @@ client_session: <aiohttp.client.ClientSession object at 0x0000017676244830>
 2026-03-21 13:45:00,049 - asyncio - DEBUG - Using proactor: IocpProactor
 2026-03-21 13:45:19,569 - asyncio - ERROR - Unclosed client session
 client_session: <aiohttp.client.ClientSession object at 0x000001A57A778830>
+2026-03-26 00:34:27,684 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-03-26 00:35:53,038 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-03-26 00:36:42,392 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-03-26 00:37:36,783 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-03-26 00:38:48,957 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-03-26 00:39:53,551 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-03-26 00:40:31,370 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-03-26 00:40:32,165 - aiogram.dispatcher - INFO - Start polling
+2026-03-26 00:40:32,231 - aiogram.dispatcher - INFO - Run polling for bot @camparkingbot id=8034081320 - 'ParkingBot'
+2026-03-26 00:40:37,745 - aiogram.event - INFO - Update id=216129991 is handled. Duration 404 ms by bot id=8034081320
+2026-03-26 00:40:47,124 - handlers.user_handler - INFO - Показ ID для user_id=413700636
+2026-03-26 00:40:47,281 - aiogram.event - INFO - Update id=216129992 is handled. Duration 160 ms by bot id=8034081320
+2026-03-26 00:40:48,096 - handlers.user_handler - DEBUG - Обработка user:menu:get для user_id=413700636
+2026-03-26 00:40:48,096 - handlers.user_handler - INFO - Показано меню пользователя для user_id=413700636
+2026-03-26 00:40:48,214 - aiogram.event - INFO - Update id=216129993 is handled. Duration 120 ms by bot id=8034081320
+2026-03-26 00:41:17,357 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-03-26 00:41:18,238 - aiogram.dispatcher - INFO - Start polling
+2026-03-26 00:41:18,296 - aiogram.dispatcher - INFO - Run polling for bot @camparkingbot id=8034081320 - 'ParkingBot'
+2026-03-26 00:41:26,422 - handlers.user_handler - INFO - Показ ID для user_id=413700636
+2026-03-26 00:41:26,867 - aiogram.event - INFO - Update id=216129995 is handled. Duration 450 ms by bot id=8034081320
+2026-03-26 00:41:32,407 - handlers.admin_handler - INFO - ✅ Успешно с 1 попытки
+2026-03-26 00:41:32,407 - aiogram.event - INFO - Update id=216129996 is handled. Duration 132 ms by bot id=8034081320
+2026-03-26 00:41:34,040 - handlers.config - DEBUG - 🔄 Whitelist.get_user_list() начат
+2026-03-26 00:41:34,041 - handlers.config - DEBUG - ✅ Whitelist.get_user_list() завершен за 0.00с
+2026-03-26 00:41:34,187 - aiogram.event - INFO - Update id=216129997 is handled. Duration 149 ms by bot id=8034081320
+2026-03-26 00:41:40,513 - handlers.admin_handler - INFO - ✅ Успешно с 1 попытки
+2026-03-26 00:41:40,513 - aiogram.event - INFO - Update id=216129998 is handled. Duration 132 ms by bot id=8034081320
+2026-03-26 00:41:41,252 - handlers.user_handler - DEBUG - Обработка user:menu:get для user_id=413700636
+2026-03-26 00:41:41,252 - handlers.user_handler - INFO - Показано меню пользователя для user_id=413700636
+2026-03-26 00:41:41,388 - aiogram.event - INFO - Update id=216129999 is handled. Duration 138 ms by bot id=8034081320
+2026-03-26 00:41:56,789 - aiogram.dispatcher - INFO - Polling stopped
+2026-03-26 00:41:56,790 - aiogram.dispatcher - ERROR - Failed to fetch updates - TelegramNetworkError: HTTP Client says - ServerDisconnectedError: Server disconnected
+2026-03-26 00:41:56,790 - aiogram.dispatcher - WARNING - Sleep for 1.000000 seconds and try again... (tryings = 0, bot id = 8034081320)
+2026-03-26 00:43:31,013 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-03-26 00:43:31,779 - aiogram.dispatcher - INFO - Start polling
+2026-03-26 00:43:31,833 - aiogram.dispatcher - INFO - Run polling for bot @camparkingbot id=8034081320 - 'ParkingBot'
+2026-03-26 00:43:36,687 - handlers.user_handler - INFO - Показ ID для user_id=413700636
+2026-03-26 00:43:37,007 - aiogram.event - INFO - Update id=216130000 is handled. Duration 324 ms by bot id=8034081320
+2026-03-26 00:43:37,848 - handlers.user_handler - DEBUG - Обработка user:menu:get для user_id=413700636
+2026-03-26 00:43:37,849 - handlers.user_handler - INFO - Показано меню пользователя для user_id=413700636
+2026-03-26 00:43:37,974 - aiogram.event - INFO - Update id=216130001 is handled. Duration 128 ms by bot id=8034081320
+2026-03-26 00:43:39,554 - aiogram.event - INFO - Update id=216130002 is handled. Duration 199 ms by bot id=8034081320
+2026-03-26 00:44:08,236 - aiogram.event - INFO - Update id=216130003 is handled. Duration 264 ms by bot id=8034081320
+2026-03-26 00:44:09,439 - handlers.admin_handler - ERROR - ⚠️ Произошла ошибка.,TelegramBadRequest:Telegram server says - Bad Request: message is not modified: specified new message content and reply markup are exactly the same as a current content and reply markup of the message
+2026-03-26 00:44:09,439 - aiogram.event - INFO - Update id=216130004 is handled. Duration 132 ms by bot id=8034081320
+2026-03-26 00:44:11,900 - handlers.user_handler - DEBUG - Обработка user:menu:get для user_id=413700636
+2026-03-26 00:44:11,901 - handlers.user_handler - INFO - Показано меню пользователя для user_id=413700636
+2026-03-26 00:44:12,031 - aiogram.event - INFO - Update id=216130005 is handled. Duration 133 ms by bot id=8034081320
+2026-03-26 00:44:13,651 - handlers.user_handler - INFO - Показ справки для user_id=413700636
+2026-03-26 00:44:13,772 - aiogram.event - INFO - Update id=216130006 is handled. Duration 124 ms by bot id=8034081320
+2026-03-26 00:44:14,408 - handlers.user_handler - DEBUG - Обработка user:menu:get для user_id=413700636
+2026-03-26 00:44:14,408 - handlers.user_handler - INFO - Показано меню пользователя для user_id=413700636
+2026-03-26 00:44:14,535 - aiogram.event - INFO - Update id=216130007 is handled. Duration 129 ms by bot id=8034081320
+2026-03-26 00:44:14,987 - handlers.user_handler - INFO - Показ ID для user_id=413700636
+2026-03-26 00:44:15,116 - aiogram.event - INFO - Update id=216130008 is handled. Duration 133 ms by bot id=8034081320
+2026-03-26 00:44:16,214 - handlers.user_handler - DEBUG - Обработка user:menu:get для user_id=413700636
+2026-03-26 00:44:16,214 - handlers.user_handler - INFO - Показано меню пользователя для user_id=413700636
+2026-03-26 00:44:16,337 - aiogram.event - INFO - Update id=216130009 is handled. Duration 125 ms by bot id=8034081320
+2026-03-26 00:44:20,135 - aiogram.event - INFO - Update id=216130010 is handled. Duration 239 ms by bot id=8034081320
+2026-03-26 00:44:21,106 - handlers.user_handler - DEBUG - Обработка user:menu:get для user_id=413700636
+2026-03-26 00:44:21,106 - handlers.user_handler - INFO - Показано меню пользователя для user_id=413700636
+2026-03-26 00:44:21,278 - aiogram.event - INFO - Update id=216130011 is handled. Duration 174 ms by bot id=8034081320
+2026-03-26 00:45:42,578 - handlers.user_handler - INFO - Показ ID для user_id=413700636
+2026-03-26 00:45:42,714 - aiogram.event - INFO - Update id=216130012 is handled. Duration 139 ms by bot id=8034081320
+2026-03-26 00:45:43,276 - handlers.user_handler - DEBUG - Обработка user:menu:get для user_id=413700636
+2026-03-26 00:45:43,277 - handlers.user_handler - INFO - Показано меню пользователя для user_id=413700636
+2026-03-26 00:45:43,416 - aiogram.event - INFO - Update id=216130013 is handled. Duration 142 ms by bot id=8034081320
+2026-03-26 00:45:43,837 - handlers.user_handler - INFO - Показ ID для user_id=413700636
+2026-03-26 00:45:44,045 - aiogram.event - INFO - Update id=216130014 is handled. Duration 211 ms by bot id=8034081320
+2026-03-26 00:45:44,659 - handlers.user_handler - DEBUG - Обработка user:menu:get для user_id=413700636
+2026-03-26 00:45:44,659 - handlers.user_handler - INFO - Показано меню пользователя для user_id=413700636
+2026-03-26 00:45:44,863 - aiogram.event - INFO - Update id=216130015 is handled. Duration 205 ms by bot id=8034081320
+2026-03-26 00:45:45,339 - handlers.user_handler - INFO - Показ ID для user_id=413700636
+2026-03-26 00:45:45,464 - aiogram.event - INFO - Update id=216130016 is handled. Duration 129 ms by bot id=8034081320
+2026-03-26 00:45:49,220 - handlers.admin_handler - INFO - ✅ Успешно с 1 попытки
+2026-03-26 00:45:49,220 - aiogram.event - INFO - Update id=216130017 is handled. Duration 161 ms by bot id=8034081320
+2026-03-26 00:45:50,827 - handlers.config - DEBUG - 🔄 Whitelist.get_user_list() начат
+2026-03-26 00:45:50,828 - handlers.config - DEBUG - ✅ Whitelist.get_user_list() завершен за 0.00с
+2026-03-26 00:45:50,956 - aiogram.event - INFO - Update id=216130018 is handled. Duration 131 ms by bot id=8034081320
+2026-03-26 00:45:53,766 - handlers.admin_handler - INFO - ✅ Успешно с 1 попытки
+2026-03-26 00:45:53,766 - aiogram.event - INFO - Update id=216130019 is handled. Duration 128 ms by bot id=8034081320
+2026-03-26 00:45:55,712 - handlers.user_handler - DEBUG - Обработка user:menu:get для user_id=413700636
+2026-03-26 00:45:55,712 - handlers.user_handler - INFO - Показано меню пользователя для user_id=413700636
+2026-03-26 00:45:55,846 - aiogram.event - INFO - Update id=216130020 is handled. Duration 137 ms by bot id=8034081320
+2026-03-26 00:45:58,125 - aiogram.event - INFO - Update id=216130021 is handled. Duration 192 ms by bot id=8034081320
+2026-03-26 00:46:02,100 - aiogram.event - INFO - Update id=216130022 is handled. Duration 281 ms by bot id=8034081320
+2026-03-26 00:46:02,966 - aiogram.event - INFO - Update id=216130023 is handled. Duration 222 ms by bot id=8034081320
+2026-03-26 00:46:03,572 - aiogram.event - INFO - Update id=216130024 is handled. Duration 209 ms by bot id=8034081320
+2026-03-26 00:46:03,788 - handlers.user_handler - DEBUG - Обработка user:menu:get для user_id=413700636
+2026-03-26 00:46:03,789 - handlers.user_handler - INFO - Показано меню пользователя для user_id=413700636
+2026-03-26 00:46:03,936 - aiogram.event - INFO - Update id=216130025 is handled. Duration 149 ms by bot id=8034081320
+2026-03-26 01:12:12,338 - aiogram.dispatcher - ERROR - Failed to fetch updates - TelegramNetworkError: HTTP Client says - ServerDisconnectedError: Server disconnected
+2026-03-26 01:12:12,338 - aiogram.dispatcher - WARNING - Sleep for 1.000000 seconds and try again... (tryings = 0, bot id = 8034081320)
+2026-03-26 01:12:23,631 - aiogram.dispatcher - INFO - Connection established (tryings = 1, bot id = 8034081320)
+2026-03-26 01:12:29,184 - aiogram.dispatcher - INFO - Polling stopped
+2026-03-26 01:12:29,185 - aiogram.dispatcher - ERROR - Failed to fetch updates - TelegramNetworkError: HTTP Client says - ServerDisconnectedError: Server disconnected
+2026-03-26 01:12:29,185 - aiogram.dispatcher - WARNING - Sleep for 1.000000 seconds and try again... (tryings = 0, bot id = 8034081320)
+2026-03-26 01:12:37,030 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-03-26 01:12:37,247 - aiogram.dispatcher - INFO - Start polling
+2026-03-26 01:12:37,306 - aiogram.dispatcher - INFO - Run polling for bot @camparkingbot id=8034081320 - 'ParkingBot'
+2026-03-26 01:12:43,917 - aiogram.event - INFO - Update id=216130026 is handled. Duration 372 ms by bot id=8034081320
+2026-03-26 01:12:44,658 - handlers.user_handler - DEBUG - Обработка user:menu:get для user_id=413700636
+2026-03-26 01:12:44,659 - handlers.user_handler - INFO - Показано меню пользователя для user_id=413700636
+2026-03-26 01:12:44,780 - aiogram.event - INFO - Update id=216130027 is handled. Duration 124 ms by bot id=8034081320
+2026-03-26 01:12:45,581 - handlers.user_handler - INFO - Показ ID для user_id=413700636
+2026-03-26 01:12:45,740 - aiogram.event - INFO - Update id=216130028 is handled. Duration 162 ms by bot id=8034081320
+2026-03-26 01:12:46,286 - handlers.user_handler - DEBUG - Обработка user:menu:get для user_id=413700636
+2026-03-26 01:12:46,286 - handlers.user_handler - INFO - Показано меню пользователя для user_id=413700636
+2026-03-26 01:12:46,405 - aiogram.event - INFO - Update id=216130029 is handled. Duration 121 ms by bot id=8034081320
+2026-03-26 01:13:14,557 - aiogram.dispatcher - ERROR - Failed to fetch updates - TelegramNetworkError: HTTP Client says - ServerDisconnectedError: Server disconnected
+2026-03-26 01:13:14,557 - aiogram.dispatcher - WARNING - Sleep for 1.000000 seconds and try again... (tryings = 0, bot id = 8034081320)
+2026-03-26 01:13:17,466 - aiogram.dispatcher - INFO - Polling stopped
+2026-03-28 21:48:30,456 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-03-28 21:48:31,054 - aiogram.dispatcher - INFO - Start polling
+2026-03-28 21:48:31,120 - aiogram.dispatcher - INFO - Run polling for bot @camparkingbot id=8034081320 - 'ParkingBot'
+2026-03-28 21:50:19,228 - aiogram.event - INFO - Update id=216130030 is handled. Duration 430 ms by bot id=8034081320
+2026-03-28 21:50:56,436 - handlers.user_handler - DEBUG - Обработка user:menu:get для user_id=413700636
+2026-03-28 21:50:56,437 - handlers.user_handler - INFO - Показано меню пользователя для user_id=413700636
+2026-03-28 21:50:57,410 - aiogram.event - INFO - Update id=216130031 is handled. Duration 977 ms by bot id=8034081320
+2026-03-28 21:50:57,672 - handlers.user_handler - INFO - Показ ID для user_id=413700636
+2026-03-28 21:50:57,828 - aiogram.event - INFO - Update id=216130032 is handled. Duration 160 ms by bot id=8034081320
+2026-03-28 21:51:14,232 - handlers.admin_handler - INFO - ✅ Успешно с 1 попытки
+2026-03-28 21:51:14,232 - aiogram.event - INFO - Update id=216130033 is handled. Duration 192 ms by bot id=8034081320
+2026-03-28 21:51:15,837 - handlers.config - DEBUG - 🔄 Whitelist.get_user_list() начат
+2026-03-28 21:51:15,838 - handlers.config - DEBUG - ✅ Whitelist.get_user_list() завершен за 0.00с
+2026-03-28 21:51:16,003 - aiogram.event - INFO - Update id=216130034 is handled. Duration 167 ms by bot id=8034081320
+2026-03-28 21:51:35,277 - handlers.admin_handler - INFO - ✅ Успешно с 1 попытки
+2026-03-28 21:51:35,277 - aiogram.event - INFO - Update id=216130035 is handled. Duration 144 ms by bot id=8034081320
+2026-03-28 21:52:04,317 - handlers.user_handler - DEBUG - Обработка user:menu:get для user_id=413700636
+2026-03-28 21:52:04,318 - handlers.user_handler - INFO - Показано меню пользователя для user_id=413700636
+2026-03-28 21:52:04,473 - aiogram.event - INFO - Update id=216130036 is handled. Duration 158 ms by bot id=8034081320
+2026-03-28 21:54:30,782 - aiogram.dispatcher - INFO - Polling stopped
+2026-03-28 21:54:30,784 - aiogram.dispatcher - ERROR - Failed to fetch updates - TelegramNetworkError: HTTP Client says - ServerDisconnectedError: Server disconnected
+2026-03-28 21:54:30,784 - aiogram.dispatcher - WARNING - Sleep for 1.000000 seconds and try again... (tryings = 0, bot id = 8034081320)

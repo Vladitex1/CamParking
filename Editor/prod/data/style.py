@@ -28,7 +28,7 @@ def change_theme(color:str=None):
         else:
             current_color = "dark"
     load_theme(current_color)
-    signal.changed.emit(current_color)   # <-- добавить
+    signal.theme_changed.emit(current_color)   # <-- добавить
 
 # ============================ Служебные функции" ====================
 def load_font():
@@ -221,10 +221,6 @@ QScrollBar::handle:vertical:hover {{
 
 
 
-
-
-
-
 QScrollBar::sub-line:vertical,
 QScrollBar::add-line:vertical {{
     height: 0px;
@@ -232,6 +228,25 @@ QScrollBar::add-line:vertical {{
 }}
 
 /*======================= Настройка мелких элементов ===================================*/
+
+
+QRadioButton::indicator {{
+    width: 16px;
+    height: 16px;
+    border-radius: 10px;
+    border: 2px solid {calc_color(STYLE[current_color]["text_color"],10)};
+
+}}
+
+QRadioButton::indicator:hover {{
+    background-color: {calc_color(STYLE[current_color]["text_color"],5)};
+}}
+QRadioButton::indicator:checked {{
+    background-color: {calc_color(STYLE["global"]["secondary_text_color"],10)};
+}}
+
+
+
 QScrollArea {{
     background-color: {STYLE[current_color]["dock_color"]};
     /*border: 2px solid {STYLE["global"]["secondary_text_color"]};*/
@@ -255,6 +270,7 @@ background-color: {calc_color(STYLE[current_color]["dock_color"],STYLE["global"]
 QLineEdit {{
 margin-right: 20px;
 border-radius: {STYLE["global"]["style_border_radius"]};
+padding: 5px;
 background-color: {STYLE[current_color]["button_background_color_st1"]};
 }}
 
@@ -267,11 +283,22 @@ QLabel[element="circle"]{{
 
 
 /* === Стили для полигонов === */
+
+
+QWidget[dock="polygon_slot"] QLineEdit {{
+margin-right: 20px;
+border-radius: {STYLE["global"]["style_border_radius"]};
+background-color: {STYLE[current_color]["button_background_color_st1"]};
+padding: 0px;
+}}
+
+
 QWidget[dock="polygon_slot"] {{
     width: 20px;
     height: 20px;
     background-color: {STYLE[current_color]["button_background_color_st1"]};
     border-radius: 15px;
+
 }}
 
 QWidget[dock="polygon_slot"] QCheckBox {{

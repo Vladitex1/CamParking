@@ -64,7 +64,7 @@ class DockTitleBar(QWidget):
             self.button_icons.append([button, icon])
 
         # Устанавливаем иконки
-        signal.changed.connect(self.update_theme)
+        signal.theme_changed.connect(self.update_theme)
         self.update_theme()
 
     def on_toggle_clicked(self):
