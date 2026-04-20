@@ -1,8 +1,9 @@
 {
-  "client_theme": "light",
+  "client_theme": "dark",
   "client_language": "RU",
   "client_fast_navigation": false,
-  "camera_ip": "192.168.0.23",
+  "client_debug": false,
+  "camera_ip": "192.168.0.27",
   "camera_port": "554",
   "camera_login": "admin",
   "camera_pass": "",

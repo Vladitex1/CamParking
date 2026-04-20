@@ -5,7 +5,7 @@ from PySide6.QtCore import Qt, QSize, QTimer
 from PySide6.QtGui import QPalette, QColor
 from ..data import style  # путь к твоему style.py (возможно, надо скорректировать)
 from Editor.prod.data.signal_bus import signal
-
+from Editor.prod.data.names import NAMES,get_language
 
 
 
@@ -23,7 +23,7 @@ class DockTitleBar(QWidget):
         super().__init__(dock_widget)
         self.dock = dock_widget
         self.toggle_float_bool = False
-
+        self.name = NAMES[get_language()]
         # Главный layout для всего заголовка (без отступов)
         main_layout = QHBoxLayout(self)
         main_layout.setContentsMargins(0, int(style.STYLE["global"]["style_margin"].replace("px","")), 0, 0)
@@ -51,8 +51,8 @@ class DockTitleBar(QWidget):
 
         # Кнопки
         self.buttons = [
-            ("Открепить окно", self.on_toggle_clicked, "mdi6.dock-window"),
-            ("Закрыть окно", self.on_close_clicked, "mdi6.window-close"),
+            (self.name["dock.unpin"], self.on_toggle_clicked, "mdi6.dock-window"),
+            (self.name["dock.close"], self.on_close_clicked, "mdi6.window-close"),
         ]
         self.button_icons = []
         for name, action, icon in self.buttons:

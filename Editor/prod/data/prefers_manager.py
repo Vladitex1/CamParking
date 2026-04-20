@@ -54,6 +54,7 @@ def load_config(filename: str = "prefers.json"):
         "client_theme": data.get("client_theme", ""),
         "client_language": data.get("client_language", ""),
         "client_fast_navigation": data.get("client_fast_navigation", ""),
+        "client_debug": data.get("client_debug", ""),
         "camera_ip": data.get("camera_ip", ""),
         "camera_port": data.get("camera_port", ""),
         "camera_login": data.get("camera_login", ""),
@@ -67,7 +68,8 @@ def first_save(filename="prefers.json"):
     defaults = {
         "client_theme": "light",
         "client_language": "RU",
-        "client_fast_navigation": "0",
+        "client_fast_navigation": False,
+        "client_debug": False,
         "camera_ip": "192.168.0.27",
         "camera_port": "554",
         "camera_login": "admin",

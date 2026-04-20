@@ -2,17 +2,18 @@ import os
 from pathlib import Path
 import numpy as np
 import logic.camera_control as camera_control
-import Editor.prod.data.prefers_manager as pm
+from Editor.prod.data.prefers_manager import *
 from PySide6.QtWidgets import *
 from PySide6.QtCore import *
 from PySide6.QtGui import (
-    QPixmap, QPen, QBrush, QColor, QAction,QPolygonF
+    QPixmap, QPen, QBrush, QColor, QAction,QPolygonF, QClipboard
 )
 
 import qtawesome as qta
 import logic.file as file
 import logic.logic as logic
 import Editor.prod.data.style as style
+from Editor.prod.data import global_var
 from Editor.prod.data.properties import DockTitleBar
 from Editor.prod.data.names import NAMES,get_language
 from Editor.prod.data.signal_bus import signal
@@ -50,7 +51,7 @@ class ProcessingThread(QThread):
         while self._run_flag:
             self.mutex.lock()
             if self.frame is None:
-                self.cond.wait(self.mutex)
+                self.cond.wait(self.mutex, 1000)  # таймаут для периодической проверки флага
                 self.mutex.unlock()
                 continue
 
@@ -66,15 +67,19 @@ class ProcessingThread(QThread):
 
             try:
                 detected_car_data = logic.process_image(
-                    img=frame,
-                    save_with_date=False,
+                    image=frame,
+                    save_img=False,
+                    timestamp=False,
                     config_name=config_name
                 )
-                comparison_result = logic.comparison(
+
+                occupied, free = logic.comparison(
                     saved_data=polygons,
-                    detected_car_data=detected_car_data
+                    detected_car_data=detected_car_data,
+                    nums = False
                 )
-                self.result_ready.emit(comparison_result)
+                # occupied — список пар [id, name]
+                self.result_ready.emit(occupied)
             except Exception as e:
                 print(f"Ошибка в ProcessingThread: {e}")
                 self.result_ready.emit(None)
@@ -131,6 +136,7 @@ class ConnectWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.name = NAMES[get_language()]
+        self.userdata = load_config()
         self.line_size = 3
         self.point_size = 7
         self.text_size = 25
@@ -146,16 +152,18 @@ class ConnectWindow(QMainWindow):
             "#FF0000", "#FFA500", "#FFFF00", "#00FF00",
             "#00BFFF", "#0000FF", "#EE82EE",
         ]
+        self.connect_button=None
         self.widget_buttons = []
         self.img = None
         self.checked = True
+        self.clipboard = QApplication.clipboard()
         self.project_root = str(Path(__file__).parent.parent.parent.parent.resolve())
         # Центральный виджет и layout
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
         self.main_layout = QVBoxLayout(central_widget)
         # Панель управления RTSP
-        self.dock_main()
+        #self.dock_main()
         self.create_viewport()
         self.create_toolbar()
         #self.create_resolution_controls()
@@ -167,7 +175,7 @@ class ConnectWindow(QMainWindow):
         self.camera_thread = None
         self.processing_thread = ProcessingThread()
         self.processing_thread.result_ready.connect(self.on_processing_result)
-        self.processing_thread.start()
+        #self.processing_thread.start()
         # Целевой размер для масштабирования кадров
         self.target_size = QSize(1920,1080)
 
@@ -275,22 +283,87 @@ class ConnectWindow(QMainWindow):
     # Тулбар (загрузка масок, очистка точек)
     # ----------------------------------------------------------------------
     def create_toolbar(self):
-        toolbar = QToolBar("Заглушка")
+        def create_button(parent, data, style, style_name):
+            print(data)
+            name, icon_path, action = data
+            if name == "":
+                button = QPushButton()
+            else:
+                button = QPushButton(name)
+            self.button_icon.append([button, icon_path, 1.1])
+            self.widget_buttons.append(button)
+            if callable(action):
+                button.clicked.connect(action)
+            button.setProperty(style, style_name)
+            parent.addWidget(button)
+
+
+
+        toolbar = QToolBar(self.name["connect.toolbar.title"])
         self.addToolBar(toolbar)
         toolbar.setProperty("toolbar", "toolbar")
-
         actions_data = [
             (self.name["editor.toolbar.load.mask"], "mdi6.vector-polygon", lambda: self.load_mask(only_poly=True), "Alt+4"),
             (self.name["editor.toolbar.clear"], "mdi6.delete", lambda: self.clear_display(), "Alt+Del"),
-            ("дебаг", "mdi.flask", lambda: self.debug(self.img,"confwd"), "Alt+V"),
+            "stretch",
+            "special",
+            "stretch",
+
+            (self.name["editor.toolbar.back"], "mdi6.home", lambda: signal.menu_switch_request.emit(0),"Ctrl+Del"),
         ]
-        for name, icon_path, slot, shortcut in actions_data:
-            action = QAction(self)
-            action.setToolTip(name + " / " + shortcut)
-            action.setShortcut(shortcut)
-            action.triggered.connect(slot)
-            toolbar.addAction(action)
-            self.button_icon.append([action, icon_path, 1.1])
+
+        if self.userdata["client_debug"]:
+            actions_data.insert(2,(self.name["debug"], "mdi.flask", lambda: self.debug(self.img,"confwd"), "Alt+V"),)
+
+        for data in actions_data:
+            match data:
+                case "separator":
+                    toolbar.addSeparator()
+                case "stretch":
+                    spacer = QWidget()
+                    spacer.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
+                    spacer.setProperty("toolbar", "spacer")
+                    toolbar.addWidget(spacer)
+                case "special":
+                    #####
+                    self.auto_timer = QTimer()
+                    self.auto_timer.timeout.connect(self.auto_debug)
+                    # Например, добавим чекбокс для включения авторежима
+
+                    #####
+
+
+                    self.url_input = QLineEdit()
+                    self.url_input.setProperty("QLineEdit", "toolbar")
+                    self.url_input.setPlaceholderText("RTSP URL")
+                    userdata = load_config()
+
+                    self.url_input.setText(f"rtsp://{userdata["camera_login"]}:{userdata["camera_pass"]}@{userdata["camera_ip"]}:{userdata["camera_port"]}/{userdata["camera_stream_path"]}")
+                    # self.stop_btn.setEnabled(False)
+
+                    button_data = [
+                        ["", "mdi6.content-copy", lambda: self.clipboard.setText(self.url_input.text())],
+                        ["", "mdi6.cog-transfer", lambda: self.connect_modal_window(self, self.name["connect.form.window.name"])]
+                    ]
+
+                    create_button(toolbar,button_data[0], "button", "st_toolbar")
+                    toolbar.addWidget(self.url_input)
+                    create_button(toolbar,button_data[1], "button", "st_toolbar")
+                    self.create_camera_connect_toggle(toolbar,"st_toggle_toolbar")
+                    self.create_detection_toggle(toolbar, "st_toggle_toolbar")
+
+                case _:
+
+                    action = QAction(self)
+                    action.setToolTip(data[0]+" / "+data[3])
+                    action.setShortcut(data[3])
+                    action.triggered.connect(data[2])
+                    toolbar.addAction(action)
+                    self.button_icon.append([action,data[1],1.1])
+
+
+
+
 
     def update_theme_buttons(self):
         for button, icon_path, scale in self.button_icon:
@@ -343,12 +416,13 @@ class ConnectWindow(QMainWindow):
         # Если у нас есть список элементов полигонов, удаляем их из сцены
         self.clear_display()
         # Проходим по всем сохранённым полигонам
+
         if detect_data == None:
             for num, poly_data in enumerate(self.polygons):
                 self.add_polygon(num,poly_data["points"])
         else:
             for num, poly_data in enumerate(self.polygons):
-                if poly_data["name"] in detect_data[0]:
+                if poly_data["name"] in detect_data:
                     self.add_polygon(0, self.polygons[num]["points"]) #da
                 else:
                     self.add_polygon(3, self.polygons[num]["points"]) #net
@@ -362,17 +436,11 @@ class ConnectWindow(QMainWindow):
         )
         # Можно добавить индикацию, что обработка запущена
 
-    def toggle_auto_detect(self,breaking=None):
-        if breaking:
-            self.checked = True
-            self.auto_timer.stop()
+    def toggle_auto_detect(self,online:bool = False):
+        if online:
+            self.auto_timer.start(2000)  # 1000 мс = 1 сек
         else:
-            if self.checked:
-                self.checked = False
-                self.auto_timer.start(2000)  # 1000 мс = 1 сек
-            else:
-                self.checked = True
-                self.auto_timer.stop()
+            self.auto_timer.stop()
 
     def auto_debug(self):
         # Если есть кадр и поток обработки ещё не перегружен
@@ -383,7 +451,7 @@ class ConnectWindow(QMainWindow):
             self.processing_thread.set_frame(
                 frame=self.img,
                 polygons=self.polygons.copy(),
-                config_name="confwn"  # или какой конфиг нужен
+                config_name="confwn.toml"  # или какой конфиг нужен
             )
 
     def on_processing_result(self, comparison_result):
@@ -395,7 +463,7 @@ class ConnectWindow(QMainWindow):
             pass
 
     def debug23(self,img,config_name):
-        detected_car_data = logic.process_image(img=img, save_with_date=False, config_name=config_name)  # [2.1]
+        detected_car_data = logic.process_image(image=img, save_img=False, timestamp=False, config_name=config_name)
         #print("ВОТ ОТСЮДА БЕРЕТСЯ",self.polygons,"\n")
         #print(logic.comparison(saved_data=self.polygons, detected_car_data=detected_car_data))
         self.update_display(logic.comparison(saved_data=self.polygons, detected_car_data=detected_car_data))
@@ -447,27 +515,27 @@ class ConnectWindow(QMainWindow):
             QMessageBox.warning(self, "Ошибка", "Введите RTSP URL")
             return
 
-        # Останавливаем предыдущий поток, если есть
+        # Запускаем поток обработки, если он ещё не запущен
+        if not self.processing_thread.isRunning():
+            self.processing_thread.start()
+
+        # Останавливаем предыдущий поток камеры, если есть
         if self.camera_thread and self.camera_thread.isRunning():
             self.camera_thread.stop()
 
-        # Создаём и запускаем новый поток
         self.camera_thread = camera_control.CameraThread(url, (self.target_size.width(), self.target_size.height()))
         self.camera_thread.change_pixmap_signal.connect(self.update_frame)
         self.camera_thread.start()
 
-        #self.connect_btn.setEnabled(False)
-        #self.stop_btn.setEnabled(True)
-
     def stop_rtsp(self):
         if self.camera_thread and self.camera_thread.isRunning():
-            self.camera_thread.stop()
+            self.camera_thread._run_flag = False  # только флаг
             self.camera_thread = None
 
-        #self.connect_btn.setEnabled(True)
-        #self.stop_btn.setEnabled(False)
+        # Останавливаем поток обработки, если он больше не нужен
+        if self.processing_thread.isRunning():
+            self.processing_thread.stop()
 
-        # Очищаем изображение
         self.pixmap_item.setPixmap(QPixmap())
 
     # ----------------------------------------------------------------------
@@ -512,7 +580,18 @@ class ConnectWindow(QMainWindow):
         self.tracked_docks.append(dock)
 
     def dock_main(self):
-
+        def create_button2(parent,data,style,style_name):
+            print(data)
+            for name, icon_path, action in data:
+                print(data)
+                button = QPushButton(name)
+                self.button_icon.append([button, icon_path, 1.1])
+                self.widget_buttons.append(button)
+                if action:
+                    button.clicked.connect(action)
+                button.setProperty(style, style_name)
+                # button.setVisible(False)
+                parent.addWidget(button)
         # Содержимое док-окна
         dock_content = QWidget()
         dock_content.setProperty("dock", "main")
@@ -538,37 +617,38 @@ class ConnectWindow(QMainWindow):
         #####
         control_layout = QHBoxLayout()
         self.url_input = QLineEdit()
-        self.url_input.setPlaceholderText("Введите RTSP URL (например, rtsp://admin:pass@192.168.1.100:554/stream)")
-        userdata = pm.load_config()
+        self.url_input.setProperty("connect","rtsp")
+        self.url_input.setPlaceholderText("RTSP URL")
+        userdata = load_config()
 
         self.url_input.setText(f"rtsp://{userdata["camera_login"]}:{userdata["camera_pass"]}@{userdata["camera_ip"]}:{userdata["camera_port"]}/{userdata["camera_stream_path"]}")
         #self.stop_btn.setEnabled(False)
 
-        control_layout.addWidget(QLabel("RTSP URL:"))
-        control_layout.addWidget(self.url_input)
 
+        control_layout.addWidget(self.url_input)
+        camera_config_button_data = [("", "mdi6.cog-transfer", lambda: self.connect_modal_window(self,self.name["connect.form.window.name"]))]
+
+        create_button2(control_layout,camera_config_button_data,"button","st2")
+        #self.name["connect.dock.button.connect.config"]
 
         layout.addLayout(control_layout)
         ####
 
 
         # Кнопки действий
-        actions_data = [
-            (self.name["connect.dock.button.connect"], "mdi6.connection", self.connect_rtsp),
-            (self.name["connect.dock.button.connect.config"], "mdi6.camera-plus", lambda: self.connect_modal_window(self,"Окно подключения","Форма для подключения")),
-            (self.name["connect.dock.button.detection.toggle"], "mdi6.car-connected", lambda: (self.toggle_auto_detect(),self.update_display())),
-            (self.name["connect.dock.button.connect.disconnect"], "mdi6.camera-off", lambda: (self.stop_rtsp(),self.clear_display(),self.toggle_auto_detect(True))),
-        ]
-        for name, icon_path, slot in actions_data:
-            button = QPushButton(name)
-            self.button_icon.append([button, icon_path, 1.1])
-            self.widget_buttons.append(button)
-            if slot:
-                button.clicked.connect(slot)
-            button.setProperty("button", "st1")
-            #button.setVisible(False)
-            layout.addWidget(button)
 
+        Toggles = QHBoxLayout()
+
+        self.create_detection_toggle(Toggles,"st_toggle")
+        self.create_camera_connect_toggle(Toggles,"st_toggle")
+        layout.addLayout(Toggles)
+        '''
+        
+        
+        (self.name["connect.dock.button.detection.toggle"], "mdi6.car-connected",
+         lambda: (, self.update_display())),
+        
+        '''
         #layout.addStretch()
 
         self.create_dock(
@@ -580,7 +660,55 @@ class ConnectWindow(QMainWindow):
             max_height=1000,
         )
 
-    def connect_modal_window(self,parent, title, message):
+    def create_camera_connect_toggle(self, parent,style):
+        def slot(toggle: bool,button: QObject):
+            if toggle:
+                button.setEnabled(False)
+                self.connect_rtsp()
+            else:
+                self.stop_rtsp()
+                self.clear_display()
+                self.toggle_auto_detect()
+
+            # Разблокируем через сигнал завершения потока
+            # (уже есть signal.camera_thread_end_request)
+
+        name = self.name["connect.dock.button.camera"]
+        icon_path = "mdi6.connection"
+
+        button = QPushButton(name)
+        button.setCheckable(True)
+        self.button_icon.append([button, icon_path, 1.1])
+        self.widget_buttons.append(button)
+        button.clicked.connect(lambda: slot(button.isChecked(),button))
+        button.setProperty("button", style)
+
+        # Разблокируем кнопку когда поток завершится
+        signal.camera_ready.connect(lambda: button.setEnabled(True))
+        signal.camera_thread_end_request.connect(lambda: (button.setEnabled(True),button.setChecked(False)))
+
+        parent.addWidget(button)
+
+    def create_detection_toggle(self, parent, style): ######доделать№№№№№№№№№№№№№№№№№№№№№№№№№№№№№№№№№№№№№№№№№№№№№№№№№№№№№№№№№№
+        def slot():
+            #self.update_display()
+            self.toggle_auto_detect(True)
+
+
+        name = self.name["connect.dock.button.detection.toggle"]
+        icon_path = "mdi6.car-info"
+
+        button = QPushButton(name)
+        button.setCheckable(True)
+        self.button_icon.append([button, icon_path, 1.1])
+        self.widget_buttons.append(button)
+        button.clicked.connect(lambda: slot())
+        button.setProperty("button", style)
+
+        parent.addWidget(button)
+
+
+    def connect_modal_window(self,parent, title):
         """
         Показывает модальное диалоговое окно с заголовком и сообщением.
         Возвращает True, если нажата кнопка OK, иначе False.
@@ -590,24 +718,24 @@ class ConnectWindow(QMainWindow):
         dialog.setModal(True)
 
         layout = QVBoxLayout(dialog)
-        layout.addWidget(QLabel(message))
+        layout.addWidget(QLabel(self.name["connect.form.title"]))
 
+        userdata = load_config()
 
-        userdata = pm.load_config()
-        login_label = QLabel("Логин: ")
+        login_label = QLabel(self.name["connect.form.login"])
         login_textbox = QLineEdit(userdata["camera_login"])
 
-        pass_label = QLabel("Пароль: ")
+        pass_label = QLabel(self.name["connect.form.pass"])
         pass_textbox = QLineEdit(userdata["camera_pass"])
 
-        ip_label = QLabel("Ip Адрес: ")
+        ip_label = QLabel(self.name["connect.form.ip"])
         ip_textbox = QLineEdit(userdata["camera_ip"])
 
-        port_label = QLabel("Порт")
+        port_label = QLabel(self.name["connect.form.port"])
         port_textbox = QLineEdit(userdata["camera_port"])
 
         stream_path = QComboBox()
-        stream_path_label = QLabel("Путь подключения:")
+        stream_path_label = QLabel(self.name["connect.form.stream.path"])
         stream_path.addItems(["stream1", "stream2", "live1", "live2"])
         stream_path.setCurrentIndex(stream_path.findText(userdata["camera_stream_path"]))
         #self.combo.currentTextChanged.connect(self.on_changed)
@@ -639,14 +767,14 @@ class ConnectWindow(QMainWindow):
         layout.addLayout(stream)
 
         def button_ok():
-            save_config = { "camera_ip": ip_textbox.text(),
+            config = { "camera_ip": ip_textbox.text(),
                             "camera_port": port_textbox.text(),
                             "camera_login": login_textbox.text(),
                             "camera_pass": pass_textbox.text(),
                             "camera_stream_path": stream_path.currentText()}
 
 
-            pm.save_config(filename=0, **save_config)
+            save_config(filename=0, **config)
             dialog.accept()
             print("Конфиг камеры сохранен")
             self.url_input.setText(f"rtsp://{login_textbox.text()}:{pass_textbox.text()}@{ip_textbox.text()}:{port_textbox.text()}/{stream_path.currentText()}")
@@ -659,6 +787,7 @@ class ConnectWindow(QMainWindow):
         layout.addWidget(buttons)
 
         return dialog.exec() == QDialog.Accepted
+
 
     # ----------------------------------------------------------------------
     # Создание и управление статусбаром

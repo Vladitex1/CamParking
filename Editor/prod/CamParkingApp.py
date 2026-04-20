@@ -10,6 +10,17 @@ global_app = None
 
 
 if __name__ == "__main__":
+
+    from PySide6.QtCore import qInstallMessageHandler, QtMsgType
+
+    def silence_qthread_warning(mode, context, message):
+        if "QThread: Destroyed while thread" in str(message):
+            return  # подавляем
+        # Остальные сообщения выводим
+        sys.stderr.write(f"{message}\n")
+
+    qInstallMessageHandler(silence_qthread_warning)
+
     app = QApplication(sys.argv)
     global_app = app
     style.load_font()

@@ -12,13 +12,15 @@ SAVES_PATH = "../save/"
 colors_detect = [(0, 0, 255), (0, 255, 0), (100, 100, 100)]
 colors_font = [(255,0, 0), (0, 255, 0), (100, 100, 100)]
 
-def detect(image_path: str = None, occupied_data: list = None, mask: str = None,draw_name = False):
+def detect(image = None, occupied_data: list = None, mask: str = None,draw_name = False):
     """Простой и рабочий вариант через OpenCV"""
     # 1. Загрузи изображение
     try:
-        image = cv2.imread(image_path)
         if image is None:
-            raise ValueError(f"Не удалось загрузить: {image_path}")
+            raise ValueError(f"Не удалось загрузить: {image}")
+
+        if isinstance(image,str):
+            image = cv2.imread(image)
 
         height, width = image.shape[:2]
         print(f"Размер: {width}x{height}")
@@ -26,72 +28,76 @@ def detect(image_path: str = None, occupied_data: list = None, mask: str = None,
         # 2. Загрузи маску
         MASKPATH = "../save/"
         MASK_ENDING = ".mask"
-        saved_data, _ = file.read_data(MASKPATH + mask+MASK_ENDING)
 
-        print(f"Окупид: {occupied_data[0]}")
-        print(f"Фри: {occupied_data[1]}")
+        success,saved_data, _ = file.load_data(f"{MASKPATH}{mask}")
 
-
+        print(f"Occupied slots: {occupied_data[0]}")
+        print(f"Free slots: {occupied_data[1]}")
+        free = occupied_data[1]
+        occupied = occupied_data[0]
         # 3. Рисуй полигоны
-        for num, (name, points) in enumerate(saved_data.items()):
-            # Преобразуй точки в numpy
+        print(saved_data[0]['name'])
+
+        # Определяем цвет заливки
+        occupied_names = {name for (num, name) in occupied}
+        free_names = {name for (num, name) in free}
+
+        for idx, place in enumerate(saved_data):
+            name = place['name']
+            points = place['points']
             pts = np.array(points, np.int32).reshape((-1, 1, 2))
 
-            # Выбери цвет
-            if name in occupied_data[0]:
-                color = colors_detect[0]  # красный - занято
-            elif name in occupied_data[1]:
-                color = colors_detect[1]  # зеленый - свободно
+            if name in occupied_names:
+                color = colors_detect[0]  # красный
+                status = "ЗАНЯТО"
+            elif name in free_names:
+                color = colors_detect[1]  # зелёный
+                status = "СВОБОДНО"
             else:
-                color = colors_detect[2]  # серый - неизвестно
+                color = colors_detect[2]  # серый
+                status = "НЕИЗВЕСТНО"
 
-            # Нарисуй контур
+            print(f"[{idx}] {name} -> {status}")
+
+            # Рисуем контур и заливку
             cv2.polylines(image, [pts], True, color, 2)
-
-            # Заливка с прозрачностью
             overlay = image.copy()
             cv2.fillPoly(overlay, [pts], color)
             cv2.addWeighted(overlay, 0.3, image, 0.7, 0, image)
 
-            # Текст
+            # Вычисляем центр для текста
             center_x = int(np.mean([p[0] for p in points]))
             center_y = int(np.mean([p[1] for p in points]))
 
-            # Загружаем шрифт
+            # Цвет текста
+            if name in occupied_names:
+                text_color = colors_font[1]  # белый на красном
+            elif name in free_names:
+                text_color = colors_font[0]  # чёрный на зелёном
+            else:
+                text_color = colors_font[1]  # белый на сером
 
-
-            # Конвертируем BGR -> RGB
-
-
-            # Цвет текста - противоположный цвету фона для контраста
-            # Конвертируем цвет BGR в RGB для PIL
-            if name in occupied_data[0]:  # Красный фон (занято)
-                text_color = colors_font[1]  # Белый текст
-            elif name in occupied_data[1]:  # Зеленый фон (свободно)
-                text_color = colors_font[0]  # Черный текст
-            else:  # Серый фон (неизвестно)
-                text_color = colors_detect[2]  # Белый текст
-
+            # Рисуем текст через PIL (поддержка кириллицы)
             font = ImageFont.truetype(font_path, font_size)
             img_pil = Image.fromarray(cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
             draw = ImageDraw.Draw(img_pil)
-            # Рисуем текст
+
             if not draw_name:
-                draw.text((center_x, center_y-35), f"{num + 1}", font=font, fill=text_color)
+                draw.text((center_x, center_y - 35), f"{idx + 1}", font=font, fill=text_color)
             else:
-                draw.text((center_x, center_y), f"{num + 1}", font=font, fill=text_color)
-                draw.text((center_x-120, center_y + 55), f"{name}", font=font, fill=text_color)
-            # Конвертируем обратно в BGR
+                draw.text((center_x, center_y), f"{idx + 1}", font=font, fill=text_color)
+                draw.text((center_x - 120, center_y + 55), name, font=font, fill=text_color)
+
             image = cv2.cvtColor(np.array(img_pil), cv2.COLOR_RGB2BGR)
 
-        # 4. Сохрани
-        filename = "../img/results/output_open.jpg"
-        cv2.imwrite(filename, image)
-        print(f"✅ Сохранено: output_open.jpg")
-
-        return image,filename
+            # 4. Сохраняем результат
+        saved_image_path = "../img/results/output_open.jpg"
+        cv2.imwrite(saved_image_path, image)
+        print(f"✅ Сохранено: {saved_image_path}")
+        return [image, saved_image_path]
     except Exception as e:
         print(f"Ошибка: {e}")
+        return 0
 
 # Использование:
 if __name__ == '__main__':

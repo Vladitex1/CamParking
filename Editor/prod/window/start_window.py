@@ -2,103 +2,115 @@ import sys
 from PySide6.QtWidgets import *
 from PySide6.QtCore import Qt, QPoint, QRect
 from PySide6.QtGui import QPixmap, QPainter, QPen, QBrush, QColor, QAction, QImage
-import numpy as np
+import Editor.prod.data.style as style
+from Editor.prod.data.signal_bus import signal
+from Editor.prod.data.names import NAMES,get_language,change_language
+from Editor.prod.window import editor_window, connect_window, settings_window
+import qtawesome as qta
 
 class StartWindow(QWidget):
     """Первая страница с текстом и кнопкой"""
 
     def __init__(self):
         super().__init__()
-
+        self.name = NAMES[get_language()]
+        self.icons=[]
         # Создаем элементы
-        title_label = QLabel("Добро пожаловать на первую страницу!")
-        title_label.setStyleSheet("font-size: 18px; font-weight: bold;")
+        self.create_layout()
+        signal.theme_changed.connect(self.update_icons)
+        self.update_icons()
 
-        info_label = QLabel(
-            "Это демонстрационное приложение с двумя страницами.\n\n"
-            "На второй странице вы можете загрузить изображение и расставлять на нем точки.\n"
-            "Точки можно перемещать, перетаскивая их мышью.\n\n"
-            "Используйте меню вверху для переключения между страницами."
-        )
-        info_label.setWordWrap(True)
+    def update_icons(self):
+        for button,icon_path,scale in self.icons:
+            icon = qta.icon(icon_path, color=style.STYLE[style.current_color]["text_color"],
+                            options=[{'scale_factor': scale, 'color_disabled': style.STYLE[style.current_color]["text_color"]}])
+            button.setIcon(icon)
 
-        # Создаем кнопку
-        self.message_btn = QPushButton("Показать сообщение")
-        self.message_btn.clicked.connect(self.show_message)
-        self.message_btn.setProperty("button", "st1")
-        self.message_btn.style().polish(self.message_btn)
+    def create_layout(self):
+        # Заголовки
+        top_labels_layout = QVBoxLayout()
+        title_label = QLabel(f"{self.name['start.title']}"+"\n")
+        title_label.setStyleSheet(f'font-size: {style.STYLE["global"]["font_size_h2"]}; font-weight: bold;')
 
-        # Создаем текстовое поле
-        self.text_edit = QTextEdit()
-        self.text_edit.setPlaceholderText("Введите текст здесь...")
-        self.text_edit.setMaximumHeight(100)
+        info_label = QLabel(f"{self.name['start.about']}"+"\n\n")
+        info_label.setStyleSheet(f'font-size: {style.STYLE["global"]["font_size_h3"]};')
+        top_labels_layout.addWidget(title_label, alignment=Qt.AlignCenter)
+        top_labels_layout.addWidget(info_label, alignment=Qt.AlignCenter)
 
-        # Создаем список
-        self.list_widget = QListWidget()
-        self.list_widget.addItems(["Элемент 1", "Элемент 2", "Элемент 3"])
+        # Горизонтальное центрирование заголовков
+        h_center_labels = QHBoxLayout()
+        h_center_labels.addStretch()
+        h_center_labels.addLayout(top_labels_layout)
+        h_center_labels.addStretch()
 
-        # Создаем переключатели
-        self.checkbox1 = QCheckBox("Опция 1")
-        self.checkbox2 = QCheckBox("Опция 2")
-        self.radio1 = QRadioButton("Вариант A")
-        self.radio2 = QRadioButton("Вариант B")
-
-        # Группируем переключатели
-        options_group = QGroupBox("Настройки")
-        options_layout = QVBoxLayout()
-        options_layout.addWidget(self.checkbox1)
-        options_layout.addWidget(self.checkbox2)
-        options_layout.addWidget(self.radio1)
-        options_layout.addWidget(self.radio2)
-        options_group.setLayout(options_layout)
-
-        # Создаем прогресс бар
-        self.progress_bar = QProgressBar()
-        self.progress_bar.setValue(50)
-
-        # Создаем слайдер
-        self.slider = QSlider(Qt.Horizontal)
-        self.slider.setRange(0, 100)
-        self.slider.setValue(50)
-        self.slider.valueChanged.connect(self.slider_changed)
-
-        # Layout
+        # Основной вертикальный layout
         main_layout = QVBoxLayout()
-        main_layout.addWidget(title_label)
-        main_layout.addWidget(info_label)
-        main_layout.addSpacing(20)
+        main_layout.addSpacing(50)                     # фиксированный отступ сверху
+        main_layout.addLayout(h_center_labels)         # заголовки по центру
 
-        # Верхняя часть с кнопкой и текстом
-        top_layout = QHBoxLayout()
-        top_layout.addWidget(self.message_btn, 1)
-        top_layout.addWidget(self.text_edit, 2)
-        main_layout.addLayout(top_layout)
+        # --- Контейнер для кнопок с центрированием ---
+        self.TopButtons_Layout = QHBoxLayout()
+        self.TopButtons_Layout.setSpacing(30)          # расстояние между кнопками (не слева/справа)
+        self.create_navigation_buttons()               # добавляем кнопки в self.TopButtons_Layout
 
-        # Средняя часть со списком и настройками
-        middle_layout = QHBoxLayout()
-        middle_layout.addWidget(self.list_widget, 1)
-        middle_layout.addWidget(options_group, 1)
-        main_layout.addLayout(middle_layout)
+        # Горизонтальная обёртка для центрирования блока кнопок
+        buttons_wrapper = QHBoxLayout()
+        buttons_wrapper.addStretch()
+        buttons_wrapper.addLayout(self.TopButtons_Layout)
+        buttons_wrapper.addStretch()
 
-        # Нижняя часть с прогрессом
-        bottom_layout = QVBoxLayout()
-        bottom_layout.addWidget(QLabel("Прогресс:"))
-        bottom_layout.addWidget(self.progress_bar)
-        bottom_layout.addWidget(QLabel("Слайдер:"))
-        bottom_layout.addWidget(self.slider)
-        main_layout.addLayout(bottom_layout)
+        main_layout.addLayout(buttons_wrapper)         # кнопки по центру
+        main_layout.addStretch()                       # пружина снизу
 
-        main_layout.addStretch()
         self.setLayout(main_layout)
 
-    def show_message(self):
-        """Показать сообщение из текстового поля"""
-        text = self.text_edit.toPlainText()
-        if text:
-            QMessageBox.information(self, "Сообщение", text)
-        else:
-            QMessageBox.warning(self, "Внимание", "Введите текст в поле!")
 
-    def slider_changed(self, value):
-        """Обработчик изменения слайдера"""
-        self.progress_bar.setValue(value)
+    def create_navigation_buttons(self):
+        self.menus = [
+            [f"{self.name['menu.navigate.editor']}", lambda: signal.menu_switch_request.emit(1), "mdi6.image-edit", 1.1],
+            [f"{self.name['menu.navigate.connect']}", lambda: signal.menu_switch_request.emit(2), "mdi6.camera-wireless", 1.1],
+            [f"{self.name['menu.parameters.settings']}", lambda: signal.menu_switch_request.emit(3), "mdi6.cog", 1.1],
+        ]
+
+        for name, window, icon, size in self.menus:
+            button = QToolButton()
+            if name:
+                button.setText(name)
+                button.setToolButtonStyle(Qt.ToolButtonTextUnderIcon)
+
+            self.icons.append((button, icon, size))
+            button.clicked.connect(window)
+            button.setProperty("button", "st_start")
+            self.TopButtons_Layout.addWidget(button)
+
+
+
+
+
+
+if __name__ == "__main__":
+    app = QApplication(sys.argv)
+    global_app = app
+    app.setStyle("Fusion")
+
+    window = StartWindow()
+
+    # --- Блок перемещения на второй монитор ---
+    screens = app.screens()
+    if len(screens) > 1:
+        # Индекс 1 — это обычно второй монитор.
+        # Если он слева от основного, попробуйте индекс 1 или 0 в зависимости от системных настроек.
+        target_screen = screens[1]
+        screen_geometry = target_screen.availableGeometry()
+
+        # Перемещаем окно в верхний левый угол второго экрана
+        window.move(screen_geometry.topLeft())
+    # ------------------------------------------
+
+    window.show()
+    sys.exit(app.exec())
+
+
+
+
+

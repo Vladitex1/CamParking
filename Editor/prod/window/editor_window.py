@@ -7,8 +7,9 @@ from PySide6.QtGui import QPixmap, QPainter, QPen, QBrush, QColor, QAction, QPol
 import qtawesome as qta
 import logic.file as file
 import logic.camera_control as camera_control
-import Editor.prod.data.prefers_manager as pm
+from Editor.prod.data.prefers_manager import *
 import Editor.prod.data.style as style
+from Editor.prod.data import global_var
 from Editor.prod.data.properties import DockTitleBar     # если в data
 from Editor.prod.data.names import NAMES,get_language
 from Editor.prod.data.signal_bus import signal
@@ -45,6 +46,7 @@ class EditorWindow(QMainWindow):
             alpha = прозрачность заполнения 0 - 255
         '''
         self.name = NAMES[get_language()]
+        self.userdata = load_config()
         self.line_size = 3
         self.point_size = 7
         self.text_size = 25
@@ -150,7 +152,7 @@ class EditorWindow(QMainWindow):
         if self.capture_thread and self.capture_thread.isRunning():
             return
 
-        userdata = pm.load_config()
+        userdata = load_config()
 
         camera_path = f"rtsp://{userdata["camera_login"]}:{userdata["camera_pass"]}@{userdata["camera_ip"]}:{userdata["camera_port"]}/{userdata["camera_stream_path"]}"
 
@@ -175,21 +177,43 @@ class EditorWindow(QMainWindow):
 
         actions_data = [
             (self.name["editor.toolbar.load.file"], "mdi6.folder-download", self.load_mask,"Alt+1"),
-            (self.name["editor.toolbar.load.mask"], "mdi6.vector-polygon", lambda: (self.load_mask(only_poly = True)),"Alt+4"),
-            (self.name["editor.toolbar.load.image"], "mdi6.image", self.load_image,"Alt+2"),
+            (self.name["editor.toolbar.load.mask"], "mdi6.vector-polygon", lambda: (self.load_mask(only_poly = True)),"Alt+2"),
+            (self.name["editor.toolbar.load.image"], "mdi6.image", self.load_image,"Alt+3"),
+            "separator",
+            (self.name["editor.toolbar.capture.image"], "mdi6.camera-image", self.capture_image, "Shift+Alt+3"),
+            "separator",
             (self.name["editor.toolbar.save.as"], "mdi6.content-save-edit", self.new_save_mask,"Alt+S"),
-            (self.name["editor.toolbar.save.fast"], "mdi6.content-save", self.fast_save_mask,"Alt+E"),
-            (self.name["editor.toolbar.clear"], "mdi6.delete", lambda: (self.clear_display(True)),"Alt+Del"),
-            (self.name["editor.toolbar.test.image"], "mdi6.flask", lambda: (self.manual_load_image(self.absolute_path("img/camphoto/camera_photo_2026-01-28.jpg"),True)),"Alt+3"),
-            (self.name["editor.toolbar.capture.image"], "mdi6.camera-image", self.capture_image, "Ctrl+Alt+4"),
+            (self.name["editor.toolbar.save.fast"], "mdi6.content-save", self.fast_save_mask,"Shift+Alt+S"),
+            "separator",
+            (self.name["editor.toolbar.clear"], "mdi6.delete", lambda: (self.clear_display(True)),"Alt+D"),
+            "stretch",
+            (self.name["editor.toolbar.back"], "mdi6.home",lambda: signal.menu_switch_request.emit(0), "Alt+E"),
         ]
-        for name, icon_path, slot,shortcut in actions_data:
-            action = QAction(self)
-            action.setToolTip(name+" / "+shortcut)
-            action.setShortcut(shortcut)
-            action.triggered.connect(slot)
-            toolbar.addAction(action)
-            self.button_icon.append([action,icon_path,1.1])
+
+        if self.userdata["client_debug"]:
+            data = (self.name["editor.toolbar.test.image"], "mdi6.flask",lambda: (self.manual_load_image(self.absolute_path("img/camphoto/camera_photo_2026-01-28.jpg"), True)),"Shift+Alt+4")
+            actions_data.insert(4,data)
+
+        for data in actions_data:
+            match data:
+                case "separator":
+                    toolbar.addSeparator()
+                case "stretch":
+                    spacer = QWidget()
+                    spacer.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
+                    spacer.setProperty("toolbar", "spacer")
+                    toolbar.addWidget(spacer)
+                case "special":
+                    pass
+                case _:
+                    print(data)
+                    action = QAction(self)
+                    action.setToolTip(data[0]+" / "+data[3])
+                    action.setShortcut(data[3])
+                    action.triggered.connect(data[2])
+                    toolbar.addAction(action)
+                    self.button_icon.append([action,data[1],1.1])
+
 
     def update_theme_buttons(self):
         for button,icon_path,scale in self.button_icon:
@@ -414,7 +438,8 @@ class EditorWindow(QMainWindow):
         # Кнопки действий
         actions_data = [
             (self.name["editor.editor.dock.button.delete.all"], "mdi6.eraser", lambda: (self.del_polygon(), self.update_display(), self.debug())),
-            (self.name["editor.editor.dock.button.select.all"], "mdi6.check-all", lambda: (self.select_all_in_widget(), self.debug())),
+            (self.name["editor.editor.dock.button.select.all"], "mdi6.checkbox-multiple-marked-circle", lambda: (self.select_all_in_widget(True))),
+            (self.name["editor.editor.dock.button.unselect.all"], "mdi6.checkbox-multiple-blank-circle-outline", lambda: (self.select_all_in_widget(False), self.debug())),
         ]
         for name, icon_path, slot in actions_data:
             button = QPushButton(name)
@@ -809,12 +834,12 @@ class EditorWindow(QMainWindow):
                     self.checked_widgets.append(int(a.text()))
         return self.checked_widgets
 
-    def select_all_in_widget(self):
+    def select_all_in_widget(self,set:bool):
         for i in range(self.scroll_QVBox.count()):
             item = self.scroll_QVBox.itemAt(i)
             if item and item.widget():
                 checkbox = item.widget().findChild(QCheckBox)
-                checkbox.setChecked(True)
+                checkbox.setChecked(set)
 
 
     def load_mask(self,only_poly:bool=False):
@@ -988,7 +1013,7 @@ class EditorWindow(QMainWindow):
         border-radius: {style.STYLE["global"]["style_border_radius"]};
         background-color: {self.colors[num]};
         """)    ########################################################################################################
-        meta.setVisible(self.IsDebug)
+        meta.setVisible(self.userdata["client_debug"])
         # !!! Удалён локальный stylesheet для meta
 
         meta.setAlignment(Qt.AlignCenter)

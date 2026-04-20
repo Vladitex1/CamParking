@@ -65,9 +65,12 @@ STYLE = {
 
         "button_icon_size": "30px",
         "button_font_size_st1": "14px",
-        "font_size_h1": "36px",
-        "font_size_h2": "18px",
-        "font_size_h3": "12px",
+        "button_font_size_st2": "25px",
+        "button_font_size_st_start": "25px",
+        "font_size_h1": "32px",
+        "font_size_h2": "20px",
+        "font_size_h3": "17px",
+        "font_size_h4": "12px",
 
         
         "button_padding_x_st1": "5px",
@@ -76,8 +79,37 @@ STYLE = {
         "button_layout_st1": "RightToLeft",
         "button_icon_size_st1": "25px",
 
-        "accent_color": "#c3c3c3",
+        "button_padding_x_st2": "5px",
+        "button_padding_y_st2": "5px",
+        "button_text_align_st2": "Center",
+        "button_layout_st2": "Center",
+        "button_icon_size_st2": "35px",
+
+
+        "button_text_align_st_toolbar": "Left",
+        "button_layout_st_toolbar": "Left",
+        "button_icon_size_st_toolbar": "25px",
+
+
+        "button_padding_x_st_toggle_toolbar": "5px",
+        "button_padding_y_st_toggle_toolbar": "5px",
+        "button_text_align_st_toggle_toolbar": "Center",
+        "button_layout_st_toggle_toolbar": "Center",
+        "button_icon_size_st_toggle_toolbar": "95px",
+
+
+        "button_padding_x_st_start": "5px",
+        "button_padding_y_st_start": "10px",
+        "button_text_align_st_start": "Center",
+        "button_layout_st_start": "Center",
+        "button_icon_size_st_start": "95px",
+
+
+
+        "accent_color": "#348feb",
         "secondary_text_color": "#5a5a5a",
+        "ok_color": "#0a9900",
+        "warning_color": "#730303",
 
     },
     "dark": {
@@ -100,7 +132,7 @@ STYLE = {
 def get_stylesheet():
     return f"""* 
 {{
-    font-size: {STYLE["global"]["font_size_h3"]};
+    font-size: {STYLE["global"]["font_size_h4"]};
     font-family: "{FONT_FAMILY}";
     background-color: {STYLE[current_color]["main_window_color"]};
     color: {STYLE[current_color]["text_color"]};
@@ -122,8 +154,9 @@ QPushButton[button="st1"] {{
     border-radius: {STYLE["global"]["style_border_radius"]};
     padding: {STYLE["global"]["button_padding_x_st1"]} {STYLE["global"]["button_padding_y_st1"]};
     text-align: {STYLE["global"]["button_text_align_st1"]};
+    
     qproperty-layoutDirection: {STYLE["global"]["button_layout_st1"]};
-    qproperty-iconSize: {STYLE["global"]["button_icon_size"]} {STYLE["global"]["button_icon_size"]};
+    qproperty-iconSize: {STYLE["global"]["button_icon_size_st1"]} {STYLE["global"]["button_icon_size_st1"]};
     border: 2px solid {STYLE[current_color]["button_background_color_st1"]};
 }}
 QPushButton:hover[button="st1"] {{
@@ -137,6 +170,163 @@ QPushButton:pressed[button="st1"] {{
 QPushButton:checked[button="st1"] {{
     background-color: {calc_color(STYLE[current_color]["button_background_color_st1"], STYLE["global"]["checked"])};
 }}
+
+
+QPushButton[button="st2"] {{
+    background-color: {STYLE[current_color]["button_background_color_st1"]};
+    font-size: {STYLE["global"]["font_size_h2"]};
+    border-radius: {STYLE["global"]["style_border_radius"]};
+    padding: {STYLE["global"]["button_padding_x_st1"]} {STYLE["global"]["button_padding_y_st2"]};
+    text-align: {STYLE["global"]["button_text_align_st2"]};
+    
+    qproperty-layoutDirection: {STYLE["global"]["button_layout_st2"]};
+    qproperty-iconSize: {STYLE["global"]["button_icon_size_st2"]} {STYLE["global"]["button_icon_size_st2"]};
+    border: 2px solid {STYLE[current_color]["button_background_color_st1"]};
+}}
+QPushButton:hover[button="st2"] {{
+    background-color: {calc_color(STYLE[current_color]["button_background_color_st1"], STYLE["global"]["hovered"])};
+    border: 2px solid transparent;
+
+}}
+QPushButton:pressed[button="st2"] {{
+    background-color: {calc_color(STYLE[current_color]["button_background_color_st1"], STYLE["global"]["checked"])};
+}}
+QPushButton:checked[button="st2"] {{
+    background-color: {calc_color(STYLE[current_color]["button_background_color_st1"], STYLE["global"]["checked"])};
+}}
+
+
+/* =============================== Адаптированные элементы под тулбар ================================*/
+
+/* Обычная кнопка на тулбаре*/
+
+QPushButton[button="st_toolbar"] {{
+    background-color: {STYLE[current_color]["button_background_color_st1"]};
+    font-size: {STYLE["global"]["font_size_h2"]};
+    border-radius: {STYLE["global"]["style_border_radius"]};
+    margin: 0px 2px 0px 2px;
+    text-align: {STYLE["global"]["button_text_align_st2"]};
+    
+    qproperty-layoutDirection: {STYLE["global"]["button_layout_st2"]};
+    qproperty-iconSize: {STYLE["global"]["button_icon_size"]} {STYLE["global"]["button_icon_size"]};
+   
+}}
+QPushButton:hover[button="st_toolbar"] {{
+    background-color: {calc_color(STYLE[current_color]["button_background_color_st1"], STYLE["global"]["hovered"])};
+
+}}
+QPushButton:pressed[button="st_toolbar"] {{
+    background-color: {calc_color(STYLE[current_color]["button_background_color_st1"], STYLE["global"]["checked"])};
+}}
+QPushButton:checked[button="st_toolbar"] {{
+    background-color: {calc_color(STYLE[current_color]["button_background_color_st1"], STYLE["global"]["checked"])};
+}}
+
+/* Переключатель на тулбаре (кнопка) */
+
+QPushButton[button="st_toggle_toolbar"] {{
+    margin: 0px 2px 0px 2px;
+    padding: 0px 5px 0px 5px;
+    background-color: {STYLE[current_color]["button_background_color_st1"]};
+    font-size: {STYLE["global"]["font_size_h2"]};
+    border-radius: {STYLE["global"]["style_border_radius"]};
+    qproperty-iconSize: {STYLE["global"]["button_icon_size"]} {STYLE["global"]["button_icon_size"]};
+}}
+QPushButton:hover[button="st_toggle_toolbar"] {{
+    background-color: {STYLE["global"]["ok_color"]};
+}}
+QPushButton:pressed[button="st_toggle_toolbar"] {{
+    background-color: {calc_color(STYLE[current_color]["button_background_color_st1"], STYLE["global"]["checked"])};
+}}
+QPushButton:checked[button="st_toggle_toolbar"] {{
+    background-color: {STYLE["global"]["ok_color"]};
+}}
+QPushButton:checked:hover[button="st_toggle_toolbar"] {{
+    background-color: {STYLE["global"]["warning_color"]};
+}}
+QPushButton:checked:pressed[button="st_toggle_toolbar"] {{
+    background-color: {calc_color(STYLE["global"]["warning_color"], STYLE["global"]["checked"])};
+}}
+
+
+/* Строка на тулбаре (кнопка) */
+
+
+QLineEdit[QLineEdit="toolbar"] {{
+    padding: 3px;
+    margin: 0px 2px 0px 2px;
+    font-size: {STYLE["global"]["font_size_h3"]};
+    border-radius: {STYLE["global"]["style_border_radius"]};
+    background-color: {STYLE[current_color]["button_background_color_st1"]};
+}}
+
+/* =============================== Переключатель (3 цвета) ================================*/
+
+QPushButton[button="st_toggle"] {{
+    background-color: {STYLE[current_color]["button_background_color_st1"]};
+    font-size: {STYLE["global"]["font_size_h2"]};
+    border-radius: {STYLE["global"]["style_border_radius"]};
+    padding: {STYLE["global"]["button_padding_x_st1"]} {STYLE["global"]["button_padding_y_st2"]};
+    text-align: {STYLE["global"]["button_text_align_st2"]};
+    color: {STYLE[current_color]["text_color"]};
+    qproperty-layoutDirection: {STYLE["global"]["button_layout_st2"]};
+    
+    qproperty-iconSize: {STYLE["global"]["button_icon_size_st2"]} {STYLE["global"]["button_icon_size_st2"]};
+    
+    border: 2px solid {STYLE[current_color]["button_background_color_st1"]};
+}}
+QPushButton:hover[button="st_toggle"] {{
+    background-color: {STYLE["global"]["ok_color"]};
+    border: 2px solid transparent;
+}}
+QPushButton:pressed[button="st_toggle"] {{
+    background-color: {calc_color(STYLE[current_color]["button_background_color_st1"], STYLE["global"]["checked"])};
+}}
+QPushButton:checked[button="st_toggle"] {{
+    background-color: {STYLE["global"]["ok_color"]};
+    border: 2px solid {STYLE["global"]["ok_color"]};
+}}
+QPushButton:checked:hover[button="st_toggle"] {{
+    background-color: {STYLE["global"]["warning_color"]};
+    border: 2px solid {STYLE["global"]["warning_color"]};
+}}
+QPushButton:checked:pressed[button="st_toggle"] {{
+    background-color: {calc_color(STYLE["global"]["warning_color"], STYLE["global"]["checked"])};
+}}
+
+/* ========================================================================================*/
+
+
+
+
+/* =============================== Стартовый экран ================================*/
+QToolButton[button="st_start"] {{
+    background-color: {STYLE[current_color]["button_background_color_st1"]};
+    height: 150px;
+    width: 150px;
+    font-size: {STYLE["global"]["font_size_h2"]};
+    border-radius: {STYLE["global"]["style_border_radius"]};
+    padding: {STYLE["global"]["button_padding_x_st_start"]} {STYLE["global"]["button_padding_y_st_start"]};
+    text-align: {STYLE["global"]["button_text_align_st_start"]};
+    qproperty-layoutDirection: {STYLE["global"]["button_layout_st_start"]};
+    qproperty-iconSize: {STYLE["global"]["button_icon_size_st_start"]} {STYLE["global"]["button_icon_size_st_start"]};
+    border: 2px solid {STYLE[current_color]["button_background_color_st1"]};
+}}
+QToolButton:hover[button="st_start"] {{
+    background-color: {calc_color(STYLE[current_color]["button_background_color_st1"], STYLE["global"]["hovered"])};
+    border: 2px solid transparent;
+
+}}
+QToolButton:pressed[button="st_start"] {{
+    background-color: {calc_color(STYLE[current_color]["button_background_color_st1"], STYLE["global"]["checked"])};
+}}
+QToolButton:checked[button="st1_start"] {{
+    background-color: {calc_color(STYLE[current_color]["button_background_color_st1"], STYLE["global"]["checked"])};
+}}
+
+
+
+
 
 QPushButton[button="dock"] {{
     max-width: {STYLE["global"]["button_icon_size"]};
@@ -267,19 +457,20 @@ QTextEdit{{
 background-color: {calc_color(STYLE[current_color]["dock_color"],STYLE["global"]["pressed"]) };
 }}
 
-QLineEdit {{
-margin-right: 20px;
-border-radius: {STYLE["global"]["style_border_radius"]};
-padding: 5px;
-background-color: {STYLE[current_color]["button_background_color_st1"]};
-}}
 
 QLabel[element="circle"]{{
     border-radius: 11px;
     border:2px solid  {STYLE[current_color]["button_background_color_st1"]};
 }}
 
-
+QLineEdit[connect="rtsp"] {{
+    font-size: {STYLE["global"]["font_size_h3"]};
+    margin-right: 1px;
+    border-radius: {STYLE["global"]["style_border_radius"]};
+    padding: 10px 0px;
+    background-color: {STYLE[current_color]["button_background_color_st1"]};
+    border: 2px solid {STYLE[current_color]["button_background_color_st1"]};
+}}
 
 
 /* === Стили для полигонов === */
@@ -305,17 +496,17 @@ QWidget[dock="polygon_slot"] QCheckBox {{
     background-color: {STYLE[current_color]["button_background_color_st1"]};
 }}
 QWidget[dock="polygon_slot"] QCheckBox::indicator {{
-    width: 18px;
-    height: 18px;
-    border-radius: 11px;
-    border: 2px solid {calc_color(STYLE[current_color]["button_background_color_st1"],10)};
+    width: 16px;
+    height: 16px;
+    border-radius: 10px;
+    border: 2px solid {calc_color(STYLE["global"]["accent_color"],10)};
     background-color: transparent;
 }}
 QWidget[dock="polygon_slot"] QCheckBox::indicator:hover {{
-    background-color: {calc_color(STYLE[current_color]["button_background_color_st1"],5)};
+    background-color: {calc_color(STYLE["global"]["accent_color"],5)};
 }}
 QWidget[dock="polygon_slot"] QCheckBox::indicator:checked {{
-    background-color: {calc_color(STYLE[current_color]["button_background_color_st1"],10)};
+    background-color: {calc_color(STYLE["global"]["accent_color"],10)};
 }}
 
 
@@ -332,6 +523,12 @@ QGroupBox::title {{
 
 
 /* Toolbar */
+
+QWidget[toolbar="spacer"]{{
+    background-color: {STYLE[current_color]["dock_color"]};
+}}
+
+
 QToolBar[toolbar="toolbar"] {{
     background-color: {STYLE[current_color]["dock_color"]};
     border-radius: {STYLE["global"]["style_border_radius"]};
@@ -341,8 +538,7 @@ QToolBar[toolbar="toolbar"] {{
 }}
 
 
-/*    min-height: 25px;
-    min-width: 25px;*/
+
 QToolBar[toolbar="toolbar"] QToolButton {{
     
     margin:5px;
@@ -376,7 +572,7 @@ QWidget[statusbar="container"] {{
 QLabel[statusbar="label"] {{
     background-color: transparent;
     color: {STYLE[current_color]["text_color"]};
-    font-size: {STYLE["global"]["font_size_h3"]};
+    font-size: {STYLE["global"]["font_size_h4"]};
 }}
 
 /* Разделитель */
@@ -389,7 +585,7 @@ QLabel[statusbar="separator"] {{
 QStatusBar::item {{
     color: {STYLE[current_color]["text_color"]};
     background-color: transparent;
-    font-size: {STYLE["global"]["font_size_h3"]};
+    font-size: {STYLE["global"]["font_size_h4"]};
 }}
 
 QAction[button="st1"] {{

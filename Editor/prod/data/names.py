@@ -10,6 +10,7 @@ NAMES = {
         # =============== Program ====================
 
         "title": "CamParking",
+        "debug": "Дебаг",
 
         # =============== Menu ====================
         "menu.file": "Файл",
@@ -35,6 +36,15 @@ NAMES = {
 
         "menu.menu_switcher.title": "Меню быстрой навигации",
 
+        #================= Start =================
+
+        "start.title": "Добро пожаловать на начальную страницу!",
+        "start.about": "Выберите действие, с которого хотите начать:",
+
+        # =============== Dock ====================
+
+        "dock.unpin": "Открепить/Закрепить окно",
+        "dock.close": "Закрыть окно",
 
         #================= Editor.toolbar =================
 
@@ -48,6 +58,7 @@ NAMES = {
         "editor.toolbar.clear":"Очистить рабочую область",
         "editor.toolbar.test.image":"Загрузить тестовое изображение",
         "editor.toolbar.capture.image":"Сделать скриншот с камеры",
+        "editor.toolbar.back":"Вернуться в начало",
 
         #================= Editor.toolbar.dialog =================
 
@@ -62,22 +73,36 @@ NAMES = {
         "editor.editor.dock.title": "Редактор",
         "editor.editor.dock.name": "Полигоны",
         "editor.editor.dock.button.delete.all": "Удалить выбранные",
-        "editor.editor.dock.button.select.all": "Выбрать всё",
+        "editor.editor.dock.button.select.all": "Выделить всё",
+        "editor.editor.dock.button.unselect.all": "Снять выделение",
 
         #================= Editor.help.dock =================
 
         "editor.help.dock.title": "Помощь",
         "editor.help.dock.name": """
-            <h2>🤿 Редактор масок</h2>
-
-            <h3>Управление:</h3>
-            <ul>
-                <li>ЛКМ - Создание новой точки</li>
-                <li>СКМ - Добавление точки в маску</li>
-                <li>ПКМ - Завершить полигон</li>
-            </ul>
-            <p><i>Создано с использованием PySide6</i></p>
-            """,
+        <h2>🤿 Редактор масок</h2>
+        <p>Создание полигональных масок для разметки изображений.</p>
+        
+        <h3>🖱️ Управление мышью</h3>
+        <ul>
+            <li><b>ЛКМ</b> — добавить точку/перетащить точку/перетащить полигон</li>
+            <li><b>СКМ</b> — добавить точку на ребро полигона</li>
+            <li><b>ПКМ</b> — удалить точку/завершить полигон (от 3 точек)</li>
+        </ul>
+        
+        <h3>⌨️ Горячие клавиши</h3>
+        <ul>
+            <li><b>Alt+1</b> (⌥1) — загрузить проект (маска + изображение)</li>
+            <li><b>Alt+2</b> (⌥2) — загрузить только полигоны</li>
+            <li><b>Alt+3</b> (⌥3) — загрузить изображение</li>
+            <li><b>Shift+Alt+3</b> (⇧⌥3) — захват с RTSP-камеры</li>
+            <li><b>Alt+S</b> (⌥S) — сохранить как новый файл</li>
+            <li><b>Shift+Alt+S</b> (⇧⌥S) — быстрое сохранение</li>
+            <li><b>Alt+D</b> (⌥D) — очистить всё</li>
+            <li><b>Alt+E</b> (⌥E) — вернуться в главное меню</li>
+        </ul>
+        <p><i>Макс. 9 точек на полигон</i></p>
+        """,
 
         #================= Editor.statusbar =================
         "editor.statusbar.load.mask": f"Маска загружена: ",
@@ -98,32 +123,57 @@ NAMES = {
         "editor.statusbar.mask.false": f"Нет маски",
 
 
-        # ================= settings =================
+        # ================= Settings =================
 
         "settings.title": f"Настройки:",
 
-        # ================= settings.theme =================
+        # ================= Settings.theme =================
 
-        "settings.theme.title": f"Тема программы:",
+        "settings.theme.title": f"Тема:",
 
-        # ================= settings.language =================
+        # ================= Settings.language =================
 
-        "settings.language.title": f"Язык программы:",
-        "settings.language.about": f"Для смены языка программы необходим перезапуск",
+        "settings.language.title": f"Язык:",
+        "settings.language.about": f"Необходим перезапуск",
 
-        # ================= settings.save =================
+        # ================= Settings.options =================
 
-        "settings.save.title": f"Сохранение...",
+        "settings.options.title": f"Опции:",
+        "settings.options.fast.nav.title": f"Панель быстрой навигации",
+        "settings.options.fast.nav.about": f"Панель в верхней части экрана позволяющая быстро переключаться между страницами программы.",
+        "settings.options.fast.nav.button": f"Панель быстрой навигации",
+
+        "settings.options.debug.title": f"Дебаг функции:",
+        "settings.options.debug.about": f"Необходим перезапуск",
+        "settings.options.debug.button": f"Дебаг",
+
+
+
+        # ================= Settings.save =================
+
+        "settings.save.title": f"Сохранить",
         "settings.save.true": f"Сохранение успешно",
         "settings.save.false": f"Сохранение не выполнено.",
+
+        # ================= Connect.toolbar =================
+        "connect.toolbar.title": "Панель инструментов",
 
         # ================= Connect.dock =================
         "connect.dock.title": "Подключение",
         "connect.dock.name": "ЗАГОЛОВОК",
-        "connect.dock.button.connect": "Подключиться",
+        "connect.dock.button.camera": "Камера",
         "connect.dock.button.connect.config": "Конфигурация камеры",
         "connect.dock.button.detection.toggle": "Распознавание Live",
-        "connect.dock.button.connect.disconnect": "Отключиться",
+
+        # ================= Connect.form =================
+
+        "connect.form.window.name": "Окно генерации RTSP",
+        "connect.form.title": "Форма для подключения",
+        "connect.form.login": "Логин:",
+        "connect.form.pass": "Пароль:",
+        "connect.form.ip": "IP Адрес:",
+        "connect.form.port": "Порт:",
+        "connect.form.stream.path": "Путь к потоку:",
 
 
     },
@@ -136,6 +186,7 @@ NAMES = {
         # =============== Program ====================
 
         "title": "CamParking",
+        "debug": "Debug",
 
         # =============== Menu ====================
         "menu.file": "File",
@@ -161,9 +212,18 @@ NAMES = {
 
         "menu.menu_switcher.title": "Fast navigation menu",
 
+        # ================= Start =================
+
+        "start.title": "Welcome to start page!",
+        "start.about": "Select the action you want to start with:",
+
+        # =============== Dock ====================
+
+        "dock.unpin": "Pin/Unpin window",
+        "dock.close": "Close window",
 
         #================= Editor.toolbar =================
-        "editor.toolbar.title": "Toolbar",
+        "editor.toolbar.title": "Editor toolbar",
 
         "editor.toolbar.load.file": "Load save",
         "editor.toolbar.load.mask": "Load only mask",
@@ -173,6 +233,7 @@ NAMES = {
         "editor.toolbar.clear": "Clear workspace",
         "editor.toolbar.test.image": "Load test image",
         "editor.toolbar.capture.image":"Take screenshot from camera",
+        "editor.toolbar.back":"Back to start page",
 
         #================= Editor.toolbar.dialog =================
 
@@ -188,21 +249,36 @@ NAMES = {
         "editor.editor.dock.name": "Parking slots:",
         "editor.editor.dock.button.delete.all": "Delete selected",
         "editor.editor.dock.button.select.all": "Select all",
+        "editor.editor.dock.button.unselect.all": "Unselect all",
 
         #================= Editor.help.dock =================
 
         "editor.help.dock.title": "Help",
         "editor.help.dock.name": """
-            <h2>🤿 Mask Editor</h2>
+        <h2>🤿 Mask Editor</h2>
+        <p>Create polygonal masks for image annotation.</p>
 
-            <h3>Controls:</h3>
-            <ul>
-                <li>LMB - Create new point</li>
-                <li>MMB - Add new point in mask</li>
-                <li>RMB - End polygon</li>
-            </ul>
-            <p><i>Create with PySide6 library</i></p>
-            """,
+        <h3>🖱️ Mouse Controls</h3>
+        <ul>
+            <li><b>LMB</b> — add point / drag point / drag whole polygon</li>
+            <li><b>MMB</b> — add point on polygon edge</li>
+            <li><b>RMB</b> — delete point / finish polygon (min 3 points)</li>
+        </ul>
+
+        <h3>⌨️ Keyboard Shortcuts</h3>
+        <ul>
+            <li><b>Alt+1</b> (⌥1) — load project (mask + image)</li>
+            <li><b>Alt+2</b> (⌥2) — load polygons only</li>
+            <li><b>Alt+3</b> (⌥3) — load image</li>
+            <li><b>Shift+Alt+3</b> (⇧⌥3) — capture from RTSP camera</li>
+            <li><b>Alt+S</b> (⌥S) — save as new file</li>
+            <li><b>Shift+Alt+S</b> (⇧⌥S) — quick save (overwrite)</li>
+            <li><b>Alt+D</b> (⌥D) — clear all</li>
+            <li><b>Alt+E</b> (⌥E) — back to main menu</li>
+        </ul>
+
+        <p><i>Max 9 points per polygon</i></p>
+        """,
 
         #================= Editor.statusbar =================
         "editor.statusbar.load.mask": f"Mask loaded successful: ",
@@ -219,33 +295,59 @@ NAMES = {
         "editor.statusbar.mask.true": f"Current mask: ",
         "editor.statusbar.mask.false": f"No mask",
 
-        # ================= settings =================
+        # ================= Settings =================
 
         "settings.title": f"Settings:",
 
-        # ================= settings.theme =================
+        # ================= Settings.theme =================
 
-        "settings.theme.title": f"Program theme:",
+        "settings.theme.title": f"Theme:",
 
-        # ================= settings.language =================
+        # ================= Settings.language =================
 
-        "settings.language.title": f"Program language:",
-        "settings.language.about": f"Restart required to change language",
+        "settings.language.title": f"Language:",
+        "settings.language.about": f"Restart required",
 
+        # ================= Settings.options =================
 
-        # ================= settings.save =================
+        "settings.options.title": f"Options:",
+        "settings.options.fast.nav.title": f"Fast navigation bar:",
+        "settings.options.fast.nav.about": f"The bar at the top of the screen allows you to quickly switch program pages",
+        "settings.options.fast.nav.button": f"Fast navigation bar:",
 
-        "settings.save.title": f"Saving...",
+        "settings.options.debug.title": f"Enable debug functional:",
+        "settings.options.debug.about": f"Restart required",
+        "settings.options.debug.button": f"Debug",
+
+        # ================= Settings.save =================
+
+        "settings.save.title": f"Save",
         "settings.save.true": f"Saving complete",
         "settings.save.false": f"Save not done",
 
+
+        # ================= Connect.toolbar =================
+        "connect.toolbar.title": "Connect toolbar",
+
+
         # ================= Connect.dock =================
+
         "connect.dock.title": "Connect",
         "connect.dock.name": "ZAGOLOVOK",
-        "connect.dock.button.connect": "Go live",
+        "connect.dock.button.camera": "Camera",
         "connect.dock.button.connect.config": "Connection config",
         "connect.dock.button.detection.toggle": "Toggle detection",
-        "connect.dock.button.connect.disconnect": "Disconnect",
+
+        # ================= Connect.form =================
+
+        "connect.form.window.name": "Connection settings",
+        "connect.form.title": "Connection form",
+        "connect.form.login": "Login:",
+        "connect.form.pass": "Password:",
+        "connect.form.ip": "IP address:",
+        "connect.form.port": "Port:",
+        "connect.form.stream.path": "Stream path:"
+
     },
 
 }

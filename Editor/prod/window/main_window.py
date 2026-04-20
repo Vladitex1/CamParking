@@ -1,19 +1,23 @@
 from PySide6.QtWidgets import *
 from PySide6.QtGui import QAction
-from PySide6.QtCore import Qt, QProcess
+from PySide6.QtCore import Qt, QProcess,QThread
+
 from Editor.prod.window import start_window , editor_window, connect_window, settings_window
 from Editor.prod.data.names import NAMES,get_language
 from Editor.prod.data.style import change_theme
 from Editor.prod.data.names import change_language
 from Editor.prod.data.signal_bus import signal
+import Editor.prod.data.global_var as global_var
 import sys
 import os
+import gc
 
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.name = NAMES[get_language()]
         self.setWindowTitle(self.name["title"])
+        self.setup:bool = False
         self.setGeometry(100, 100, 900, 700)
 
         # Создаем центральный виджет для переключения страниц
@@ -21,28 +25,30 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(self.central_widget)
 
         # Добавляем страницы в StackedWidget
+
         self.create_windows()
         self.create_addon_windows()
+
         # Создаем меню
         self.create_menu()
 
         # Создаем панель инструментов
         self.create_nav_toolbar()
-
+        signal.menu_switch_request.connect(self.switch_page)
 
     def create_addon_windows(self):
-        menus = [
-                [f"⚙️ Настройки", settings_window.SettingsWindow()],
+        self.addon_windows = [
+                [f"⚙️{self.name["menu.parameters.settings"]}", settings_window.SettingsWindow()],
                 ]
 
-        for name, window in menus:
+        for name, window in self.addon_windows:
             self.central_widget.addWidget(window)
 
     def create_windows(self):
         self.menus = [
             [f"📝{self.name["menu.navigate.start"]}", start_window.StartWindow()],
-                 [f"🖼️{self.name["menu.navigate.editor"]}", editor_window.EditorWindow()],
-                 [f"📹{self.name["menu.navigate.connect"]}", connect_window.ConnectWindow()],
+            [f"🖼️{self.name["menu.navigate.editor"]}", editor_window.EditorWindow()],
+            [f"📹{self.name["menu.navigate.connect"]}", connect_window.ConnectWindow()],
                  ]
 
         for name, window in self.menus:
@@ -68,6 +74,8 @@ class MainWindow(QMainWindow):
         settings_action.setShortcut("Ctrl+F3")
         settings_action.triggered.connect(lambda: self.switch_page(3))
         settings_menu.addAction(settings_action)
+        settings_menu.addAction(settings_action)
+
         #self.name["menu.parameters.switch_theme"]
         turn_on_navigation = QAction("включить меню навигации", self)
         turn_on_navigation.triggered.connect(lambda: self.navigation_toolbar.show())
@@ -98,7 +106,7 @@ class MainWindow(QMainWindow):
         toolbar = QToolBar(self.name["menu.menu_switcher.title"])
         self.addToolBar(toolbar)
 
-        for num,(name,menu) in enumerate(self.menus):
+        for num,(name,menu) in enumerate(self.menus+self.addon_windows):
             page = QAction(str(name), self)
             page.triggered.connect(lambda checked, page=num: self.switch_page(page))
             toolbar.addAction(page)
@@ -111,7 +119,16 @@ class MainWindow(QMainWindow):
 
     def switch_page(self, index):
         """Переключение между страницами"""
+
+        global_var.page = [global_var.page[1],index]
+        if index == 3 and global_var.page[0] == 3:
+            global_var.page[0] = 0
+
         self.central_widget.setCurrentIndex(index)
+
+        #print(global_var.page)
+        #print(index)
+
 
     def switch_language_warning(self):
         """Показать предупреждение о перезапуске"""
@@ -169,3 +186,6 @@ class MainWindow(QMainWindow):
             info_label
         )
 
+    def closeEvent(self, event):
+        # Останавливаем все известные потоки
+        super().closeEvent(event)
