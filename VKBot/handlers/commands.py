@@ -7,7 +7,7 @@ from VKBot.handlers.config import whitelist
 labeler = BotLabeler()
 logger = logging.getLogger(__name__)
 
-@labeler.message(text=["/start", "начать", "старт"])
+@labeler.message(text=["/start", "Начать"])
 async def start_command(message: Message):
     user_id = message.from_id
     if whitelist.check_user(user_id):
@@ -23,7 +23,7 @@ async def start_command(message: Message):
         )
     logger.info(f"Вызов команды /start от пользователя {user_id}")
 
-@labeler.message(text=["/goadmin", "админ", "админка"])
+@labeler.message(text=["/goadmin"])
 async def goadmin_command(message: Message):
     user_id = message.from_id
     if whitelist.valid_user_permissions(user_id, 2):

@@ -7,5 +7,7 @@
   "camera_port": "554",
   "camera_login": "admin",
   "camera_pass": "",
-  "camera_stream_path": "live1"
+  "camera_stream_path": "live1",
+  "detection_config": "red.toml",
+  "detection_timeout": 1000
 }

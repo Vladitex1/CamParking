@@ -164,9 +164,11 @@ async def get_img_PyAV(camera_path:str = None,out_data_type:str = "path"):
             img = result
         print("✅ Фото получено")
 
+        rgb_array = img.to_ndarray(format='rgb24')
+
         match out_data_type:
             case "data":
-                return img.to_ndarray(format='rgb24')
+                return cv2.cvtColor(rgb_array, cv2.COLOR_RGB2BGR)
             case "path":
                 return save_image(img)#result_image_name =
             case _:

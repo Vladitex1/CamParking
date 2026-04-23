@@ -95,7 +95,6 @@ class EditorWindow(QMainWindow):
         main_layout = QVBoxLayout(central_widget)
         main_layout.setAlignment(Qt.AlignCenter)
         asd = central_widget.size()
-        print(asd)
         # Создаем метку для отображения изображения
         self.image_label = QLabel()
         self.image_label.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
@@ -163,8 +162,6 @@ class EditorWindow(QMainWindow):
 
     def on_image_captured(self, image_path:str):
         try:
-            #if image_path and os.path.exists(image_path):
-            #print(image_path)
             self.manual_load_image(path=image_path,statusbar=True)
         except Exception as e:
             print("Не удалось получить фото с камеры: ",e)
@@ -182,8 +179,9 @@ class EditorWindow(QMainWindow):
             "separator",
             (self.name["editor.toolbar.capture.image"], "mdi6.camera-image", self.capture_image, "Shift+Alt+3"),
             "separator",
-            (self.name["editor.toolbar.save.as"], "mdi6.content-save-edit", self.new_save_mask,"Alt+S"),
-            (self.name["editor.toolbar.save.fast"], "mdi6.content-save", self.fast_save_mask,"Shift+Alt+S"),
+            (self.name["editor.toolbar.save.fast"], "mdi6.content-save", self.fast_save_mask, "Alt+S"),
+            (self.name["editor.toolbar.save.as"], "mdi6.content-save-edit", self.new_save_mask,"Shift+Alt+S"),
+
             "separator",
             (self.name["editor.toolbar.clear"], "mdi6.delete", lambda: (self.clear_display(True)),"Alt+D"),
             "stretch",
@@ -206,7 +204,6 @@ class EditorWindow(QMainWindow):
                 case "special":
                     pass
                 case _:
-                    print(data)
                     action = QAction(self)
                     action.setToolTip(data[0]+" / "+data[3])
                     action.setShortcut(data[3])
@@ -478,7 +475,6 @@ class EditorWindow(QMainWindow):
             self, self.name["editor.toolbar.load.image.title"], "../../img",
             "(*.png *.jpg *.jpeg *.bmp *.gif)"
         )
-        print(filename)
         if filename != "":
             self.clear_display()
             self.manual_load_image(filename,True)
@@ -863,8 +859,6 @@ class EditorWindow(QMainWindow):
                 self.loaded_mask = file_path
                 self.update_polygons_list_widget()
                 self.StatusBarLabelUpdate(mask=self.relative_path(self.loaded_mask))
-                print("_____")
-                print(parent_file)
             else:
                 self.statusbar_show_temp_message("load_mask", False, saved_data)
 

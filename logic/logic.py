@@ -23,13 +23,12 @@ def process_image(image = None,save_img:bool=False,timestamp:bool = False, confi
     if config_name is None:
         print("Не выбрана конфигурация для модели | process_image")
         return 0
-    print("хуй1")
+
     try:
         # ================ Начало обработки фото ================
         #сюда передается название файла на ввод и название файла, которое будет при сохранении
         print("Запуск распознавания Yolo")
         CONFIG_DIR: str = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "model", "config",config_name))
-        print("хуй2")
         with open(CONFIG_DIR, 'rb') as f:
             config = tomli.load(f) #загрузка конфигурации Yolo
             cars_count, vehicles, detection_results = detect_on_raw_image(image, config)
@@ -46,7 +45,7 @@ def process_image(image = None,save_img:bool=False,timestamp:bool = False, confi
             OUTPUT_DIR: str = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "img"))
             os.makedirs(INPUT_DIR, exist_ok=True)
             os.makedirs(OUTPUT_DIR, exist_ok=True)
-            print("хуй3")
+
             if timestamp == False:
                 filecount = 0
                 for file in os.listdir(OUTPUT_DIR):
@@ -58,7 +57,6 @@ def process_image(image = None,save_img:bool=False,timestamp:bool = False, confi
                 else:
                     result_image_name = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "img",
                                                                      f"result_{date.today()}_{filecount}.jpg"))
-                print("хуй4")
             else:
                 result_image_name = os.path.abspath(
                     os.path.join(os.path.dirname(__file__), "..", "img", f"last_result.jpg"))
@@ -74,7 +72,6 @@ def process_image(image = None,save_img:bool=False,timestamp:bool = False, confi
 
         # ================ Запись результатов детекции в нужном нам формате ================
         vehicles_data = []
-        print(f"вехиклес{vehicles}")
         for vehicle in vehicles:
             x1, y1, x2, y2 = vehicle['position']
             vehicles_data.append([
@@ -136,7 +133,6 @@ def detect_on_raw_image(input_image,config):
                     "position": bbox_coords  # Координаты [x1, y1, x2, y2]
                 })
 
-        #print(f"📊 Найдено транспортных средств: {cars_found}")
         return cars_found, vehicles_info, detection_results
 
     #обработчик ошибок
@@ -152,7 +148,6 @@ def comparison(saved_data = None,detected_car_data = None, nums:bool=False):
         return [], []
     detect_center_list = []
     ### нахождение центральной точки в найденных машинах
-    #print(len(detected_car_data))
     for i in range(len(detected_car_data)):
         tempdata_x1 = detected_car_data[i][0][0]
         tempdata_x2 = detected_car_data[i][1][0]
@@ -164,10 +159,10 @@ def comparison(saved_data = None,detected_car_data = None, nums:bool=False):
 
     occupied = []
     free = []
-    print(f"Найденные машины: {detect_center_list}")
+    #print(f"Найденные машины: {detect_center_list}")
 
     ###фильтр данных, сопоставление
-    print("Список сохраненных парковочных мест: ",saved_data)
+    #print("Список сохраненных парковочных мест: ",saved_data)
     for num,i in enumerate(saved_data):
         found_car = False
         for current_center in range(len(detect_center_list)):

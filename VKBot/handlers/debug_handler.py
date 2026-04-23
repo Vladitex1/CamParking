@@ -34,12 +34,12 @@ def get_commands() -> Keyboard:
     kb.row()
     return kb
 
-@labeler.message(text=["/commands", "команды"])
+@labeler.message(text=["/commands"])
 async def debug_command(message: Message):
     await message.answer("commands\n", keyboard=get_commands().get_json())
 
 
-@labeler.message(text=["/debug", "дебаг"])
+@labeler.message(text=["/debug"])
 async def debug_command(message: Message):
     await message.answer("debug\n", keyboard=get_debug_keyboard().get_json())
 

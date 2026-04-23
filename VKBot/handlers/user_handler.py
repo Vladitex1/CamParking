@@ -1,4 +1,3 @@
-
 import logging
 import os
 import random
@@ -260,12 +259,19 @@ async def handle_callback(event: MessageEvent):
 
         elif cmd == "parking:back":
             try:
-                await event.ctx_api.messages.delete(peer_id=peer_id,
-                                                    conversation_message_ids=[conv_msg_id - 1, conv_msg_id],
-                                                    delete_for_all=True)
-            except:
+                await event.ctx_api.messages.delete(
+                    peer_id=peer_id,
+                    conversation_message_ids=[conv_msg_id],
+                    delete_for_all=True
+                )
+            except Exception:
                 pass
-
+            await event.ctx_api.messages.send(
+                peer_id=peer_id,
+                message="Выберите действие в меню ниже:",
+                keyboard=get_main_user_keyboard().get_json(),
+                random_id=0
+            )
         else:
             return
     else:
@@ -386,9 +392,9 @@ async def process_camera_request(event: MessageEvent, user_id: int, peer_id: int
                 input_image = "../img/camphoto/camera_photo_2026-04-10_21.jpg"
             else:
                 input_image = await camera_control.get_img_PyAV(camera_path=ip,out_data_type="data")
-                if input_image == 0:
+                if isinstance(input_image, int) and input_image == 0:
                     raise Exception("Ошибка подключения к камере")
-                await edit_loading(event, loading_cmid, peer_id, 3)
+            await edit_loading(event, loading_cmid, peer_id, 3)
 
             checked_image_data = detector.check_auto(mask=mask, image=input_image, config_name=config)
             if type(checked_image_data) == int:
@@ -411,8 +417,8 @@ async def process_camera_request(event: MessageEvent, user_id: int, peer_id: int
             print(occupied[1])
 
 
-            free_text = "\n".join([f"🟢 {num+1} | {name}" for num,name in free])
-            occupied_text = "\n".join([f"🔴 {num+1} | {name}" for num,name in occupied])
+            free_text = "\n".join([f"🟢 {num+1}) {name}" for num,name in free])
+            occupied_text = "\n".join([f"🔴 {num+1}) {name}" for num,name in occupied])
             text = (f"{datetime.today().strftime('📅 %Y-%m-%d 🕔 %H:%M:%S')}\n"
                     f"ℹ️ Информация по парковочным местам:\n\n" #\nИспользованная маска: {mask}
                     f"{free_text}\n\n{occupied_text}\n\nСвободных мест: {len(free)} из {len(free)+len(occupied)}")

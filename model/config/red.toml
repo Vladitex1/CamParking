@@ -1,0 +1,13 @@
+model_name = "yolo26l.pt"
+conf = 0.1
+iou = 0.5
+imgsz = 1280
+classes = [
+    2,
+    5,
+    7,
+]
+line_width = 2
+font_size = 1.0
+show_conf = true
+labels = false

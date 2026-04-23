@@ -60,6 +60,8 @@ def load_config(filename: str = "prefers.json"):
         "camera_login": data.get("camera_login", ""),
         "camera_pass": data.get("camera_pass", ""),
         "camera_stream_path": data.get("camera_stream_path", ""),
+        "detection_config": data.get("detection_config", ""),
+        "detection_timeout": data.get("detection_timeout", ""),
     }
 
 
@@ -74,7 +76,9 @@ def first_save(filename="prefers.json"):
         "camera_port": "554",
         "camera_login": "admin",
         "camera_pass": "",
-        "camera_stream_path": "stream1"
+        "camera_stream_path": "stream1",
+        "detection_config": "",
+        "detection_timeout": 1000
     }
     save_config(filename=filename, **defaults)
     return defaults

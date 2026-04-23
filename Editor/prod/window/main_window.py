@@ -162,28 +162,11 @@ class MainWindow(QMainWindow):
 
     def show_about(self):
         """Показать окно 'О программе'"""
-        info_label = """
-            <h2>🎨 CamParking</h2>
-            <p><b>Версия:</b> 2.2.4 </p>
-            <p><b>Описание:</b> Админское приложение для работы с изображением</p>
-
-            <h3>Возможности:</h3>
-            <ul>
-                <li>Рисование различными кистями</li>
-                <li>Работа со слоями</li>
-                <li>Фильтры и эффекты</li>
-                <li>Инструменты для работы с фигурами</li>
-                <li>Добавление текста</li>
-                <li>История действий (Undo/Redo)</li>
-            </ul>
-
-            <p><i>Создано с использованием PySide6</i></p>
-            """
 
         QMessageBox.about(
             self,
-            "О программе",
-            info_label
+            self.name["about.label"],
+            self.name["about.text"]
         )
 
     def closeEvent(self, event):

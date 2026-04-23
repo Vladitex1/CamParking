@@ -36,6 +36,37 @@ NAMES = {
 
         "menu.menu_switcher.title": "Меню быстрой навигации",
 
+        # ==================== About ===========================
+        "about.label": "О программе:",
+        "about.text": """
+        <h2>🎥 CamParking</h2>
+        <p><b>Версия:</b> 2.8.0</p>
+        <p><b>Описание:</b> Административное приложение для разметки парковочных мест и детекции автомобилей</p>
+        
+        <h3>🖼️ Возможности:</h3>
+        <ul>
+            <li>Загрузка изображений с камеры или из файла</li>
+            <li>Создание и редактирование полигонов (парковочных мест) с привязкой к маске</li>
+        </ul>
+
+        <h3>🎥 Меню подключение:</h3>
+        <ul>
+            <li>Автоматическая детекция автомобилей в реальном времени (RTSP)</li>
+            <li>Настройка конфигурации детекции и таймаута</li>
+            <li>Визуальная индикация занятых/свободных мест</li>
+        </ul> 
+        <h3>📌 Возможности:</h3>
+        <ul>   
+            <li>Поддержка тёмной и светлой темы</li>
+            <li>Поддержка русского и английского языка</li>
+            <li>Горячие клавиши для быстрого доступа</li>
+            <li>Отладка и тестирование (режим разработчика)</li>
+        </ul>
+                
+        <p><i>⚙️ Разработано с использованием библиотеки PySide6</i></p>
+        <p><i>   Связь с разработчик : @gsoalnfeea</i></p>
+        """,
+
         #================= Start =================
 
         "start.title": "Добро пожаловать на начальную страницу!",
@@ -174,6 +205,7 @@ NAMES = {
         "connect.form.ip": "IP Адрес:",
         "connect.form.port": "Порт:",
         "connect.form.stream.path": "Путь к потоку:",
+        "connect.form.config": "Конфиг распознавания:",
 
 
     },
@@ -211,6 +243,42 @@ NAMES = {
         # =============== Menu.menu_switcher ====================
 
         "menu.menu_switcher.title": "Fast navigation menu",
+
+
+        # ==================== About ===========================
+        "about.label":"About program:",
+        "about.text": """
+        <h2>🎥 CamParking</h2>
+        <p><b>Version:</b> 2.8.0</p>
+        <p><b>Description:</b> Administrative application for parking space marking and vehicle detection</p>
+
+        <h3>🖼️ Features:</h3>
+        <ul>
+            <li>Load images from camera or file</li>
+            <li>Create and edit polygons (parking spaces) linked to a mask</li>
+        </ul>
+
+        <h3>🎥 Connection Menu:</h3>
+        <ul>
+            <li>Real-time vehicle detection (RTSP)</li>
+            <li>Detection configuration and timeout settings</li>
+            <li>Visual indication of occupied/free spaces</li>
+        </ul>
+
+        <h3>📌 Additional Features:</h3>
+        <ul>
+            <li>Dark and light theme support</li>
+            <li>Russian and English language support</li>
+            <li>Keyboard shortcuts for quick access</li>
+            <li>Debug and testing (developer mode)</li>
+        </ul>
+
+        <p><i>⚙️ Developed using PySide6 library</i></p>
+        <p><i>   Contact developer: @gsoalnfeea</i></p>
+        """,
+
+
+
 
         # ================= Start =================
 
@@ -346,7 +414,8 @@ NAMES = {
         "connect.form.pass": "Password:",
         "connect.form.ip": "IP address:",
         "connect.form.port": "Port:",
-        "connect.form.stream.path": "Stream path:"
+        "connect.form.stream.path": "Stream path:",
+        "connect.form.config": "Detection config:",
 
     },
 

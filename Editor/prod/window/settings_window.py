@@ -11,6 +11,19 @@ from Editor.prod.data.names import NAMES,get_language,change_language
 from Editor.prod.data.signal_bus import signal
 import Editor.prod.data.global_var as global_var
 import qtawesome as qta
+import sys
+from PySide6.QtWidgets import *
+from PySide6.QtCore import Qt, QPoint, QRect, Signal
+from PySide6.QtGui import QPixmap, QPainter, QPen, QBrush, QColor, QAction, QImage
+import numpy as np
+from dearpygui.dearpygui import theme
+from Editor.prod.data.prefers_manager import *
+from Editor.prod.data.style import STYLE,change_theme, current_color
+import Editor.prod.data.style as style
+from Editor.prod.data.names import NAMES,get_language,change_language
+from Editor.prod.data.signal_bus import signal
+import Editor.prod.data.global_var as global_var
+import qtawesome as qta
 '''
 ВСТАВИТЬ ИКОНКИ QTA В настройки в текст (нужно сделать менеджер для переключения иконок)
 '''
@@ -75,7 +88,6 @@ class SettingsWindow(QWidget):
     def theme_element_change(self,setter_getter:bool = None,name:str = None):
         match setter_getter:
             case True:
-                print(self.theme_buttons)
                 if name in self.theme_buttons:
                     self.theme_buttons[name].setChecked(True)
             case False:
@@ -117,7 +129,6 @@ class SettingsWindow(QWidget):
     def language_element_change(self,setter_getter:bool = None,name:str = None):
         match setter_getter:
             case True:
-                print(self.language_buttons)
                 if name in self.language_buttons:
                     self.language_buttons[name].setChecked(True)
             case False:

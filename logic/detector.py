@@ -4,7 +4,7 @@ from sys import exception
 from . import  file
 from . import logic
 
-MASKPATH = "../save/"
+MASK_PATH = "../save/"
 MASK_ENDING = ".mask"
 
 
@@ -22,7 +22,7 @@ def check_auto(mask: str = None, image = None, config_name:str = "conf_1"):
             print("Ошибка: не выбран конфиг Yolo")
             return 2
 
-        suspect,saved_data, path = file.load_data(f"{MASKPATH}{mask}")# [1]
+        suspect,saved_data, path = file.load_data(f"{MASK_PATH}{mask}")# [1]
 
         print(f"sd:{saved_data}")
         print(f"path:{path}")
@@ -37,7 +37,7 @@ def check_auto(mask: str = None, image = None, config_name:str = "conf_1"):
             print("Ошибка: не передано ни изображение, ни имя файла")
             return 4
 
-        return logic.comparison(saved_data, detected_car_data)
+        return logic.comparison(saved_data, detected_car_data, nums=True)
     except Exception:
         print("Ошибка: в работе функции распознавания")
         return 5
