@@ -253,6 +253,7 @@ class ConnectWindow(QMainWindow):
                     create_button(toolbar, button_data[0], "button", "st_toolbar")
                     toolbar.addWidget(self.url_input)
                     create_button(toolbar, button_data[1], "button", "st_toolbar")
+
                     self.create_camera_connect_toggle(toolbar, "st_toggle_toolbar")
                     self.create_detection_toggle(toolbar, "st_toggle_toolbar")
                 case _:
@@ -619,7 +620,7 @@ class ConnectWindow(QMainWindow):
         except:
             pass
 
-        timer_label = QLabel(self.name["connect.form.config"])
+        timer_label = QLabel(self.name["connect.form.timer"])
         timer_textbox = QLineEdit(str(userdata["detection_timeout"]))
 
         login = QHBoxLayout()

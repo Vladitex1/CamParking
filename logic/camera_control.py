@@ -127,11 +127,17 @@ def get_img_sync(camera_path: str = None):
         return None
 
 
-async def get_img_PyAV(camera_path:str = None,out_data_type:str = "path"):
-    if camera_path == None:
-        camera_path = "rtsp://admin:@192.168.0.27:554/h264?tcp"
 
-    options = {
+async def get_img_PyAV(camera_path:str = None,out_data_type:str = "path"):
+    '''
+    camera_path - параметр в котором указывается адрес камеры
+    out_data_type - параметр в котором указывается формат данных по итогу работы функции
+    '''
+
+    if camera_path == None:            #Проверка на переданный адрес
+        return 0                       #Если параметр не передан
+
+    options = {                        # переменная с опциями для подключения
     'skip_frame': 'default',           # Пропускать неключевые кадры
     'threads': '1',                    # Кол-во потоков декодера
     'refcounted_frames': '1',          # Счетчик ссылок на кадры
@@ -141,39 +147,39 @@ async def get_img_PyAV(camera_path:str = None,out_data_type:str = "path"):
     print("📡 Попытка подключения к IP-камере...")
     try:
         print(f"🔗 Попытка открытия RTSP потока...")
-        container = av.open(camera_path, options=options, timeout=5)
-    except Exception as e:
+        container = av.open(camera_path, options=options, timeout=5) #Пробуем открыть видеопоток с таймаутом в 5 сек
+    except Exception as e: #Если не получилось, выдаем ошибку в консоль
         print(f"❌ Не удалось подключиться к камере, Ошибка: {e}")
         return 0
     print("Успешная попытка.")
     result = None
     try:
-        for index, frame in enumerate(container.decode(video=0)):
-            result = frame
-            break
-    except Exception as e:
+        for index, frame in enumerate(container.decode(video=0)): #Открываем переменную с полученными кадрами и декодируем первый по списку
+            result = frame # записываем в результат
+            break # останавливаем цикл
+    except Exception as e: #Если не получилось - выдаем ошибку в консоль
         print(f"Ошибка в декодировании {e}")
         return 0
 
     print("📸 Делаю фото...")
 
-    if result is not None:
+    if result is not None: # если декодировать получилось, то подготавливаем данные на вывод
         if isinstance(result, list) and len(result) > 1:
             img = result[1]
         else:
             img = result
         print("✅ Фото получено")
 
-        rgb_array = img.to_ndarray(format='rgb24')
+        rgb_array = img.to_ndarray(format='rgb24') # преобразуем фото в тип данных numpyarray
 
-        match out_data_type:
-            case "data":
+        match out_data_type: # проверяем какой формат данных запрашивается в начале
+            case "data": # возвращаем numpyarray
                 return cv2.cvtColor(rgb_array, cv2.COLOR_RGB2BGR)
-            case "path":
-                return save_image(img)#result_image_name =
-            case _:
+            case "path": # сохраняем в изображение на устройство и возвращаем путь
+                return save_image(img)
+            case _: # если ничего не передано, то выдаем ошибку
                 return 0
-    else:
+    else: # иначе выдаем ошибку в консоль
         print("Результат захвата изображения не найден")
         return 0
 

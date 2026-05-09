@@ -4,6 +4,7 @@ from PySide6.QtCore import Qt, QPoint, QRect
 from PySide6.QtGui import QPixmap, QPainter, QPen, QBrush, QColor, QAction, QImage
 import Editor.prod.data.style as style
 from Editor.prod.data.signal_bus import signal
+import Editor.prod.data.global_var as global_var
 from Editor.prod.data.names import NAMES,get_language,change_language
 from Editor.prod.window import editor_window, connect_window, settings_window
 import qtawesome as qta
@@ -60,7 +61,16 @@ class StartWindow(QWidget):
         buttons_wrapper.addStretch()
 
         main_layout.addLayout(buttons_wrapper)         # кнопки по центру
+
+        down_layout = QHBoxLayout()
+        version_num_label = QLabel(f"Ver.{global_var.program_version}")
+        down_layout.addStretch()
+        down_layout.addWidget(version_num_label)
+
+
         main_layout.addStretch()                       # пружина снизу
+        main_layout.addLayout(down_layout)
+
 
         self.setLayout(main_layout)
 

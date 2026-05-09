@@ -64,3 +64,126 @@
 2026-04-22 02:33:44,896 - vkbottle - INFO - Loop will be run forever
 2026-04-22 02:33:45,320 - vkbottle - INFO - Starting BotPolling for <API token_generator=<<class 'vkbottle.api.token_generator.single.SingleTokenGenerator'>>...>
 2026-04-22 02:38:04,983 - vkbottle - INFO - Caught keyboard interrupt. Shutting down...
+2026-04-25 00:52:03,767 - __main__ - INFO - Модуль commands загружен
+2026-04-25 00:52:03,771 - __main__ - INFO - Модуль admin_handler загружен
+2026-04-25 00:52:08,782 - __main__ - INFO - Модуль user_handler загружен
+2026-04-25 00:52:08,787 - __main__ - INFO - Модуль debug_handler загружен
+2026-04-25 00:52:08,789 - __main__ - INFO - Модуль new_user_handler загружен
+2026-04-25 00:52:08,789 - __main__ - INFO - Запуск VK бота...
+2026-04-25 00:52:08,789 - vkbottle - INFO - Loop will be run forever
+2026-04-25 00:52:09,327 - vkbottle - INFO - Starting BotPolling for <API token_generator=<<class 'vkbottle.api.token_generator.single.SingleTokenGenerator'>>...>
+2026-04-25 00:54:25,175 - vkbottle - INFO - Caught keyboard interrupt. Shutting down...
+2026-04-25 00:59:17,890 - __main__ - INFO - Модуль commands загружен
+2026-04-25 00:59:17,891 - __main__ - INFO - Модуль admin_handler загружен
+2026-04-25 00:59:22,072 - __main__ - INFO - Модуль user_handler загружен
+2026-04-25 00:59:22,075 - __main__ - INFO - Модуль debug_handler загружен
+2026-04-25 00:59:22,076 - __main__ - INFO - Модуль new_user_handler загружен
+2026-04-25 00:59:22,076 - __main__ - INFO - Запуск VK бота...
+2026-04-25 00:59:22,076 - vkbottle - INFO - Loop will be run forever
+2026-04-25 00:59:22,610 - vkbottle - INFO - Starting BotPolling for <API token_generator=<<class 'vkbottle.api.token_generator.single.SingleTokenGenerator'>>...>
+2026-04-25 01:11:15,203 - vkbottle - INFO - Caught keyboard interrupt. Shutting down...
+2026-04-25 03:01:13,459 - __main__ - INFO - Модуль commands загружен
+2026-04-25 03:01:13,462 - __main__ - INFO - Модуль admin_handler загружен
+2026-04-25 03:01:18,341 - __main__ - INFO - Модуль user_handler загружен
+2026-04-25 03:01:18,345 - __main__ - INFO - Модуль debug_handler загружен
+2026-04-25 03:01:18,346 - __main__ - INFO - Модуль new_user_handler загружен
+2026-04-25 03:01:18,346 - __main__ - INFO - Запуск VK бота...
+2026-04-25 03:01:18,346 - vkbottle - INFO - Loop will be run forever
+2026-04-25 03:01:18,847 - vkbottle - INFO - Starting BotPolling for <API token_generator=<<class 'vkbottle.api.token_generator.single.SingleTokenGenerator'>>...>
+2026-04-25 03:11:57,726 - vkbottle - INFO - Caught keyboard interrupt. Shutting down...
+2026-04-25 03:12:53,513 - __main__ - INFO - Модуль commands загружен
+2026-04-25 03:12:53,514 - __main__ - INFO - Модуль admin_handler загружен
+2026-04-25 03:12:57,409 - __main__ - INFO - Модуль user_handler загружен
+2026-04-25 03:12:57,412 - __main__ - INFO - Модуль debug_handler загружен
+2026-04-25 03:12:57,413 - __main__ - INFO - Модуль new_user_handler загружен
+2026-04-25 03:12:57,413 - __main__ - INFO - Запуск VK бота...
+2026-04-25 03:12:57,413 - vkbottle - INFO - Loop will be run forever
+2026-04-25 03:12:57,878 - vkbottle - INFO - Starting BotPolling for <API token_generator=<<class 'vkbottle.api.token_generator.single.SingleTokenGenerator'>>...>
+2026-04-25 03:13:40,792 - vkbottle - INFO - Caught keyboard interrupt. Shutting down...
+2026-04-25 03:15:35,299 - __main__ - INFO - Модуль commands загружен
+2026-04-25 03:15:35,300 - __main__ - INFO - Модуль admin_handler загружен
+2026-04-25 03:15:39,522 - __main__ - INFO - Модуль user_handler загружен
+2026-04-25 03:15:39,525 - __main__ - INFO - Модуль debug_handler загружен
+2026-04-25 03:15:39,526 - __main__ - INFO - Модуль new_user_handler загружен
+2026-04-25 03:15:39,526 - __main__ - INFO - Запуск VK бота...
+2026-04-25 03:15:39,526 - vkbottle - INFO - Loop will be run forever
+2026-04-25 03:15:40,025 - vkbottle - INFO - Starting BotPolling for <API token_generator=<<class 'vkbottle.api.token_generator.single.SingleTokenGenerator'>>...>
+2026-04-25 03:17:42,819 - vkbottle - INFO - Caught keyboard interrupt. Shutting down...
+2026-04-30 15:17:38,736 - __main__ - INFO - Модуль commands загружен
+2026-04-30 15:17:38,738 - __main__ - INFO - Модуль admin_handler загружен
+2026-04-30 15:17:42,792 - __main__ - INFO - Модуль user_handler загружен
+2026-04-30 15:17:42,797 - __main__ - INFO - Модуль debug_handler загружен
+2026-04-30 15:17:42,798 - __main__ - INFO - Модуль new_user_handler загружен
+2026-04-30 15:17:42,799 - __main__ - INFO - Запуск VK бота...
+2026-04-30 15:17:42,799 - vkbottle - INFO - Loop will be run forever
+2026-04-30 15:17:43,421 - vkbottle - INFO - Starting BotPolling for <API token_generator=<<class 'vkbottle.api.token_generator.single.SingleTokenGenerator'>>...>
+2026-04-30 15:20:57,172 - vkbottle - INFO - Caught keyboard interrupt. Shutting down...
+2026-05-02 13:42:18,607 - __main__ - INFO - Модуль commands загружен
+2026-05-02 13:42:18,609 - __main__ - INFO - Модуль admin_handler загружен
+2026-05-02 13:42:22,794 - __main__ - INFO - Модуль user_handler загружен
+2026-05-02 13:42:22,799 - __main__ - INFO - Модуль debug_handler загружен
+2026-05-02 13:42:22,801 - __main__ - INFO - Модуль new_user_handler загружен
+2026-05-02 13:42:22,801 - __main__ - INFO - Запуск VK бота...
+2026-05-02 13:42:22,802 - vkbottle - INFO - Loop will be run forever
+2026-05-02 13:42:23,297 - vkbottle - INFO - Starting BotPolling for <API token_generator=<<class 'vkbottle.api.token_generator.single.SingleTokenGenerator'>>...>
+2026-05-02 13:47:04,650 - VKBot.handlers.commands - INFO - Вызов команды /goadmin от пользователя 134063156
+2026-05-02 15:37:17,010 - vkbottle - ERROR - Unable to make request to BotPolling, retrying...
+2026-05-02 15:37:17,116 - vkbottle - ERROR - Unable to make request to BotPolling, retrying...
+2026-05-02 15:37:17,326 - vkbottle - ERROR - Unable to make request to BotPolling, retrying...
+2026-05-02 15:37:17,635 - vkbottle - ERROR - Unable to make request to BotPolling, retrying...
+2026-05-02 16:22:39,504 - vkbottle - ERROR - Unable to make request to BotPolling, retrying...
+2026-05-02 16:22:40,018 - vkbottle - ERROR - Unable to make request to BotPolling, retrying...
+2026-05-02 16:22:40,627 - vkbottle - ERROR - Unable to make request to BotPolling, retrying...
+2026-05-02 16:22:41,335 - vkbottle - ERROR - Unable to make request to BotPolling, retrying...
+2026-05-02 16:22:42,146 - vkbottle - ERROR - Unable to make request to BotPolling, retrying...
+2026-05-02 16:22:43,057 - vkbottle - ERROR - Unable to make request to BotPolling, retrying...
+2026-05-02 16:22:44,069 - vkbottle - ERROR - Unable to make request to BotPolling, retrying...
+2026-05-02 16:23:52,054 - vkbottle - INFO - Caught keyboard interrupt. Shutting down...
+2026-05-02 20:41:12,673 - __main__ - INFO - Модуль commands загружен
+2026-05-02 20:41:12,674 - __main__ - INFO - Модуль admin_handler загружен
+2026-05-02 20:41:16,666 - __main__ - INFO - Модуль user_handler загружен
+2026-05-02 20:41:16,668 - __main__ - INFO - Модуль debug_handler загружен
+2026-05-02 20:41:16,669 - __main__ - INFO - Модуль new_user_handler загружен
+2026-05-02 20:41:16,669 - __main__ - INFO - Запуск VK бота...
+2026-05-02 20:41:16,670 - vkbottle - INFO - Loop will be run forever
+2026-05-02 20:41:17,231 - vkbottle - INFO - Starting BotPolling for <API token_generator=<<class 'vkbottle.api.token_generator.single.SingleTokenGenerator'>>...>
+2026-05-02 20:52:48,241 - vkbottle - ERROR - Unable to make request to BotPolling, retrying...
+2026-05-02 20:53:54,673 - VKBot.handlers.new_user_handler - INFO - Обработка new-команды: new:menu:get от user_id=134063156
+2026-05-02 20:53:54,752 - VKBot.handlers.new_user_handler - INFO - Сообщение успешно отредактировано (new:menu:get)
+2026-05-02 20:54:08,699 - VKBot.handlers.new_user_handler - INFO - Обработка new-команды: new:menu:help от user_id=134063156
+2026-05-02 20:54:11,278 - VKBot.handlers.new_user_handler - INFO - Обработка new-команды: new:menu:get от user_id=134063156
+2026-05-02 20:54:11,371 - VKBot.handlers.new_user_handler - INFO - Сообщение успешно отредактировано (new:menu:get)
+2026-05-02 20:54:13,402 - VKBot.handlers.new_user_handler - INFO - Обработка new-команды: new:menu:get_invite от user_id=134063156
+2026-05-02 20:56:42,732 - VKBot.handlers.new_user_handler - INFO - Обработка new-команды: new:menu:get от user_id=134063156
+2026-05-02 20:56:42,842 - VKBot.handlers.new_user_handler - INFO - Сообщение успешно отредактировано (new:menu:get)
+2026-05-02 20:56:45,227 - VKBot.handlers.new_user_handler - INFO - Обработка new-команды: new:menu:help от user_id=134063156
+2026-05-02 20:58:19,366 - VKBot.handlers.new_user_handler - INFO - Обработка new-команды: new:menu:get от user_id=134063156
+2026-05-02 20:58:19,531 - VKBot.handlers.new_user_handler - INFO - Сообщение успешно отредактировано (new:menu:get)
+2026-05-02 20:58:20,362 - VKBot.handlers.new_user_handler - INFO - Обработка new-команды: new:menu:id от user_id=134063156
+2026-05-02 21:08:52,772 - VKBot.handlers.new_user_handler - INFO - Обработка new-команды: new:menu:get от user_id=134063156
+2026-05-02 21:08:52,969 - VKBot.handlers.new_user_handler - INFO - Сообщение успешно отредактировано (new:menu:get)
+2026-05-02 21:08:56,131 - VKBot.handlers.new_user_handler - INFO - Обработка new-команды: new:menu:get_invite от user_id=134063156
+2026-05-02 22:22:39,037 - vkbottle - INFO - Caught keyboard interrupt. Shutting down...
+2026-05-02 22:22:47,492 - __main__ - INFO - Модуль commands загружен
+2026-05-02 22:22:47,493 - __main__ - INFO - Модуль admin_handler загружен
+2026-05-02 22:22:51,286 - __main__ - INFO - Модуль user_handler загружен
+2026-05-02 22:22:51,289 - __main__ - INFO - Модуль debug_handler загружен
+2026-05-02 22:22:51,290 - __main__ - INFO - Модуль new_user_handler загружен
+2026-05-02 22:22:51,290 - __main__ - INFO - Запуск VK бота...
+2026-05-02 22:22:51,290 - vkbottle - INFO - Loop will be run forever
+2026-05-02 22:22:51,757 - vkbottle - INFO - Starting BotPolling for <API token_generator=<<class 'vkbottle.api.token_generator.single.SingleTokenGenerator'>>...>
+2026-05-02 22:30:34,011 - VKBot.handlers.commands - INFO - Вызов команды /start от пользователя 367581007
+2026-05-02 22:30:41,881 - VKBot.handlers.new_user_handler - INFO - Обработка new-команды: new:menu:get от user_id=367581007
+2026-05-02 22:30:41,964 - VKBot.handlers.new_user_handler - INFO - Сообщение успешно отредактировано (new:menu:get)
+2026-05-02 22:30:53,710 - VKBot.handlers.new_user_handler - INFO - Обработка new-команды: new:menu:get_invite от user_id=367581007
+2026-05-02 22:31:22,196 - VKBot.handlers.new_user_handler - INFO - Обработка new-команды: new:menu:get от user_id=367581007
+2026-05-02 22:31:22,285 - VKBot.handlers.new_user_handler - INFO - Сообщение успешно отредактировано (new:menu:get)
+2026-05-02 22:31:25,193 - VKBot.handlers.new_user_handler - INFO - Обработка new-команды: new:menu:get_invite от user_id=367581007
+2026-05-02 22:31:29,554 - VKBot.handlers.user_handler - ERROR - Ошибка в process_camera_request: Ошибка подключения к камере
+2026-05-02 22:33:00,029 - VKBot.handlers.new_user_handler - INFO - Обработка new-команды: new:menu:get от user_id=367581007
+2026-05-02 22:33:00,140 - VKBot.handlers.new_user_handler - INFO - Сообщение успешно отредактировано (new:menu:get)
+2026-05-02 22:33:04,272 - VKBot.handlers.new_user_handler - INFO - Обработка new-команды: new:menu:get_invite от user_id=367581007
+2026-05-02 22:33:16,805 - VKBot.handlers.new_user_handler - INFO - Обработка new-команды: new:menu:get от user_id=367581007
+2026-05-02 22:33:16,895 - VKBot.handlers.new_user_handler - INFO - Сообщение успешно отредактировано (new:menu:get)
+2026-05-02 22:33:25,469 - VKBot.handlers.new_user_handler - INFO - Обработка new-команды: new:menu:get_invite от user_id=367581007
+2026-05-02 22:33:55,294 - vkbottle - INFO - Caught keyboard interrupt. Shutting down...

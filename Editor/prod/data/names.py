@@ -206,6 +206,7 @@ NAMES = {
         "connect.form.port": "Порт:",
         "connect.form.stream.path": "Путь к потоку:",
         "connect.form.config": "Конфиг распознавания:",
+        "connect.form.timer": "Скорость обновления (мс)",
 
 
     },
@@ -416,6 +417,7 @@ NAMES = {
         "connect.form.port": "Port:",
         "connect.form.stream.path": "Stream path:",
         "connect.form.config": "Detection config:",
+        "connect.form.timer": "Refresh Speed (ms)",
 
     },
 

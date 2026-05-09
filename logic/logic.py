@@ -140,30 +140,37 @@ def detect_on_raw_image(input_image,config):
         print(f"❌ Ошибка детекции: {e}")
         return 0, [], []
 
-def comparison(saved_data = None,detected_car_data = None, nums:bool=False):
-    ###поиск позиции по точке внутри полигона из приложения
-    ###1 - делаем центральную точку внутри позиции найденного авто
-    ###2 - ищем точку внутри
+def comparison(saved_data:list = None,detected_car_data:list = None, nums:bool=False):
+    '''
+    Поиск занятого места по точке из массива распознанных автомобилей
+        saved_data - массив из файла сохранения (маски)
+        detected_Car_data - массив из найденных автомобилей системой распознавания Yolo
+        nums - переключатель нумерации в статистике
+    Алгоритм:
+    №1 - ищем центральную точку внутри позиции найденного авто
+    №2 - проверяем есть ли точка найденного автомобиля в одном из полигонов заданных пользователем ищем точку внутри
+    '''
     if not detected_car_data:
-        return [], []
+        return []
     detect_center_list = []
-    ### нахождение центральной точки в найденных машинах
+    # №1 ниже цикл по нахождению центральной точки
     for i in range(len(detected_car_data)):
-        tempdata_x1 = detected_car_data[i][0][0]
-        tempdata_x2 = detected_car_data[i][1][0]
+        data = detected_car_data[i]
+        tempdata_x1 = data[0][0]
+        tempdata_x2 = data[1][0]
         center_x = ((tempdata_x2 - tempdata_x1) / 2) + tempdata_x1
-        tempdata_y1 = detected_car_data[i][0][1]
-        tempdata_y2 = detected_car_data[i][2][1]
+        tempdata_y1 = data[0][1]
+        tempdata_y2 = data[2][1]
         center_y = ((tempdata_y2 - tempdata_y1) / 2) + tempdata_y1
-        detect_center_list.append((center_x,center_y))  #### ====== 1 ======
-
+        detect_center_list.append((center_x,center_y))
     occupied = []
     free = []
-    #print(f"Найденные машины: {detect_center_list}")
+    def is_inside_polygon(point, polygon): # Вложенная функция, чтобы избавиться от повторения
+        polygon_np = np.array(polygon).astype(np.int32)
+        result = cv2.pointPolygonTest(polygon_np, point, False)
+        return result >= 0
 
-    ###фильтр данных, сопоставление
-    #print("Список сохраненных парковочных мест: ",saved_data)
-    for num,i in enumerate(saved_data):
+    for num,i in enumerate(saved_data): # №2 Поиск найденных автомобилей в заданных парковочных местах
         found_car = False
         for current_center in range(len(detect_center_list)):
             if is_inside_polygon(detect_center_list[current_center],i["points"]):
@@ -178,9 +185,6 @@ def comparison(saved_data = None,detected_car_data = None, nums:bool=False):
                 free.append([num,i["name"]])
             else:
                 free.append(i["name"])
-
-    #debug_print(occupied, free,saved_data) ##вывод информации в консоль
-    #print([occupied, free])
     return [occupied, free]
 
 def debug_print(occupied, free,saved_data):
@@ -197,7 +201,3 @@ def debug_print(occupied, free,saved_data):
         print(f"   • {spot}")
     print(f"\n📊 ИТОГО: {len(occupied)}/{len(saved_data)} мест занято")
 
-def is_inside_polygon(point, polygon):
-    polygon_np = np.array(polygon).astype(np.int32)
-    result = cv2.pointPolygonTest(polygon_np,point,False)
-    return result >= 0
